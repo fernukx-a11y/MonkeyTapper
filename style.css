@@ -58,18 +58,18 @@ body {
     box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
 }
 
-/* Область клика с картинкой (под твою монетку) */
+/* Область клика с идеальным золотым кругом без серого фона */
 #tap-area {
     width: 220px;
     height: 220px;
     margin: 20px auto;
     border-radius: 50%;
-    background-color: #1a1a2e;
+    background-color: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border: none;
+    border: 4px solid #f39c12;
     cursor: pointer;
     box-shadow: 0 0 25px rgba(243, 156, 18, 0.4);
     transition: transform 0.1s ease;
@@ -81,12 +81,13 @@ body {
     transform: scale(0.95);
 }
 
-/* Картинка аккуратно вписывается в круг */
+/* Картинка аккуратно заполняет круг */
 #monkey-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     display: block;
+    border-radius: 50%;
     pointer-events: none;
 }
 
