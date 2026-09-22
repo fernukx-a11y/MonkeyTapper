@@ -81,13 +81,13 @@ body {
 
 /* Сама картинка теперь большая и красивая, с фоном и рамкой */
 #monkey-img {
-    width: 220px;
-    height: 220px;
+    width: 280px;
+    height: 280px;
     object-fit: contain;
-    background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, rgba(24, 24, 27, 0.8) 70%);
+    background: radial-gradient(circle, rgba(250, 204, 21, 0.25) 0%, rgba(24, 24, 27, 0.8) 75%);
     border-radius: 50%;
-    border: 3px solid rgba(250, 204, 21, 0.5);
-    box-shadow: 0 0 25px rgba(250, 204, 21, 0.2);
+    border: 3px solid rgba(250, 204, 21, 0.6);
+    box-shadow: 0 0 35px rgba(250, 204, 21, 0.3);
     padding: 10px;
 }
 
