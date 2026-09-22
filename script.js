@@ -28,14 +28,21 @@ function getUserId() {
     return localDevId;
 }
 
-// Получение ID пригласившего из параметров Telegram WebApp
+// Получение ID пригласившего из параметров Telegram WebApp с отладкой
 function getReferrerId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
+    console.log("Telegram WebApp объект:", tg);
+    console.log("initDataUnsafe:", tg ? tg.initDataUnsafe : "нет tg");
+    console.log("start_param:", tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : "нет start_param");
+
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
         return tg.initDataUnsafe.start_param.toString();
     }
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || null;
+    const paramFromUrl = urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || urlParams.get("start");
+    console.log("Параметр из URL:", paramFromUrl);
+    
+    return paramFromUrl || null;
 }
 
 function sanitizeNumber(val, fallback) {
@@ -94,6 +101,7 @@ function saveData() {
 // Обработка реферального бонуса при первом входе
 async function processReferral(userId) {
     const referrerId = getReferrerId();
+    console.log("processReferral запущен. ID пользователя:", userId, "ID пригласившего:", referrerId);
     if (!referrerId || referrerId === userId) return;
 
     try {
@@ -195,7 +203,6 @@ async function loadData() {
 
 function shareReferralLink() {
     const userId = getUserId();
-    // Используем корректный параметр startapp для открытия мини-приложения
     const shareUrl = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
