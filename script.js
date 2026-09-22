@@ -506,26 +506,40 @@ function switchScreen(screenName) {
     }
 }
 
-// Поддержка свайпов пальцем влево и вправо
+// Улучшенная поддержка свайпов для телефонов
 let touchStartX = 0;
+let touchStartY = 0;
 let touchEndX = 0;
+let touchEndY = 0;
 
 document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-});
+    if (e.changedTouches && e.changedTouches.length > 0) {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }
+}, { passive: true });
 
 document.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    handleSwipe();
-});
+    if (e.changedTouches && e.changedTouches.length > 0) {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        handleSwipe();
+    }
+}, { passive: true });
 
 function handleSwipe() {
-    const swipeThreshold = 50;
-    if (touchEndX < touchStartX - swipeThreshold) {
-        switchScreen('boosts'); // Свайп влево
-    }
-    if (touchEndX > touchStartX + swipeThreshold) {
-        switchScreen('game'); // Свайп вправо
+    const swipeThreshold = 50; 
+    const verticalThreshold = 100; 
+    
+    const diffX = touchEndX - touchStartX;
+    const diffY = Math.abs(touchEndY - touchStartY);
+
+    if (diffY < verticalThreshold) {
+        if (diffX < -swipeThreshold) {
+            switchScreen('boosts'); // Свайп влево
+        } else if (diffX > swipeThreshold) {
+            switchScreen('game'); // Свайп вправо
+        }
     }
 }
 
