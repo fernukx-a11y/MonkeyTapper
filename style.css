@@ -63,10 +63,12 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
-/* ЗОНА КЛИКА: это и есть наш неизменный золотой круг с контуром */
+/* Золотой круг — размер фиксированный */
 #tap-area {
     width: 220px;
     height: 220px;
+    min-width: 220px;
+    min-height: 220px;
     margin: auto;
     display: flex;
     justify-content: center;
@@ -77,7 +79,7 @@ body {
     background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, rgba(24, 24, 27, 0.9) 70%);
     border: 3px solid #facc15;
     box-shadow: 0 0 30px rgba(250, 204, 21, 0.25);
-    overflow: hidden; /* Обрезает всё, что выходит за пределы золотого круга */
+    overflow: hidden;
     transition: transform 0.05s ease;
 }
 
@@ -85,13 +87,13 @@ body {
     transform: scale(0.95);
 }
 
-/* САМА ОБЕЗЬЯНА: увеличиваем её визуально внутри круга, а клики по её углам отключаем */
+/* Обезьяна увеличивается отдельно от круга */
 #monkey-img {
-    width: 130px;
-    height: 130px;
+    position: absolute;
+    width: 190px;
+    height: 190px;
     object-fit: contain;
-    transform: scale(1.6); /* Делаем обезьяну крупной */
-    pointer-events: none; /* Запрещаем клики по квадрату картинки, кликается только круг */
+    pointer-events: none;
 }
 
 .energy-container {
@@ -183,6 +185,7 @@ body {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
+
     100% {
         opacity: 0;
         transform: translateY(-50px) scale(1.2);
@@ -245,9 +248,17 @@ body {
     font-size: 13px;
 }
 
-.top-1 { border-left: 4px solid #facc15; }
-.top-2 { border-left: 4px solid #94a3b8; }
-.top-3 { border-left: 4px solid #b45309; }
+.top-1 {
+    border-left: 4px solid #facc15;
+}
+
+.top-2 {
+    border-left: 4px solid #94a3b8;
+}
+
+.top-3 {
+    border-left: 4px solid #b45309;
+}
 
 .loading-text {
     text-align: center;
