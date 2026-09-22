@@ -78,7 +78,7 @@ body, html {
     box-sizing: border-box;
     gap: 12px;
     position: relative;
-    z-index: 2; /* Поверх фоновых бананов */
+    z-index: 2; /* Ниже навигации, но поверх бананов */
 }
 
 .screen.active {
@@ -292,7 +292,7 @@ body, html {
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 10; /* Поверх всего */
+    z-index: 50; /* Строго выше экранов и фона, чтобы клики работали */
 }
 
 .nav-item {
