@@ -1,8 +1,9 @@
 let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
-let tapPower = 1; // Уровень силы клика (+1, +2, +3...)
+let tapPower = 1;
 let multitapCost = 50;
+let lastSaveTime = Date.now();
 
 let saveTimeout = null;
 
@@ -12,8 +13,16 @@ function sanitizeNumber(val, fallback) {
 }
 
 function calculateCost(power) {
-    // Формула цены: 50 * (2 ^ (power - 1)) => 50, 100, 200, 400, 800...
     return 50 * Math.pow(2, power - 1);
+}
+
+function applyOfflineEnergy() {
+    const now = Date.now();
+    const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
+    if (secondsPassed > 0) {
+        energy = Math.min(maxEnergy, energy + secondsPassed);
+    }
+    lastSaveTime = now;
 }
 
 function initApp() {
@@ -37,7 +46,13 @@ function initApp() {
                     if (!errP && valP !== null) tapPower = sanitizeNumber(valP, 1);
                     else tapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
                     
-                    updateUI();
+                    tg.CloudStorage.getItem("user_last_time", (errT, valT) => {
+                        if (!errT && valT !== null) lastSaveTime = sanitizeNumber(valT, Date.now());
+                        else lastSaveTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
+                        
+                        applyOfflineEnergy();
+                        updateUI();
+                    });
                 });
             });
         });
@@ -45,6 +60,9 @@ function initApp() {
         coins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
         energy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
         tapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
+        lastSaveTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
+        
+        applyOfflineEnergy();
         updateUI();
     }
 
@@ -52,9 +70,12 @@ function initApp() {
 }
 
 function saveCoins() {
+    lastSaveTime = Date.now();
+    
     localStorage.setItem("user_coins", coins.toString());
     localStorage.setItem("user_energy", energy.toString());
     localStorage.setItem("user_tap_power", tapPower.toString());
+    localStorage.setItem("user_last_time", lastSaveTime.toString());
 
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -63,6 +84,7 @@ function saveCoins() {
             tg.CloudStorage.setItem("user_coins", coins.toString());
             tg.CloudStorage.setItem("user_energy", energy.toString());
             tg.CloudStorage.setItem("user_tap_power", tapPower.toString());
+            tg.CloudStorage.setItem("user_last_time", lastSaveTime.toString());
         }
     }, 300);
 }
@@ -91,13 +113,11 @@ function updateUI() {
         energyBarFill.style.width = percentage + "%";
     }
 
-    // Обновляем кнопку прокачки
     if (multitapLevel) multitapLevel.textContent = tapPower;
     if (multitapPower) multitapPower.textContent = tapPower;
     if (multitapCostDisplay) multitapCostDisplay.textContent = multitapCost;
     
     if (multitapBtn) {
-        // Делаем кнопку неактивной, если не хватает монет
         multitapBtn.disabled = coins < multitapCost;
     }
 }
