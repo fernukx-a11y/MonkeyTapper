@@ -372,7 +372,7 @@ function initApp() {
     }
 
     loadData();
-    initBackgroundBananas(); // Запускаем анимацию падающих бананов
+    initBackgroundBananas();
     setInterval(regenEnergy, 1000);
 }
 
@@ -487,6 +487,46 @@ function handleTap(e) {
     }
     
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
+}
+
+// Функция переключения экранов по кнопкам
+function switchScreen(screenName) {
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(scr => scr.classList.remove('active'));
+
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => item.classList.remove('active'));
+
+    if (screenName === 'game') {
+        document.getElementById('screen-game').classList.add('active');
+        navItems[0].classList.add('active');
+    } else if (screenName === 'boosts') {
+        document.getElementById('screen-boosts').classList.add('active');
+        navItems[1].classList.add('active');
+    }
+}
+
+// Поддержка свайпов пальцем влево и вправо
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const swipeThreshold = 50;
+    if (touchEndX < touchStartX - swipeThreshold) {
+        switchScreen('boosts'); // Свайп влево
+    }
+    if (touchEndX > touchStartX + swipeThreshold) {
+        switchScreen('game'); // Свайп вправо
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
