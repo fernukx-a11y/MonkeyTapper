@@ -1,8 +1,8 @@
 // ==========================================
-// НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ):
+// НАСТРОЙКИ:
 const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6"; 
-const BOT_USERNAME = "MonkeyTapperTGbot"; // Имя бота без символа @ и без точки на конце
+const BOT_USERNAME = "MonkeyTapperTGbot";
 // ==========================================
 
 let coins = 0;
@@ -28,27 +28,20 @@ function getUserId() {
     return localDevId;
 }
 
-// Получение ID пригласившего из всех возможных источников
 function getReferrerId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    
-    // 1. Проверяем стандартный start_param от Telegram WebApp
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
         return tg.initDataUnsafe.start_param.toString();
     }
-    
-    // 2. Проверяем параметры в обычной строке URL
     const urlParams = new URLSearchParams(window.location.search);
     let paramFromUrl = urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || urlParams.get("start");
     if (paramFromUrl) return paramFromUrl.toString();
 
-    // 3. Проверяем хэш
     if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         let paramFromHash = hashParams.get("tgWebAppStartParam") || hashParams.get("startapp") || hashParams.get("start");
         if (paramFromHash) return paramFromHash.toString();
     }
-
     return null;
 }
 
@@ -105,10 +98,8 @@ function saveData() {
     }, 500);
 }
 
-// Обработка реферального бонуса
 async function processReferral(userId) {
     const referrerId = getReferrerId();
-    
     if (!referrerId || referrerId === userId) return;
 
     try {
@@ -163,13 +154,12 @@ async function loadReferralCount(userId) {
         const data = await response.json();
         referralCount = data.length || 0;
         const refCountEl = document.getElementById("ref-count");
-        if (refCountEl) refCountEl.textContent = "Приглашено друзей: " + referralCount;
+        if (refCountEl) refCountEl.textContent = "Приглашено: " + referralCount;
     } catch (e) {
         console.error("Ошибка загрузки рефералов:", e);
     }
 }
 
-// Выдача награды за подписку на канал
 async function claimChannelReward() {
     const userId = getUserId();
     const channelUrl = "https://t.me/monkeytapper";
@@ -210,7 +200,7 @@ async function claimChannelReward() {
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
-                channelBtn.textContent = "✅ Награда получена";
+                channelBtn.querySelector(".upgrade-title").textContent = "✅ Награда получена";
                 channelBtn.disabled = true;
             }
         }
@@ -219,7 +209,6 @@ async function claimChannelReward() {
     }
 }
 
-// Проверка статуса подписки при старте игры
 async function checkChannelStatus(userId) {
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/channel_subscriptions?user_id=eq.${userId}&select=*`, {
@@ -229,12 +218,58 @@ async function checkChannelStatus(userId) {
         if (data && data.length > 0) {
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
-                channelBtn.textContent = "✅ Награда получена";
+                channelBtn.querySelector(".upgrade-title").textContent = "✅ Награда получена";
                 channelBtn.disabled = true;
             }
         }
     } catch (e) {
         console.error("Ошибка проверки статуса подписки:", e);
+    }
+}
+
+// ЗАГРУЗКА ТАБЛИЦЫ ЛИДЕРОВ (ТОП-10)
+async function loadLeaderboard() {
+    const listContainer = document.getElementById("leaderboard-list");
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<p class="loading-text">Загрузка рейтинга...</p>';
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?select=user_id,coins&order=coins.desc&limit=10`, {
+            headers: { 
+                "apikey": SUPABASE_ANON_KEY, 
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
+            }
+        });
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            listContainer.innerHTML = '<p class="loading-text">Пока нет игроков в рейтинге</p>';
+            return;
+        }
+
+        let html = "";
+        data.forEach((player, index) => {
+            const rank = index + 1;
+            let rankClass = "";
+            if (rank === 1) rankClass = "top-1";
+            else if (rank === 2) rankClass = "top-2";
+            else if (rank === 3) rankClass = "top-3";
+
+            let shortName = "Игрок " + player.user_id.toString().substring(0, 6);
+
+            html += `
+                <div class="leader-item ${rankClass}">
+                    <span>#${rank} ${shortName}</span>
+                    <span>💰 ${Number(player.coins).toLocaleString()}</span>
+                </div>
+            `;
+        });
+
+        listContainer.innerHTML = html;
+    } catch (e) {
+        console.error("Ошибка загрузки лидеров:", e);
+        listContainer.innerHTML = '<p class="loading-text">Ошибка загрузки рейтинга</p>';
     }
 }
 
@@ -315,7 +350,7 @@ function updateUI() {
     const multitapCostDisplay = document.getElementById("multitap-cost");
     const multitapBtn = document.getElementById("multitap-btn");
 
-    if (coinsDisplay) coinsDisplay.textContent = "💰 Монеты: " + coins;
+    if (coinsDisplay) coinsDisplay.textContent = coins.toLocaleString();
     if (energyDisplay) energyDisplay.textContent = energy;
     
     if (energyBarFill) {
@@ -429,4 +464,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (channelBtn) {
         channelBtn.addEventListener("click", claimChannelReward);
     }
+
+    // ЛОГИКА МОДАЛЬНОГО ОКНА ТАБЛИЦЫ ЛИДЕРОВ
+    const modal = document.getElementById("leaderboard-modal");
+    const leaderboardBtn = document.getElementById("leaderboard-btn");
+    const closeModal = document.getElementById("close-modal");
+
+    if (leaderboardBtn && modal) {
+        leaderboardBtn.addEventListener("click", () => {
+            modal.style.display = "flex";
+            loadLeaderboard();
+        });
+    }
+
+    if (closeModal && modal) {
+        closeModal.addEventListener("click", () => {
+            modal.style.display = "none";
+        });
+    }
+
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    });
 });
