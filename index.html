@@ -4,58 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <link rel="stylesheet" href="style.css?v=106">
+    <link rel="stylesheet" href="style.css?v=107">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="game-container">
-        <!-- Шапка с балансом и кнопкой Топа -->
-        <div class="header">
-            <div>
-                <h1>Monkey Tapper</h1>
-                <p id="coins-display">0</p>
-            </div>
-            <button id="leaderboard-btn" class="top-btn">🏆 Топ</button>
-        </div>
-
-        <!-- Область клика по обезьянке -->
-        <div id="tap-area">
-            <img id="monkey-img" src="monkey.png?v=106" alt="Monkey">
-        </div>
-
-        <!-- Энергия -->
-        <div class="energy-container">
-            <div class="energy-text">⚡ <span id="energy-display">1000</span> / 1000</div>
-            <div class="energy-bar-bg">
-                <div id="energy-bar-fill" class="energy-bar-fill"></div>
-            </div>
-        </div>
-
-        <!-- Улучшения и кнопки -->
-        <div class="upgrades-container">
-            <button id="multitap-btn" class="upgrade-btn">
-                <div class="upgrade-info">
-                    <span class="upgrade-title">Мультитап (Ур. <span id="multitap-level">1</span>)</span>
-                    <span class="upgrade-desc">+<span id="multitap-power">1</span> за тап</span>
+        
+        <!-- ЭКРАН 1: КЛИКЕР -->
+        <div id="screen-game" class="screen active">
+            <div class="header">
+                <div>
+                    <h1>Monkey Tapper</h1>
+                    <p id="coins-display">0</p>
                 </div>
-                <span class="upgrade-cost"><span id="multitap-cost">50</span> 💰</span>
-            </button>
+                <button id="leaderboard-btn" class="top-btn">🏆 Топ</button>
+            </div>
+
+            <!-- Область клика по обезьянке -->
+            <div id="tap-area">
+                <img id="monkey-img" src="monkey.png?v=107" alt="Monkey">
+            </div>
+
+            <!-- Энергия -->
+            <div class="energy-container">
+                <div class="energy-text">⚡ <span id="energy-display">1000</span> / 1000</div>
+                <div class="energy-bar-bg">
+                    <div id="energy-bar-fill" class="energy-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН 2: УЛУЧШЕНИЯ И БОНУСЫ -->
+        <div id="screen-boosts" class="screen">
+            <div class="header">
+                <h2>🚀 Улучшения</h2>
+            </div>
             
-            <button id="ref-btn" class="upgrade-btn" style="margin-top: 10px;">
-                <div class="upgrade-info">
-                    <span class="upgrade-title">👥 Пригласить друзей</span>
-                    <span class="upgrade-desc" id="ref-count">Приглашено: 0</span>
-                </div>
-                <span class="upgrade-cost">+5000 💰</span>
-            </button>
+            <div class="upgrades-container">
+                <button id="multitap-btn" class="upgrade-btn">
+                    <div class="upgrade-info">
+                        <span class="upgrade-title">Мультитап (Ур. <span id="multitap-level">1</span>)</span>
+                        <span class="upgrade-desc">+<span id="multitap-power">1</span> за тап</span>
+                    </div>
+                    <span class="upgrade-cost"><span id="multitap-cost">50</span> 💰</span>
+                </button>
+                
+                <button id="ref-btn" class="upgrade-btn" style="margin-top: 10px;">
+                    <div class="upgrade-info">
+                        <span class="upgrade-title">👥 Пригласить друзей</span>
+                        <span class="upgrade-desc" id="ref-count">Приглашено: 0</span>
+                    </div>
+                    <span class="upgrade-cost">+5000 💰</span>
+                </button>
 
-            <button id="channel-btn" class="upgrade-btn" style="margin-top: 10px;">
-                <div class="upgrade-info">
-                    <span class="upgrade-title">📢 Подписаться на канал</span>
-                    <span class="upgrade-desc">Бонус за подписку</span>
-                </div>
-                <span class="upgrade-cost">+5000 💰</span>
-            </button>
+                <button id="channel-btn" class="upgrade-btn" style="margin-top: 10px;">
+                    <div class="upgrade-info">
+                        <span class="upgrade-title">📢 Подписаться на канал</span>
+                        <span class="upgrade-desc">Бонус за подписку</span>
+                    </div>
+                    <span class="upgrade-cost">+5000 💰</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ (ВКЛАДКИ) -->
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchScreen('game')">🐵 Кликать</button>
+            <button class="nav-item" onclick="switchScreen('boosts')">⚡ Прокачка</button>
         </div>
     </div>
 
@@ -70,6 +85,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=106"></script>
+    <script src="script.js?v=107"></script>
 </body>
 </html>
