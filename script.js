@@ -26,12 +26,10 @@ let saveTimeout = null;
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
-    // 1. Пробуем получить из initDataUnsafe
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
         return tg.initDataUnsafe.user.id.toString();
     }
     
-    // 2. Пробуем распарсить initData вручную (для мобильных версий Telegram)
     if (tg && tg.initData) {
         try {
             const urlParams = new URLSearchParams(tg.initData);
@@ -47,7 +45,6 @@ function getUserId() {
         }
     }
 
-    // 3. Запасной вариант для ПК / обычной вкладки (сохраняется навсегда в браузере)
     let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
         localDevId = "user_" + Math.random().toString(36).substring(2, 10);
@@ -600,19 +597,19 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ
 function switchScreen(screenName) {
-    const screens = document.querySelectorAll('.screen');
-    screens.forEach(scr => scr.classList.remove('active'));
-
+    const screensWrapper = document.querySelector('.screens-wrapper');
     const navItems = document.querySelectorAll('.nav-item');
+    
     navItems.forEach(item => item.classList.remove('active'));
 
     if (screenName === 'game') {
-        document.getElementById('screen-game').classList.add('active');
-        navItems[0].classList.add('active');
+        if (screensWrapper) screensWrapper.style.transform = 'translateX(0%)';
+        if (navItems[0]) navItems[0].classList.add('active');
     } else if (screenName === 'boosts') {
-        document.getElementById('screen-boosts').classList.add('active');
-        navItems[1].classList.add('active');
+        if (screensWrapper) screensWrapper.style.transform = 'translateX(-50%)';
+        if (navItems[1]) navItems[1].classList.add('active');
     }
 }
 
@@ -655,6 +652,13 @@ function handleSwipe() {
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
     
+    // Привязка кликов к нижней навигации
+    const navItems = document.querySelectorAll('.nav-item');
+    if (navItems.length >= 2) {
+        navItems[0].addEventListener('click', () => switchScreen('game'));
+        navItems[1].addEventListener('click', () => switchScreen('boosts'));
+    }
+
     const tapArea = document.getElementById("tap-area");
     if (tapArea) {
         tapArea.addEventListener("pointerdown", (e) => {
@@ -674,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { isBuying = false; }, 300);
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
-        multitapBtn.addEventListener("click", triggerBuy);
+        multit_btn_click = multitapBtn.addEventListener("click", triggerBuy);
     }
 
     const p1Btn = document.getElementById("passive-1-btn");
