@@ -30,7 +30,7 @@ body {
     justify-content: space-between;
     padding: 16px 20px;
     position: relative;
-    overflow: hidden; /* Чтобы падающие бананы не вылетали за рамки игрового контейнера */
+    overflow: hidden;
 }
 
 .header {
@@ -175,22 +175,23 @@ body {
     height: 100%;
     overflow: hidden;
     pointer-events: none;
-    z-index: 1; /* Располагается под основными элементами интерфейса */
+    z-index: 1;
 }
 
 .falling-banana {
     position: absolute;
     top: -50px;
-    opacity: 0.2; /* Полупрозрачные, чтобы не отвлекать от тапов */
+    opacity: 0.35; 
+    pointer-events: none;
     animation: fallDown linear infinite;
 }
 
 @keyframes fallDown {
     0% {
-        transform: translateY(0) rotate(0deg);
+        transform: translateY(0px) rotate(0deg);
     }
     100% {
-        transform: translateY(105vh) rotate(360deg);
+        transform: translateY(750px) rotate(360deg);
     }
 }
 
@@ -204,7 +205,6 @@ body {
     z-index: 100;
 }
 
-/* Добавлено для критических ударов */
 .flying-crit {
     position: absolute;
     font-size: 28px;
@@ -227,7 +227,6 @@ body {
     }
 }
 
-/* Добавлена анимация для критов */
 @keyframes floatCrit {
     0% {
         opacity: 1;
