@@ -596,7 +596,6 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
-// УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ (ПОДДЕРЖИВАЕТ И ТЕКСТ, И ИНДЕКСЫ)
 function switchScreen(target) {
     const screens = document.querySelectorAll('.screen');
     const navItems = document.querySelectorAll('.nav-item');
@@ -630,14 +629,21 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems.length >= 2) {
-        navItems[0].addEventListener('click', () => switchScreen('game'));
-        navItems[1].addEventListener('click', () => switchScreen('boosts'));
+        navItems[0].addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            switchScreen('game');
+        });
+        navItems[1].addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            switchScreen('boosts');
+        });
     }
 
     const tapArea = document.getElementById("tap-area");
     if (tapArea) {
         tapArea.addEventListener("pointerdown", (e) => {
             if (e.button === 0 || e.pointerType === "touch") {
+                e.preventDefault();
                 handleTap(e);
             }
         });
@@ -647,33 +653,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (multitapBtn) {
         let isBuying = false;
         const triggerBuy = (e) => {
+            e.preventDefault();
             if (isBuying) return;
             isBuying = true;
             buyMultitap(e);
             setTimeout(() => { isBuying = false; }, 300);
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
-        multitapBtn.addEventListener("click", triggerBuy);
     }
 
     const p1Btn = document.getElementById("passive-1-btn");
     if (p1Btn) {
-        p1Btn.addEventListener("click", buyPassive1);
+        p1Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive1(e); });
     }
 
     const p2Btn = document.getElementById("passive-2-btn");
     if (p2Btn) {
-        p2Btn.addEventListener("click", buyPassive2);
+        p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
     }
 
     const refBtn = document.getElementById("ref-btn");
     if (refBtn) {
-        refBtn.addEventListener("click", shareReferralLink);
+        refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
     }
 
     const channelBtn = document.getElementById("channel-btn");
     if (channelBtn) {
-        channelBtn.addEventListener("click", claimChannelReward);
+        channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
     }
 
     const modal = document.getElementById("leaderboard-modal");
@@ -681,14 +687,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeModal = document.getElementById("close-modal");
 
     if (leaderboardBtn && modal) {
-        leaderboardBtn.addEventListener("click", () => {
+        leaderboardBtn.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
             modal.style.display = "flex";
             loadLeaderboard();
         });
     }
 
     if (closeModal && modal) {
-        closeModal.addEventListener("click", () => {
+        closeModal.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
             modal.style.display = "none";
         });
     }
