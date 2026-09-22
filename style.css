@@ -35,159 +35,103 @@ body, html {
 }
 
 /* ==========================================
-   ВЕРХНЯЯ ПАНЕЛЬ С БАЛАНСОМ И ЭНЕРГИЕЙ
+   ЭКРАНЫ (ВКЛАДКИ)
    ========================================== */
-.header-panel {
-    display: flex;
+.screen {
+    display: none; /* По умолчанию все скрыты */
     flex-direction: column;
-    padding: 12px 16px;
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    z-index: 10;
+    flex-grow: 1;
+    height: calc(100% - 65px); /* Вычитаем высоту нижней навигации */
+    padding: 16px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    gap: 12px;
+}
+
+.screen.active {
+    display: flex; /* Активный экран показываем */
+}
+
+/* ==========================================
+   ЭКРАН 1: ГЛАВНЫЙ (КЛИКЕР + БОНУСЫ)
+   ========================================== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
 }
 
 .coins-container {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    margin-bottom: 8px;
 }
 
 .coin-icon {
-    font-size: 28px;
+    font-size: 26px;
 }
 
 #coins-display {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 800;
     color: #ffd700;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.energy-container {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.energy-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: #aaa;
+.leaderboard-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 13px;
     font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
 }
 
-.energy-bar-bg {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
+.leaderboard-btn:active {
+    background: rgba(255, 255, 255, 0.2);
 }
 
-#energy-bar-fill {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, #ff8c00, #ffd700);
-    border-radius: 4px;
-    transition: width 0.2s ease-out;
-}
-
-/* ==========================================
-   ОБЛАСТЬ ЭКРАНОВ (СВАЙП / КАРУСЕЛЬ НА 3 ЭКРАНА)
-   ========================================== */
-.screens-wrapper {
+.tap-content {
     display: flex;
-    width: 300%; 
-    height: calc(100% - 130px); /* Минус шапка и меню */
-    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    position: relative;
-    flex-grow: 1;
-}
-
-.screen {
-    display: flex;
-    flex-direction: column;
-    width: 33.3333%;
-    height: 100%;
-    padding: 16px;
-    overflow-y: auto;
-    box-sizing: border-box;
-    flex-shrink: 0;
-    gap: 16px;
-}
-
-/* ==========================================
-   ЭКРАН 1: КЛИКЕР
-   ========================================== */
-.clicker-screen {
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    margin: 10px 0;
 }
 
-.tap-area {
-    width: 220px;
-    height: 220px;
+.monkey-container {
+    width: 200px;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     cursor: pointer;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0) 70%);
+    background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, rgba(0,0,0,0) 70%);
 }
 
-.tap-banana {
-    width: 160px;
-    height: 160px;
+.monkey-img {
+    width: 150px;
+    height: 150px;
     object-fit: contain;
     transition: transform 0.08s ease;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
 }
 
-.tap-area:active .tap-banana {
+.monkey-container:active .monkey-img {
     transform: scale(0.92);
 }
 
-.leaderboard-btn-container {
-    width: 100%;
+/* Карточки бонусов на главном экране */
+.main-screen-bonuses {
     display: flex;
-    justify-content: center;
-    margin-top: auto;
-}
-
-.secondary-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.secondary-btn:active {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-/* ==========================================
-   ЭКРАН 2: ДРУЗЬЯ И ЗАДАНИЯ
-   ========================================== */
-.section-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 4px;
-}
-
-.section-subtitle {
-    font-size: 13px;
-    color: #aaa;
-    margin-bottom: 12px;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .upgrade-card {
@@ -195,71 +139,126 @@ body, html {
     align-items: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 16px;
-    padding: 12px 16px;
-    gap: 14px;
-    margin-bottom: 10px;
+    border-radius: 14px;
+    padding: 10px 14px;
+    gap: 12px;
 }
 
 .upgrade-card.locked {
     opacity: 0.6;
 }
 
-.upgrade-icon {
-    font-size: 32px;
-}
-
 .upgrade-info {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     flex-grow: 1;
-    gap: 2px;
+}
+
+.upgrade-icon {
+    font-size: 28px;
 }
 
 .upgrade-title {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: #fff;
 }
 
-.upgrade-desc, .upgrade-level {
-    font-size: 12px;
+.upgrade-desc {
+    font-size: 11px;
     color: #aaa;
 }
 
-.action-btn {
+.action-btn, .upgrade-btn {
     background: linear-gradient(135deg, #ff8c00, #ff5722);
-    color: #white;
+    color: #fff;
     border: none;
-    padding: 8px 14px;
+    padding: 7px 12px;
     border-radius: 10px;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
-    transition: opacity 0.2s;
     white-space: nowrap;
+    transition: opacity 0.2s;
 }
 
-.action-btn:disabled {
+.action-btn:active, .upgrade-btn:active {
+    opacity: 0.8;
+}
+
+/* Энергия */
+.energy-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: auto;
+    padding-bottom: 4px;
+}
+
+.energy-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aaa;
+    font-weight: 600;
+}
+
+.energy-bar-background {
+    width: 100%;
+    height: 7px;
     background: rgba(255, 255, 255, 0.1);
-    color: #666;
-    cursor: not-allowed;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.energy-bar-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff8c00, #ffd700);
+    border-radius: 4px;
+    transition: width 0.15s ease-out;
 }
 
 /* ==========================================
-   ЭКРАН 3: ПРОКАЧКА (УЛУЧШЕНИЯ)
+   ЭКРАН 2: ПРОКАЧКА
    ========================================== */
-/* Использует те же классы upgrade-card и action-btn */
+.boosts-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+}
 
+.boosts-header h2 {
+    font-size: 18px;
+    color: #fff;
+}
+
+.passive-header-info {
+    font-size: 12px;
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.boosts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
 
 /* ==========================================
-   НИЖНЯЯ НАВИГАЦИЯ (3 ВКЛАДКИ)
+   НИЖНЯЯ НАВИГАЦИЯ
    ========================================== */
-.nav-bar {
+.bottom-nav {
     display: flex;
     height: 65px;
     background: #14100e;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
     z-index: 10;
 }
 
@@ -272,16 +271,16 @@ body, html {
     background: none;
     border: none;
     color: #777;
-    gap: 3px;
+    gap: 2px;
     cursor: pointer;
     transition: color 0.2s;
 }
 
 .nav-icon {
-    font-size: 20px;
+    font-size: 18px;
 }
 
-.nav-label {
+.nav-text {
     font-size: 11px;
     font-weight: 600;
 }
@@ -290,33 +289,32 @@ body, html {
     color: #ffd700;
 }
 
-
 /* ==========================================
    МОДАЛЬНОЕ ОКНО РЕЙТИНГА
    ========================================== */
 .modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.75);
     z-index: 100;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
 }
 
 .modal-content {
     background: #241a17;
     width: 100%;
-    max-width: 400px;
-    border-radius: 20px;
+    max-width: 380px;
+    border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    max-height: 80vh;
+    max-height: 75vh;
     overflow: hidden;
 }
 
@@ -324,12 +322,12 @@ body, html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: 14px 18px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .modal-header h3 {
-    font-size: 18px;
+    font-size: 16px;
     color: #fff;
 }
 
@@ -337,59 +335,44 @@ body, html {
     background: none;
     border: none;
     color: #aaa;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
 }
 
-.modal-body {
-    padding: 16px 20px;
+.leaderboard-list {
+    padding: 12px 18px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
-
-.leader-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.leader-item.top-1 { background: rgba(255, 215, 0, 0.15); color: #ffd700; }
-.leader-item.top-2 { background: rgba(192, 192, 192, 0.15); color: #c0c0c0; }
-.leader-item.top-3 { background: rgba(205, 127, 50, 0.15); color: #cd7f32; }
 
 .loading-text {
     text-align: center;
     color: #888;
-    font-size: 14px;
-    padding: 20px;
+    font-size: 13px;
+    padding: 15px;
 }
 
-
 /* ==========================================
-   АНИМАЦИИ ПУЛЕНЬЯ МОНЕТ И ФОНА
+   АНИМАЦИИ (МОНЕТКИ ПРИ КЛИКЕ)
    ========================================== */
 .flying-one, .flying-crit {
     position: absolute;
     font-weight: 900;
     pointer-events: none;
-    animation: floatUp 0.8s ease-out forwards;
+    animation: floatUp 0.7s ease-out forwards;
     z-index: 999;
 }
 
 .flying-one {
-    font-size: 20px;
+    font-size: 18px;
     color: #ffd700;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .flying-crit {
-    font-size: 26px;
+    font-size: 24px;
     color: #ff3333;
     text-shadow: 0 2px 8px rgba(255,0,0,0.6);
 }
@@ -401,33 +384,6 @@ body, html {
     }
     100% {
         opacity: 0;
-        transform: translateY(-80px) scale(1.2);
-    }
-}
-
-#background-effects {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.falling-banana {
-    position: absolute;
-    top: -30px;
-    opacity: 0.15;
-    animation: fallDown linear infinite;
-}
-
-@keyframes fallDown {
-    0% {
-        transform: translateY(-30px) rotate(0deg);
-    }
-    100% {
-        transform: translateY(105vh) rotate(360deg);
+        transform: translateY(-70px) scale(1.2);
     }
 }
