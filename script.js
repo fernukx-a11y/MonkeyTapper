@@ -329,6 +329,41 @@ function shareReferralLink() {
     }
 }
 
+// Функция создания падающих бананов на фоне
+function initBackgroundBananas() {
+    let bgContainer = document.getElementById("background-effects");
+    if (!bgContainer) {
+        bgContainer = document.createElement("div");
+        bgContainer.id = "background-effects";
+        const gameContainer = document.querySelector(".game-container");
+        if (gameContainer) {
+            gameContainer.prepend(bgContainer);
+        } else {
+            document.body.prepend(bgContainer);
+        }
+    }
+
+    setInterval(() => {
+        const banana = document.createElement("div");
+        banana.classList.add("falling-banana");
+        banana.textContent = "🍌";
+
+        banana.style.left = Math.random() * 100 + "%";
+
+        const duration = Math.random() * 5 + 5;
+        banana.style.animationDuration = duration + "s";
+
+        const size = Math.random() * 14 + 18;
+        banana.style.fontSize = size + "px";
+
+        bgContainer.appendChild(banana);
+
+        setTimeout(() => {
+            banana.remove();
+        }, duration * 1000);
+    }, 700);
+}
+
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
@@ -337,6 +372,7 @@ function initApp() {
     }
 
     loadData();
+    initBackgroundBananas(); // Запускаем анимацию падающих бананов
     setInterval(regenEnergy, 1000);
 }
 
@@ -394,7 +430,6 @@ function regenEnergy() {
     }
 }
 
-// Обновленная функция создания летящей цифры (поддерживает криты)
 function createFlyingOne(x, y, text, isCrit) {
     const flyingEl = document.createElement("div");
     flyingEl.classList.add(isCrit ? "flying-crit" : "flying-one");
@@ -412,20 +447,16 @@ function handleTap(e) {
 
     energy -= 1;
 
-    // --- ШАНС КРИТА (7%) ---
     const critChance = 0.07;
     let earnedCoins = tapPower;
     let isCrit = Math.random() < critChance;
 
     if (isCrit) {
-        earnedCoins *= 3; // Критический удар умножает доход в 3 раза
-        
-        // Мощная вибрация при крите в Telegram
+        earnedCoins *= 3; 
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
             window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         }
     } else {
-        // Легкая вибрация при обычном тапе
         if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
             window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
         }
