@@ -20,7 +20,6 @@ let passive2Cost = 1000;
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
-
 let saveTimeout = null;
 
 function getUserId() {
@@ -305,7 +304,7 @@ async function loadLeaderboard() {
             let displayName = player.username ? player.username : ("Игрок " + player.user_id.toString().substring(0, 4));
 
             html += `
-                <div class="leader-item ${rankClass}">
+                <div class="leader-item ${rankClass}" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span>#${rank} ${displayName}</span>
                     <span>💰 ${Number(player.coins).toLocaleString()}</span>
                 </div>
@@ -597,72 +596,36 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ 3 ЭКРАНОВ
+// ИСПРАВЛЕННАЯ ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ ЧЕРЕЗ КЛАСС active
 let currentScreenIndex = 0;
 
 function switchScreen(screenIndex) {
-    const screensWrapper = document.querySelector('.screens-wrapper');
+    const screens = document.querySelectorAll('.screen');
     const navItems = document.querySelectorAll('.nav-item');
     
     currentScreenIndex = screenIndex;
-    navItems.forEach(item => item.classList.remove('active'));
     
-    if (navItems[screenIndex]) {
-        navItems[screenIndex].classList.add('active');
-    }
-
-    if (screensWrapper) {
-        const movePercent = screenIndex * (100 / 3);
-        screensWrapper.style.transform = `translateX(-${movePercent}%)`;
-    }
-}
-
-let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
-
-document.addEventListener('touchstart', e => {
-    if (e.changedTouches && e.changedTouches.length > 0) {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-    }
-}, { passive: true });
-
-document.addEventListener('touchend', e => {
-    if (e.changedTouches && e.changedTouches.length > 0) {
-        touchEndX = e.changedTouches[0].screenX;
-        touchEndY = e.changedTouches[0].screenY;
-        handleSwipe();
-    }
-}, { passive: true });
-
-function handleSwipe() {
-    const swipeThreshold = 50; 
-    const verticalThreshold = 100; 
-    
-    const diffX = touchEndX - touchStartX;
-    const diffY = Math.abs(touchEndY - touchStartY);
-
-    if (diffY < verticalThreshold) {
-        if (diffX < -swipeThreshold) {
-            // Свайп влево -> следующий экран
-            if (currentScreenIndex < 2) {
-                switchScreen(currentScreenIndex + 1);
-            }
-        } else if (diffX > swipeThreshold) {
-            // Свайп вправо -> предыдущий экран
-            if (currentScreenIndex > 0) {
-                switchScreen(currentScreenIndex - 1);
-            }
+    screens.forEach((screen, index) => {
+        if (index === screenIndex) {
+            screen.classList.add('active');
+        } else {
+            screen.classList.remove('active');
         }
-    }
+    });
+
+    navItems.forEach((item, index) => {
+        if (index === screenIndex) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
     
-    // Привязка кликов к 3 кнопкам нижней навигации
+    // Привязка кликов к кнопкам нижней навигации
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems.length >= 3) {
         navItems[0].addEventListener('click', () => switchScreen(0));
