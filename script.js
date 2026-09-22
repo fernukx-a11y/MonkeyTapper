@@ -1,3 +1,9 @@
+// ==========================================
+// ДАННЫЕ СВЯЗИ С SUPABASE:
+const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
+const SUPABASE_ANON_KEY = "СЮДА_ВСТАВЬ_ТВОЙ_ANON_KEY"; // Скопируй длинный ключ из Project Settings (⚙️) -> API Keys
+// ==========================================
+
 let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
@@ -7,11 +13,19 @@ let lastSaveTime = Date.now();
 
 let saveTimeout = null;
 
-// Список всех ключей, которые мы использовали ранее, для автоматического восстановления данных
-const LOCAL_KEYS_COINS = ["user_coins", "monkey_coins", "monkey_global_coins", "monkey_default_user_coins", "m_coins", "monkey_global_coins_v2"];
-const LOCAL_KEYS_POWER = ["user_tap_power", "monkey_tap_power", "monkey_global_tap_power", "monkey_default_user_tap_power", "m_tap_power", "monkey_global_power_v2"];
-const LOCAL_KEYS_ENERGY = ["user_energy", "monkey_energy", "monkey_global_energy", "monkey_default_user_energy", "m_energy", "monkey_global_energy_v2"];
-const LOCAL_KEYS_TIME = ["user_last_time", "monkey_last_time", "monkey_global_last_time", "monkey_default_user_last_time", "m_last_time", "monkey_global_time_v2"];
+function getUserId() {
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+        return tg.initDataUnsafe.user.id.toString();
+    }
+    // Если открыли вне Telegram или в эмуляторе ПК без авторизации:
+    let localDevId = localStorage.getItem("monkey_dev_user_id");
+    if (!localDevId) {
+        localDevId = "user_" + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem("monkey_dev_user_id", localDevId);
+    }
+    return localDevId;
+}
 
 function sanitizeNumber(val, fallback) {
     const parsed = parseInt(val, 10);
@@ -31,125 +45,72 @@ function applyOfflineEnergy() {
     lastSaveTime = now;
 }
 
-function saveToAllStorage() {
+// Прямые HTTP-запросы к Supabase REST API
+async function saveToSupabase() {
+    const userId = getUserId();
     lastSaveTime = Date.now();
 
-    // 1. Сохраняем во ВСЕ используемые ключи в localStorage
-    LOCAL_KEYS_COINS.forEach(k => localStorage.setItem(k, coins.toString()));
-    LOCAL_KEYS_POWER.forEach(k => localStorage.setItem(k, tapPower.toString()));
-    LOCAL_KEYS_ENERGY.forEach(k => localStorage.setItem(k, energy.toString()));
-    LOCAL_KEYS_TIME.forEach(k => localStorage.setItem(k, lastSaveTime.toString()));
+    const bodyData = {
+        user_id: userId,
+        coins: coins,
+        tap_power: tapPower,
+        energy: energy,
+        last_time: lastSaveTime
+    };
 
-    // 2. Отправляем во ВСЕ варианты ключей Telegram CloudStorage
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg && tg.CloudStorage) {
-        const cloudData = {};
-        LOCAL_KEYS_COINS.concat(LOCAL_KEYS_POWER, LOCAL_KEYS_ENERGY, LOCAL_KEYS_TIME).forEach(k => {
-            if (LOCAL_KEYS_COINS.includes(k)) cloudData[k] = coins.toString();
-            if (LOCAL_KEYS_POWER.includes(k)) cloudData[k] = tapPower.toString();
-            if (LOCAL_KEYS_ENERGY.includes(k)) cloudData[k] = energy.toString();
-            if (LOCAL_KEYS_TIME.includes(k)) cloudData[k] = lastSaveTime.toString();
+    try {
+        await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+            method: "POST",
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+            },
+            body: JSON.stringify(bodyData)
         });
-
-        // Пакетное сохранение в Telegram Cloud
-        Object.keys(cloudData).forEach(key => {
-            tg.CloudStorage.setItem(key, cloudData[key]);
-        });
+    } catch (e) {
+        console.error("Ошибка сохранения в облако:", e);
     }
 }
 
 function saveData() {
-    // Мгновенное локальное сохранение
-    LOCAL_KEYS_COINS.forEach(k => localStorage.setItem(k, coins.toString()));
-    LOCAL_KEYS_POWER.forEach(k => localStorage.setItem(k, tapPower.toString()));
-    LOCAL_KEYS_ENERGY.forEach(k => localStorage.setItem(k, energy.toString()));
-    LOCAL_KEYS_TIME.forEach(k => localStorage.setItem(k, lastSaveTime.toString()));
-
-    // Таймер задержки для CloudStorage, чтобы Telegram не блокировал слишком частые запросы
+    // Дебаунс сохранения (отправляем данные через 0.5 сек после последнего клика)
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
-        saveToAllStorage();
-    }, 400);
+        saveToSupabase();
+    }, 500);
 }
 
-function loadData() {
-    let maxFoundCoins = 0;
-    let maxFoundPower = 1;
-    let maxFoundTime = Date.now();
-    let foundEnergy = maxEnergy;
+async function loadData() {
+    const userId = getUserId();
 
-    // 1. Поиск абсолютного максимума по ВСЕМ старым локальным ключам
-    LOCAL_KEYS_COINS.forEach(k => {
-        const val = sanitizeNumber(localStorage.getItem(k), 0);
-        if (val > maxFoundCoins) maxFoundCoins = val;
-    });
-
-    LOCAL_KEYS_POWER.forEach(k => {
-        const val = sanitizeNumber(localStorage.getItem(k), 1);
-        if (val > maxFoundPower) maxFoundPower = val;
-    });
-
-    LOCAL_KEYS_TIME.forEach(k => {
-        const val = sanitizeNumber(localStorage.getItem(k), 0);
-        if (val > maxFoundTime) maxFoundTime = val;
-    });
-
-    LOCAL_KEYS_ENERGY.forEach(k => {
-        const val = sanitizeNumber(localStorage.getItem(k), maxEnergy);
-        if (val < maxEnergy) foundEnergy = val;
-    });
-
-    coins = maxFoundCoins;
-    tapPower = maxFoundPower;
-    energy = foundEnergy;
-    lastSaveTime = maxFoundTime;
-
-    applyOfflineEnergy();
-    updateUI();
-
-    // 2. Сканирование CloudStorage по всем известным ключам
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg && tg.CloudStorage) {
-        const allKeys = [...new Set([...LOCAL_KEYS_COINS, ...LOCAL_KEYS_POWER, ...LOCAL_KEYS_ENERGY, ...LOCAL_KEYS_TIME])];
-
-        tg.CloudStorage.getItems(allKeys, (err, items) => {
-            if (!err && items) {
-                let updated = false;
-
-                allKeys.forEach(k => {
-                    const val = items[k];
-                    if (val !== undefined && val !== null) {
-                        const num = sanitizeNumber(val, 0);
-
-                        if (LOCAL_KEYS_COINS.includes(k) && num > coins) {
-                            coins = num;
-                            updated = true;
-                        }
-                        if (LOCAL_KEYS_POWER.includes(k) && num > tapPower) {
-                            tapPower = num;
-                            updated = true;
-                        }
-                        if (LOCAL_KEYS_TIME.includes(k) && num > lastSaveTime) {
-                            lastSaveTime = num;
-                            if (items["user_energy"]) {
-                                energy = sanitizeNumber(items["user_energy"], maxEnergy);
-                            }
-                            updated = true;
-                        }
-                    }
-                });
-
-                if (updated) {
-                    applyOfflineEnergy();
-                    updateUI();
-                }
-                
-                // Фиксируем максимальные найденные значения во всех ячейках
-                saveToAllStorage();
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=*`, {
+            method: "GET",
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
             }
         });
-    } else {
-        saveToAllStorage();
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const player = data[0];
+            coins = sanitizeNumber(player.coins, 0);
+            tapPower = sanitizeNumber(player.tap_power, 1);
+            energy = sanitizeNumber(player.energy, maxEnergy);
+            lastSaveTime = sanitizeNumber(player.last_time, Date.now());
+
+            applyOfflineEnergy();
+            updateUI();
+        } else {
+            // Новый игрок — создаем первую запись
+            saveData();
+        }
+    } catch (e) {
+        console.error("Ошибка загрузки из облака:", e);
     }
 }
 
