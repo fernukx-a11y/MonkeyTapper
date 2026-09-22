@@ -5,6 +5,8 @@ let tapPower = 1;
 let multitapCost = 50;
 let lastSaveTime = Date.now();
 
+let saveTimeout = null;
+
 function sanitizeNumber(val, fallback) {
     const parsed = parseInt(val, 10);
     return isNaN(parsed) ? fallback : parsed;
@@ -23,73 +25,85 @@ function applyOfflineEnergy() {
     lastSaveTime = now;
 }
 
-function saveData() {
+function saveDataImmediate() {
     lastSaveTime = Date.now();
     
-    // Сохраняем в localStorage
-    localStorage.setItem("monkey_coins", coins.toString());
-    localStorage.setItem("monkey_energy", energy.toString());
-    localStorage.setItem("monkey_tap_power", tapPower.toString());
-    localStorage.setItem("monkey_last_time", lastSaveTime.toString());
+    // Локальное сохранение
+    localStorage.setItem("m_coins", coins.toString());
+    localStorage.setItem("m_energy", energy.toString());
+    localStorage.setItem("m_tap_power", tapPower.toString());
+    localStorage.setItem("m_last_time", lastSaveTime.toString());
 
-    // Сохраняем в Telegram CloudStorage
+    // Сохранение в облако Telegram
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.CloudStorage) {
-        tg.CloudStorage.setItem("user_coins", coins.toString());
-        tg.CloudStorage.setItem("user_energy", energy.toString());
-        tg.CloudStorage.setItem("user_tap_power", tapPower.toString());
-        tg.CloudStorage.setItem("user_last_time", lastSaveTime.toString());
+        tg.CloudStorage.setItem("m_coins", coins.toString(), (err, success) => {
+            if (err) console.error("CloudStorage err coins:", err);
+        });
+        tg.CloudStorage.setItem("m_energy", energy.toString());
+        tg.CloudStorage.setItem("m_tap_power", tapPower.toString(), (err, success) => {
+            if (err) console.error("CloudStorage err power:", err);
+        });
+        tg.CloudStorage.setItem("m_last_time", lastSaveTime.toString());
     }
 }
 
-function loadData() {
-    // 1. Читаем все возможные варианты из localStorage
-    const localCoins = sanitizeNumber(localStorage.getItem("monkey_coins") || localStorage.getItem("monkey_global_coins") || localStorage.getItem("user_coins"), 0);
-    const localEnergy = sanitizeNumber(localStorage.getItem("monkey_energy") || localStorage.getItem("monkey_global_energy") || localStorage.getItem("user_energy"), maxEnergy);
-    const localPower = sanitizeNumber(localStorage.getItem("monkey_tap_power") || localStorage.getItem("monkey_global_tap_power") || localStorage.getItem("user_tap_power"), 1);
-    const localTime = sanitizeNumber(localStorage.getItem("monkey_last_time") || localStorage.getItem("monkey_global_last_time") || localStorage.getItem("user_last_time"), Date.now());
+function saveData() {
+    // Сохраняем мгновенно в localStorage
+    localStorage.setItem("m_coins", coins.toString());
+    localStorage.setItem("m_energy", energy.toString());
+    localStorage.setItem("m_tap_power", tapPower.toString());
+    localStorage.setItem("m_last_time", Date.now().toString());
 
-    coins = localCoins;
-    energy = localEnergy;
-    tapPower = localPower;
-    lastSaveTime = localTime;
+    // Запрос в CloudStorage отправляем с задержкой, чтобы Telegram не лимитировал частые вызовы
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        saveDataImmediate();
+    }, 500);
+}
+
+function loadData() {
+    // 1. Берем локальные данные
+    const lCoins = sanitizeNumber(localStorage.getItem("m_coins"), 0);
+    const lEnergy = sanitizeNumber(localStorage.getItem("m_energy"), maxEnergy);
+    const lPower = sanitizeNumber(localStorage.getItem("m_tap_power"), 1);
+    const lTime = sanitizeNumber(localStorage.getItem("m_last_time"), Date.now());
+
+    coins = lCoins;
+    energy = lEnergy;
+    tapPower = lPower;
+    lastSaveTime = lTime;
 
     applyOfflineEnergy();
     updateUI();
 
-    // 2. Синхронизируем с CloudStorage: выбираем МАКСИМАЛЬНЫЙ уровень и монеты
+    // 2. Читаем из Telegram CloudStorage
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.CloudStorage) {
-        tg.CloudStorage.getKeys((err, keys) => {
-            if (!err && keys && keys.length > 0) {
-                tg.CloudStorage.getItems(["user_coins", "user_energy", "user_tap_power", "user_last_time"], (errI, items) => {
-                    if (!errI && items) {
-                        const cloudCoins = sanitizeNumber(items["user_coins"], 0);
-                        const cloudEnergy = sanitizeNumber(items["user_energy"], maxEnergy);
-                        const cloudPower = sanitizeNumber(items["user_tap_power"], 1);
-                        const cloudTime = sanitizeNumber(items["user_last_time"], Date.now());
+        tg.CloudStorage.getItems(["m_coins", "m_energy", "m_tap_power", "m_last_time"], (err, items) => {
+            if (!err && items) {
+                const cCoins = sanitizeNumber(items["m_coins"], 0);
+                const cPower = sanitizeNumber(items["m_tap_power"], 1);
+                const cEnergy = sanitizeNumber(items["m_energy"], maxEnergy);
+                const cTime = sanitizeNumber(items["m_last_time"], Date.now());
 
-                        // Всегда берем НАИВЫСШИЙ уровень прокачки и НАИБОЛЬШЕЕ число монет
-                        tapPower = Math.max(tapPower, cloudPower);
-                        coins = Math.max(coins, cloudCoins);
-                        
-                        // Берем энергию из более свежего сохранения
-                        if (cloudTime > lastSaveTime) {
-                            energy = cloudEnergy;
-                            lastSaveTime = cloudTime;
-                        }
+                // Находим максимальные значения
+                if (cPower > tapPower) {
+                    tapPower = cPower;
+                }
+                if (cCoins > coins) {
+                    coins = cCoins;
+                }
+                if (cTime > lastSaveTime) {
+                    energy = cEnergy;
+                    lastSaveTime = cTime;
+                }
 
-                        applyOfflineEnergy();
-                        updateUI();
-                        saveData(); // Фиксируем максимум на обоих устройствах
-                    }
-                });
-            } else {
-                saveData();
+                applyOfflineEnergy();
+                updateUI();
+                saveDataImmediate();
             }
         });
-    } else {
-        saveData();
     }
 }
 
