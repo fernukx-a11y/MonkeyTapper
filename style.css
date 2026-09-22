@@ -63,7 +63,7 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
-/* Большая область клика, совпадающая с размером обезьянки */
+/* Большой красивый круг-подложка, который является зоной клика */
 #tap-area {
     flex-grow: 1;
     display: flex;
@@ -71,7 +71,13 @@ body {
     align-items: center;
     position: relative;
     cursor: pointer;
-    margin: 10px 0;
+    margin: 10px auto;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(250, 204, 21, 0.25) 0%, rgba(24, 24, 27, 0.8) 75%);
+    border-radius: 50%;
+    border: 3px solid rgba(250, 204, 21, 0.6);
+    box-shadow: 0 0 35px rgba(250, 204, 21, 0.3);
     transition: transform 0.05s ease;
 }
 
@@ -79,16 +85,12 @@ body {
     transform: scale(0.96);
 }
 
-/* Сама картинка теперь большая и красивая, с фоном и рамкой */
+/* Сама обезьянка теперь без лишних рамок, просто большая внутри круга */
 #monkey-img {
-    width: 280px;
-    height: 280px;
+    width: 210px;
+    height: 210px;
     object-fit: contain;
-    background: radial-gradient(circle, rgba(250, 204, 21, 0.25) 0%, rgba(24, 24, 27, 0.8) 75%);
-    border-radius: 50%;
-    border: 3px solid rgba(250, 204, 21, 0.6);
-    box-shadow: 0 0 35px rgba(250, 204, 21, 0.3);
-    padding: 10px;
+    pointer-events: none;
 }
 
 .energy-container {
