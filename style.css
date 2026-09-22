@@ -1,43 +1,85 @@
 body {
-    background-color: #1c1c1e;
+    background: linear-gradient(180deg, #2c3e50 0%, #1c1c1e 100%);
     color: #ffffff;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     height: 100vh;
     margin: 0;
     user-select: none;
+    overflow: hidden;
+}
+
+.game-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
-    font-size: 28px;
-    margin-bottom: 10px;
+    font-size: 26px;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 p {
-    font-size: 22px;
-    font-weight: bold;
-    color: #ffcc00;
-    margin-bottom: 30px;
-}
-
-#tap-btn {
-    background: linear-gradient(135deg, #ff8800, #ff4500);
-    color: white;
     font-size: 24px;
     font-weight: bold;
-    border: none;
-    padding: 20px 40px;
-    border-radius: 50px;
-    box-shadow: 0 10px 25px rgba(255, 69, 0, 0.5);
-    cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
-    outline: none;
+    color: #ffcc00;
+    margin-top: 0;
+    margin-bottom: 40px;
+    text-shadow: 0 2px 10px rgba(255, 204, 0, 0.4);
 }
 
-#tap-btn:active {
-    transform: scale(0.95);
-    box-shadow: 0 5px 15px rgba(255, 69, 0, 0.3);
+/* Область клика */
+#tap-area {
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.05s ease-out;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Картинка обезьяны */
+#monkey-img {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    border: 5px solid #ffcc00;
+    transition: box-shadow 0.1s ease;
+}
+
+/* Эффект нажатия */
+#tap-area:active {
+    transform: scale(0.92);
+}
+
+#tap-area:active #monkey-img {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Вылетающая цифра +1 */
+.flying-one {
+    position: absolute;
+    font-size: 28px;
+    font-weight: bold;
+    color: #00ff00;
+    opacity: 1;
+    pointer-events: none;
+    animation: flyUp 1s ease-out forwards;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+@keyframes flyUp {
+    0% {
+        transform: translate(-50%, -50%) translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) translateY(-120px) scale(1.2);
+        opacity: 0;
+    }
 }
