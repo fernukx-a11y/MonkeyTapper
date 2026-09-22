@@ -59,13 +59,14 @@
             transition: transform 0.05s ease-in-out;
             touch-action: manipulation;
             overflow: hidden;
-            border: 4px solid #ffa500;
+            border: 4px solid #ff9900;
         }
 
         #tap-area img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Заполняет весь круг без рамки и квадратов */
+            object-fit: cover;
+            border-radius: 50%;
             pointer-events: none;
         }
 
@@ -164,7 +165,7 @@
 
     <div class="tap-container">
         <div id="tap-area">
-            <img src="monkey.png?v=3" alt="Monkey" id="monkey-img">
+            <img src="monkey.png?v=6" alt="Monkey" id="monkey-img">
         </div>
     </div>
 
