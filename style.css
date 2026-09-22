@@ -63,7 +63,6 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
-/* Золотой круг — НЕ МЕНЯЕМ */
 #tap-area {
     width: 220px;
     height: 220px;
@@ -85,12 +84,11 @@ body {
     transform: scale(0.95);
 }
 
-/* Увеличиваем ТОЛЬКО обезьяну */
 #monkey-img {
-    width: 130px;
-    height: 130px;
+    width: 215px;
+    height: 215px;
     object-fit: contain;
-    transform: scale(1.8);
+    transform: scale(1);
     pointer-events: none;
 }
 
