@@ -23,23 +23,24 @@ body {
 .game-container {
     width: 100%;
     max-width: 480px;
-    height: 100%;
-    max-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 16px 20px;
     position: relative;
     overflow: hidden;
+    background-color: #121214;
 }
 
 /* Стили для многостраничности */
 .screen {
     display: none;
     flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
+    flex: 1;
     width: 100%;
+    padding: 16px 20px 80px 20px; /* Оставляем снизу место под навигацию */
+    overflow-y: auto;
+    box-sizing: border-box;
     animation: fadeIn 0.3s ease;
 }
 
@@ -52,32 +53,41 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Нижняя панель навигации */
-.nav-bar {
+/* Нижняя панель навигации — закреплена внизу */
+.bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
     display: flex;
     justify-content: space-around;
+    align-items: center;
     background-color: #18181b;
     border-top: 1px solid #27272a;
-    padding: 10px 0;
-    border-radius: 16px 16px 0 0;
-    z-index: 20;
-    margin-top: 10px;
+    z-index: 100;
+    box-sizing: border-box;
+    padding: 0 10px;
 }
 
 .nav-item {
     background: none;
     border: none;
     color: #a1a1aa;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     cursor: pointer;
     padding: 8px 16px;
     border-radius: 10px;
     transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
 }
 
 .nav-item.active {
-    color: #000;
+    color: #000000;
     background-color: #facc15;
 }
 
@@ -96,7 +106,7 @@ body {
     color: #facc15;
 }
 
-.top-btn {
+.leaderboard-btn {
     background: linear-gradient(135deg, #fbbf24, #d97706);
     border: none;
     padding: 8px 14px;
@@ -108,10 +118,16 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
+.tap-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #tap-area {
     width: 220px;
     height: 220px;
-    margin: auto;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -130,11 +146,10 @@ body {
     transform: scale(0.95);
 }
 
-#monkey-img {
+.monkey-img {
     width: 215px;
     height: 215px;
     object-fit: contain;
-    transform: scale(1);
     pointer-events: none;
 }
 
@@ -144,13 +159,15 @@ body {
     z-index: 10;
 }
 
-.energy-text {
+.energy-info {
+    display: flex;
+    justify-content: space-between;
     font-size: 13px;
     margin-bottom: 5px;
     color: #a1a1aa;
 }
 
-.energy-bar-bg {
+.energy-bar-background {
     width: 100%;
     height: 10px;
     background-color: #27272a;
@@ -165,17 +182,22 @@ body {
     transition: width 0.1s linear;
 }
 
-.upgrades-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 10;
-    overflow-y: auto;
-    max-height: calc(100vh - 120px);
+/* Экран прокачки */
+.boosts-header {
+    margin-bottom: 15px;
 }
 
-.upgrade-btn {
+.boosts-header h2 {
+    font-size: 20px;
+}
+
+.boosts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upgrade-card {
     background-color: #18181b;
     border: 1px solid #27272a;
     border-radius: 14px;
@@ -184,19 +206,16 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    cursor: pointer;
-    color: #fff;
-    transition: background 0.2s;
-}
-
-.upgrade-btn:active {
-    background-color: #27272a;
 }
 
 .upgrade-info {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 12px;
+}
+
+.upgrade-icon {
+    font-size: 24px;
 }
 
 .upgrade-title {
@@ -210,13 +229,28 @@ body {
     margin-top: 2px;
 }
 
-.upgrade-cost {
-    font-size: 14px;
+.upgrade-btn {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: #000;
     font-weight: bold;
-    color: #facc15;
+    font-size: 13px;
+    cursor: pointer;
 }
 
-/* Стили для падающих бананов на фоне */
+.upgrade-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.action-btn {
+    background: #27272a;
+    color: #fff;
+}
+
+/* Падающие бананы на фоне */
 #background-effects {
     position: absolute;
     top: 0;
@@ -237,12 +271,8 @@ body {
 }
 
 @keyframes fallDown {
-    0% {
-        transform: translateY(0px) rotate(0deg);
-    }
-    100% {
-        transform: translateY(750px) rotate(360deg);
-    }
+    0% { transform: translateY(0px) rotate(0deg); }
+    100% { transform: translateY(750px) rotate(360deg); }
 }
 
 .flying-one {
@@ -267,38 +297,25 @@ body {
 }
 
 @keyframes floatUp {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-50px) scale(1.2);
-    }
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
 }
 
 @keyframes floatCrit {
-    0% {
-        opacity: 1;
-        transform: translateY(0) scale(0.8);
-    }
-    50% {
-        transform: translateY(-30px) scale(1.4);
-    }
-    100% {
-        opacity: 0;
-        transform: translateY(-65px) scale(1.1);
-    }
+    0% { opacity: 1; transform: translateY(0) scale(0.8); }
+    50% { transform: translateY(-30px) scale(1.4); }
+    100% { opacity: 0; transform: translateY(-65px) scale(1.1); }
 }
 
+/* Модальное окно рейтинга */
 .modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -315,22 +332,26 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-.close {
-    position: absolute;
-    top: 14px;
-    right: 18px;
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
     font-size: 22px;
     color: #a1a1aa;
     cursor: pointer;
 }
 
-.modal-content h2 {
-    margin-bottom: 14px;
+.modal-header h3 {
     font-size: 18px;
-    text-align: center;
 }
 
-#leaderboard-list {
+.leaderboard-list {
     max-height: 220px;
     overflow-y: auto;
     display: flex;
@@ -347,17 +368,9 @@ body {
     justify-content: space-between;
 }
 
-.top-1 {
-    border-left: 4px solid #facc15;
-}
-
-.top-2 {
-    border-left: 4px solid #94a3b8;
-}
-
-.top-3 {
-    border-left: 4px solid #b45309;
-}
+.top-1 { border-left: 4px solid #facc15; }
+.top-2 { border-left: 4px solid #94a3b8; }
+.top-3 { border-left: 4px solid #b45309; }
 
 .loading-text {
     text-align: center;
