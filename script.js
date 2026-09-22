@@ -10,6 +10,14 @@ let energy = 1000;
 const maxEnergy = 1000;
 let tapPower = 1;
 let multitapCost = 50;
+
+// Пассивный доход
+let passiveIncomePS = 0;
+let passive1Level = 0;
+let passive1Cost = 100;
+let passive2Level = 0;
+let passive2Cost = 1000;
+
 let lastSaveTime = Date.now();
 let referralCount = 0;
 
@@ -54,11 +62,14 @@ function calculateCost(power) {
     return 50 * Math.pow(2, power - 1);
 }
 
-function applyOfflineEnergy() {
+function applyOfflineProgress() {
     const now = Date.now();
     const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
     if (secondsPassed > 0) {
         energy = Math.min(maxEnergy, energy + secondsPassed);
+        if (passiveIncomePS > 0) {
+            coins += passiveIncomePS * secondsPassed;
+        }
     }
     lastSaveTime = now;
 }
@@ -79,7 +90,12 @@ async function saveToSupabase() {
         coins: coins,
         tap_power: tapPower,
         energy: energy,
-        last_time: lastSaveTime
+        last_time: lastSaveTime,
+        passive_income_ps: passiveIncomePS,
+        passive1_level: passive1Level,
+        passive1_cost: passive1Cost,
+        passive2_level: passive2Level,
+        passive2_cost: passive2Cost
     };
 
     try {
@@ -301,8 +317,14 @@ async function loadData() {
             tapPower = sanitizeNumber(player.tap_power, 1);
             energy = sanitizeNumber(player.energy, maxEnergy);
             lastSaveTime = sanitizeNumber(player.last_time, Date.now());
+            
+            passiveIncomePS = sanitizeNumber(player.passive_income_ps, 0);
+            passive1Level = sanitizeNumber(player.passive1_level, 0);
+            passive1Cost = sanitizeNumber(player.passive1_cost, 100);
+            passive2Level = sanitizeNumber(player.passive2_level, 0);
+            passive2Cost = sanitizeNumber(player.passive2_cost, 1000);
 
-            applyOfflineEnergy();
+            applyOfflineProgress();
             updateUI();
         } else {
             saveToSupabase();
@@ -329,7 +351,7 @@ function shareReferralLink() {
     }
 }
 
-// Функция создания падающих бананов на фоне
+// Фоновые падающие бананы
 function initBackgroundBananas() {
     let bgContainer = document.getElementById("background-effects");
     if (!bgContainer) {
@@ -373,7 +395,7 @@ function initApp() {
 
     loadData();
     initBackgroundBananas();
-    setInterval(regenEnergy, 1000);
+    setInterval(gameTick, 1000);
 }
 
 function updateUI() {
@@ -392,8 +414,19 @@ function updateUI() {
     const multitapCostDisplay = document.getElementById("multitap-cost");
     const multitapBtn = document.getElementById("multitap-btn");
 
-    if (coinsDisplay) coinsDisplay.textContent = coins.toLocaleString();
-    if (energyDisplay) energyDisplay.textContent = energy;
+    // Элементы пассивного дохода
+    const passiveIncomeDisplay = document.getElementById("passive-income-display");
+    const p1Level = document.getElementById("p1-level");
+    const p1Cost = document.getElementById("p1-cost");
+    const p1Btn = document.getElementById("passive-1-btn");
+
+    const cardPassive2 = document.getElementById("card-passive-2");
+    const p2Level = document.getElementById("p2-level");
+    const p2Cost = document.getElementById("p2-cost");
+    const p2Btn = document.getElementById("passive-2-btn");
+
+    if (coinsDisplay) coinsDisplay.textContent = Math.floor(coins).toLocaleString();
+    if (energyDisplay) energyDisplay.textContent = Math.floor(energy);
     
     if (energyBarFill) {
         const percentage = Math.max(0, Math.min(100, (energy / maxEnergy) * 100));
@@ -403,9 +436,37 @@ function updateUI() {
     if (multitapLevel) multitapLevel.textContent = tapPower;
     if (multitapPower) multitapPower.textContent = tapPower;
     if (multitapCostDisplay) multitapCostDisplay.textContent = multitapCost;
-    
     if (multitapBtn) {
         multitapBtn.disabled = coins < multitapCost;
+    }
+
+    // Рендер пассивного дохода 1 (Куст)
+    if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS;
+    if (p1Level) p1Level.textContent = passive1Level;
+    if (p1Cost) p1Cost.textContent = passive1Cost;
+    if (p1Btn) p1Btn.disabled = coins < passive1Cost;
+
+    // Рендер пассивного дохода 2 (Ферма) с замками
+    if (p2Level) p2Level.textContent = passive2Level;
+    if (p2Cost) p2Cost.textContent = passive2Cost;
+
+    if (cardPassive2 && p2Btn) {
+        // Открываем ферму, если куплен куст (passive1Level > 0) ИЛИ если у игрока много монет (например, >= 500)
+        if (passive1Level > 0 || coins >= 500) {
+            cardPassive2.classList.remove("locked");
+            const iconEl = cardPassive2.querySelector(".upgrade-icon");
+            const titleEl = cardPassive2.querySelector(".upgrade-title");
+            if (iconEl) iconEl.textContent = "🏭";
+            if (titleEl) titleEl.textContent = "Банановая ферма";
+            p2Btn.disabled = coins < passive2Cost;
+        } else {
+            cardPassive2.classList.add("locked");
+            const iconEl = cardPassive2.querySelector(".upgrade-icon");
+            const titleEl = cardPassive2.querySelector(".upgrade-title");
+            if (iconEl) iconEl.textContent = "🔒";
+            if (titleEl) titleEl.textContent = "Заблокировано";
+            p2Btn.disabled = true;
+        }
     }
 }
 
@@ -422,12 +483,43 @@ function buyMultitap(e) {
     }
 }
 
-function regenEnergy() {
-    if (energy < maxEnergy) {
-        energy += 1;
+// Покупка пассивного дохода 1 (Куст: +1 монета/сек)
+function buyPassive1(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (coins >= passive1Cost) {
+        coins -= passive1Cost;
+        passive1Level++;
+        passiveIncomePS += 1;
+        passive1Cost = Math.floor(passive1Cost * 1.6);
         updateUI();
         saveData();
     }
+}
+
+// Покупка пассивного дохода 2 (Ферма: +5 монет/сек)
+function buyPassive2(e) {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    const cardPassive2 = document.getElementById("card-passive-2");
+    if (coins >= passive2Cost && cardPassive2 && !cardPassive2.classList.contains("locked")) {
+        coins -= passive2Cost;
+        passive2Level++;
+        passiveIncomePS += 5;
+        passive2Cost = Math.floor(passive2Cost * 1.7);
+        updateUI();
+        saveData();
+    }
+}
+
+// Тик игры каждую секунду (энергия + пассивный доход)
+function gameTick() {
+    if (energy < maxEnergy) {
+        energy = Math.min(maxEnergy, energy + 1);
+    }
+    if (passiveIncomePS > 0) {
+        coins += passiveIncomePS;
+    }
+    updateUI();
+    saveData();
 }
 
 function createFlyingOne(x, y, text, isCrit) {
@@ -489,7 +581,6 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
-// Функция переключения экранов по кнопкам
 function switchScreen(screenName) {
     const screens = document.querySelectorAll('.screen');
     screens.forEach(scr => scr.classList.remove('active'));
@@ -506,7 +597,6 @@ function switchScreen(screenName) {
     }
 }
 
-// Улучшенная поддержка свайпов для телефонов
 let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
@@ -536,9 +626,9 @@ function handleSwipe() {
 
     if (diffY < verticalThreshold) {
         if (diffX < -swipeThreshold) {
-            switchScreen('boosts'); // Свайп влево
+            switchScreen('boosts');
         } else if (diffX > swipeThreshold) {
-            switchScreen('game'); // Свайп вправо
+            switchScreen('game');
         }
     }
 }
@@ -566,6 +656,17 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
         multitapBtn.addEventListener("click", triggerBuy);
+    }
+
+    // Кнопки пассивного дохода
+    const p1Btn = document.getElementById("passive-1-btn");
+    if (p1Btn) {
+        p1Btn.addEventListener("click", buyPassive1);
+    }
+
+    const p2Btn = document.getElementById("passive-2-btn");
+    if (p2Btn) {
+        p2Btn.addEventListener("click", buyPassive2);
     }
 
     const refBtn = document.getElementById("ref-btn");
