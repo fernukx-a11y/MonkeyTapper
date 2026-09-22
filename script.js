@@ -1,8 +1,12 @@
 let coins = 0;
+let energy = 1000;
+const maxEnergy = 1000;
 let saveTimeout = null;
 
 const tapArea = document.getElementById("tap-area");
 const coinsDisplay = document.getElementById("coins-display");
+const energyDisplay = document.getElementById("energy-display");
+const energyBarFill = document.getElementById("energy-bar-fill");
 
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -12,36 +16,57 @@ function initApp() {
         tg.expand();
     }
 
+    // Загрузка сохраненных данных
     if (tg && tg.CloudStorage) {
         tg.CloudStorage.getItem("user_coins", (err, value) => {
-            if (!err && value) {
-                coins = parseInt(value, 10) || 0;
-            } else {
-                coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
-            }
-            updateUI();
+            if (!err && value) coins = parseInt(value, 10) || 0;
+            else coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
+            
+            tg.CloudStorage.getItem("user_energy", (errE, valE) => {
+                if (!errE && valE !== null) energy = parseInt(valE, 10);
+                else energy = parseInt(localStorage.getItem("user_energy"), 10) || maxEnergy;
+                updateUI();
+            });
         });
     } else {
         coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
+        const savedEnergy = localStorage.getItem("user_energy");
+        energy = savedEnergy !== null ? parseInt(savedEnergy, 10) : maxEnergy;
         updateUI();
     }
+
+    // Запускаем таймер регенерации энергии (1 ед. в секунду)
+    setInterval(regenEnergy, 1000);
 }
 
 function saveCoins() {
     localStorage.setItem("user_coins", coins.toString());
+    localStorage.setItem("user_energy", energy.toString());
 
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg && tg.CloudStorage) {
             tg.CloudStorage.setItem("user_coins", coins.toString());
+            tg.CloudStorage.setItem("user_energy", energy.toString());
         }
     }, 300);
 }
 
 function updateUI() {
-    if (coinsDisplay) {
-        coinsDisplay.textContent = "💰 Монеты: " + coins;
+    if (coinsDisplay) coinsDisplay.textContent = "💰 Монеты: " + coins;
+    if (energyDisplay) energyDisplay.textContent = energy;
+    if (energyBarFill) {
+        const percentage = (energy / maxEnergy) * 100;
+        energyBarFill.style.width = percentage + "%";
+    }
+}
+
+function regenEnergy() {
+    if (energy < maxEnergy) {
+        energy += 1;
+        updateUI();
+        saveCoins();
     }
 }
 
@@ -61,7 +86,12 @@ function createFlyingOne(x, y) {
 }
 
 function handleTap(e) {
+    // Проверка наличия энергии
+    if (energy <= 0) return;
+
     coins += 1;
+    energy -= 1;
+    
     updateUI();
     saveCoins();
     
@@ -87,9 +117,7 @@ function handleTap(e) {
 }
 
 if (tapArea) {
-    // Поддержка кликов и на ПК, и на смартфонах без конфликтов
     tapArea.addEventListener("pointerdown", (e) => {
-        // Вызываем только для левой кнопки мыши или сенсора
         if (e.button === 0 || e.pointerType === "touch") {
             handleTap(e);
         }
