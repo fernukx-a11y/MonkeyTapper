@@ -25,7 +25,6 @@ body {
     padding: 10px;
 }
 
-/* Шапка с балансом и кнопкой Топа */
 .header {
     display: flex;
     justify-content: space-between;
@@ -70,7 +69,7 @@ p {
     transform: scale(0.95);
 }
 
-/* Область клика (возвращаем твой размер и стили) */
+/* Область клика */
 #tap-area {
     position: relative;
     cursor: pointer;
@@ -79,9 +78,13 @@ p {
     width: 170px;
     height: 170px;
     border-radius: 50%;
-    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    overflow: hidden;
     border: 5px solid #ffcc00;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1a1a1a;
 }
 
 #monkey-img {
@@ -97,7 +100,7 @@ p {
     transform: scale(0.92);
 }
 
-/* Вылетающая цифра */
+/* Вылетающая цифра при клике */
 .flying-one {
     position: absolute;
     font-size: 28px;
@@ -107,6 +110,7 @@ p {
     pointer-events: none;
     animation: flyUp 1s ease-out forwards;
     text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 100;
 }
 
 @keyframes flyUp {
@@ -150,10 +154,12 @@ p {
     transition: width 0.1s linear;
 }
 
-/* Стили для кнопки улучшений */
+/* Стили для кнопок улучшений */
 .upgrades-container {
     margin-top: 15px;
     width: 90%;
+    display: flex;
+    flex-direction: column;
 }
 
 .upgrade-btn {
@@ -269,10 +275,6 @@ p {
 .leader-item.top-2 { background: rgba(192, 192, 192, 0.2); border: 1px solid silver; }
 .leader-item.top-3 { background: rgba(205, 127, 50, 0.2); border: 1px solid #cd7f32; }
 
-.loading-text {
-    text-align: center;
-    color: #888;
-}
 .loading-text {
     text-align: center;
     color: #888;
