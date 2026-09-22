@@ -81,12 +81,12 @@ body {
     transform: scale(0.95);
 }
 
-/* Картинка приближена и заполняет весь круг */
+/* Картинка приближена близко к краям */
 #monkey-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scale(1.15); /* Принудительно увеличиваем, чтобы убрать лишние отступы */
+    transform: scale(1.5); /* Увеличено до 1.5, чтобы убрать все отступы */
     display: block;
     border-radius: 50%;
     pointer-events: none;
