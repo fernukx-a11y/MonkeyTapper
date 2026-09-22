@@ -1,10 +1,9 @@
 let coins = 0;
 let saveTimeout = null;
 
-const button = document.getElementById("tap-btn");
-const coinsText = document.querySelector("p");
+const tapArea = document.getElementById("tap-area");
+const coinsDisplay = document.getElementById("coins-display");
 
-// Функция загрузки монеток из CloudStorage
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
 
@@ -13,13 +12,11 @@ function initApp() {
         tg.expand();
     }
 
-    // Загружаем из облака Telegram
     if (tg && tg.CloudStorage) {
         tg.CloudStorage.getItem("user_coins", (err, value) => {
-            if (!err && value !== null && value !== undefined && value !== "") {
+            if (!err && value) {
                 coins = parseInt(value, 10) || 0;
             } else {
-                // Запасной вариант из памяти браузера
                 coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
             }
             updateUI();
@@ -30,7 +27,6 @@ function initApp() {
     }
 }
 
-// Сохранение монеток в облако Telegram
 function saveCoins() {
     localStorage.setItem("user_coins", coins.toString());
 
@@ -38,30 +34,55 @@ function saveCoins() {
     saveTimeout = setTimeout(() => {
         const tg = window.Telegram ? window.Telegram.WebApp : null;
         if (tg && tg.CloudStorage) {
-            tg.CloudStorage.setItem("user_coins", coins.toString(), (err) => {
-                if (err) console.error("Ошибка сохранения в CloudStorage:", err);
-            });
+            tg.CloudStorage.setItem("user_coins", coins.toString());
         }
     }, 300);
 }
 
 function updateUI() {
-    if (coinsText) {
-        coinsText.textContent = "💰 Монеты: " + coins;
+    if (coinsDisplay) {
+        coinsDisplay.textContent = "💰 Монеты: " + coins;
     }
 }
 
-function addCoin(e) {
+// Эффект вылетающего "+1"
+function createFlyingOne(x, y) {
+    const flyingOne = document.createElement("div");
+    flyingOne.classList.add("flying-one");
+    flyingOne.textContent = "+1";
+    
+    flyingOne.style.left = x + "px";
+    flyingOne.style.top = y + "px";
+    
+    document.body.appendChild(flyingOne);
+    
+    setTimeout(() => {
+        flyingOne.remove();
+    }, 1000);
+}
+
+function handleTap(e) {
     if (e) e.preventDefault();
+    
     coins += 1;
     updateUI();
     saveCoins();
+    
+    let clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+    } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+    }
+    
+    createFlyingOne(clientX, clientY);
 }
 
-if (button) {
-    button.addEventListener("touchstart", addCoin, { passive: false });
-    button.addEventListener("click", addCoin);
+if (tapArea) {
+    tapArea.addEventListener("touchstart", handleTap, { passive: false });
+    tapArea.addEventListener("click", handleTap);
 }
 
-// Запускаем инициализацию
 window.addEventListener("DOMContentLoaded", initApp);
