@@ -596,17 +596,20 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
-// ИСПРАВЛЕННАЯ ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ ЧЕРЕЗ КЛАСС active
-let currentScreenIndex = 0;
-
-function switchScreen(screenIndex) {
+// УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ (ПОДДЕРЖИВАЕТ И ТЕКСТ, И ИНДЕКСЫ)
+function switchScreen(target) {
     const screens = document.querySelectorAll('.screen');
     const navItems = document.querySelectorAll('.nav-item');
     
-    currentScreenIndex = screenIndex;
-    
+    let activeIndex = 0;
+    if (target === 'boosts' || target === 1) {
+        activeIndex = 1;
+    } else {
+        activeIndex = 0;
+    }
+
     screens.forEach((screen, index) => {
-        if (index === screenIndex) {
+        if (index === activeIndex) {
             screen.classList.add('active');
         } else {
             screen.classList.remove('active');
@@ -614,7 +617,7 @@ function switchScreen(screenIndex) {
     });
 
     navItems.forEach((item, index) => {
-        if (index === screenIndex) {
+        if (index === activeIndex) {
             item.classList.add('active');
         } else {
             item.classList.remove('active');
@@ -625,12 +628,10 @@ function switchScreen(screenIndex) {
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
     
-    // Привязка кликов к кнопкам нижней навигации
     const navItems = document.querySelectorAll('.nav-item');
-    if (navItems.length >= 3) {
-        navItems[0].addEventListener('click', () => switchScreen(0));
-        navItems[1].addEventListener('click', () => switchScreen(1));
-        navItems[2].addEventListener('click', () => switchScreen(2));
+    if (navItems.length >= 2) {
+        navItems[0].addEventListener('click', () => switchScreen('game'));
+        navItems[1].addEventListener('click', () => switchScreen('boosts'));
     }
 
     const tapArea = document.getElementById("tap-area");
