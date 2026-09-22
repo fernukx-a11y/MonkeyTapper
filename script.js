@@ -69,6 +69,24 @@ function initApp() {
     setInterval(regenEnergy, 1000);
 }
 
+// Мгновенное и надежное сохранение
+function forceSave() {
+    lastSaveTime = Date.now();
+    
+    localStorage.setItem("user_coins", coins.toString());
+    localStorage.setItem("user_energy", energy.toString());
+    localStorage.setItem("user_tap_power", tapPower.toString());
+    localStorage.setItem("user_last_time", lastSaveTime.toString());
+
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.CloudStorage) {
+        tg.CloudStorage.setItem("user_coins", coins.toString());
+        tg.CloudStorage.setItem("user_energy", energy.toString());
+        tg.CloudStorage.setItem("user_tap_power", tapPower.toString());
+        tg.CloudStorage.setItem("user_last_time", lastSaveTime.toString());
+    }
+}
+
 function saveCoins() {
     lastSaveTime = Date.now();
     
@@ -123,12 +141,15 @@ function updateUI() {
 }
 
 function buyMultitap(e) {
-    if (e) e.preventDefault();
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
     if (coins >= multitapCost) {
         coins -= multitapCost;
         tapPower += 1;
         updateUI();
-        saveCoins();
+        forceSave(); // Мгновенное сохранение
     }
 }
 
@@ -200,7 +221,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const multitapBtn = document.getElementById("multitap-btn");
     if (multitapBtn) {
-        multitapBtn.addEventListener("pointerdown", buyMultitap);
-        multitapBtn.addEventListener("click", buyMultitap);
+        let isBuying = false;
+        const triggerBuy = (e) => {
+            if (isBuying) return;
+            isBuying = true;
+            buyMultitap(e);
+            setTimeout(() => { isBuying = false; }, 200);
+        };
+        multitapBtn.addEventListener("pointerdown", triggerBuy);
+        multitapBtn.addEventListener("click", triggerBuy);
     }
 });
