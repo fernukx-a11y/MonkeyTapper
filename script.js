@@ -1,50 +1,57 @@
 let coins = 0;
-let tgUser = null;
-
 const button = document.getElementById("tap-btn");
 const coinsText = document.querySelector("p");
 
-// Получаем данные пользователя из Telegram
-if (window.Telegram && window.Telegram.WebApp) {
-    const webapp = window.Telegram.WebApp;
-    webapp.ready();
-    webapp.expand();
-    
-    if (webapp.initDataUnsafe && webapp.initDataUnsafe.user) {
-        tgUser = webapp.initDataUnsafe.user;
+// Получаем объект WebApp Telegram
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+
+if (tg) {
+    tg.ready();
+    tg.expand();
+}
+
+// Загружаем монеты из бесплатного облака Telegram (CloudStorage)
+function loadCoins() {
+    if (tg && tg.CloudStorage) {
+        tg.CloudStorage.getItem("user_coins", (err, value) => {
+            if (!err && value) {
+                coins = parseInt(value, 10) || 0;
+            } else {
+                coins = 0;
+            }
+            updateUI();
+        });
+    } else {
+        // Запасной вариант для тестирования в обычном браузере
+        coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
+        updateUI();
     }
 }
 
-// Загрузка монет с сервера
-async function loadCoins() {
-    if (!tgUser) return;
-    try {
-        const response = await fetch(`https://YOUR_SERVER_URL/api/get_coins?user_id=${tgUser.id}`);
-        const data = await response.json();
-        coins = data.coins || 0;
-        if (coinsText) coinsText.textContent = "💰 Монеты: " + coins;
-    } catch (e) {
-        console.log("Ошибка загрузки монет с сервера:", e);
+// Сохраняем монеты в облако Telegram
+function saveCoins() {
+    if (tg && tg.CloudStorage) {
+        tg.CloudStorage.setItem("user_coins", coins.toString(), (err, success) => {
+            if (err) console.error("Ошибка сохранения в CloudStorage:", err);
+        });
+    } else {
+        localStorage.setItem("user_coins", coins.toString());
     }
 }
 
-// Отправка клика на сервер
-async function addCoin(e) {
+// Обновляем текст на экране
+function updateUI() {
+    if (coinsText) {
+        coinsText.textContent = "💰 Монеты: " + coins;
+    }
+}
+
+// Добавление монеты при клике/тапе
+function addCoin(e) {
     if (e) e.preventDefault();
     coins += 1;
-    if (coinsText) coinsText.textContent = "💰 Монеты: " + coins;
-
-    if (tgUser) {
-        try {
-            await fetch(`https://YOUR_SERVER_URL/api/click`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: tgUser.id, coins: coins })
-            });
-        } catch (err) {
-            console.log("Ошибка отправки клика:", err);
-        }
-    }
+    updateUI();
+    saveCoins(); // Автоматически сохраняем в облако Telegram
 }
 
 if (button) {
@@ -52,5 +59,5 @@ if (button) {
     button.addEventListener("click", addCoin);
 }
 
-// Инициализация при открытии
+// Запускаем загрузку при открытии
 loadCoins();
