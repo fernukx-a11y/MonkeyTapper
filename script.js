@@ -5,7 +5,17 @@ let tapPower = 1;
 let multitapCost = 50;
 let lastSaveTime = Date.now();
 
-let saveTimeout = null;
+function getUserId() {
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
+        return tg.initDataUnsafe.user.id;
+    }
+    return "default_user";
+}
+
+function getKey(key) {
+    return `monkey_${getUserId()}_${key}`;
+}
 
 function sanitizeNumber(val, fallback) {
     const parsed = parseInt(val, 10);
@@ -25,102 +35,68 @@ function applyOfflineEnergy() {
     lastSaveTime = now;
 }
 
+function saveData() {
+    lastSaveTime = Date.now();
+    
+    // Синхронное прямое сохранение в localStorage
+    localStorage.setItem(getKey("coins"), coins.toString());
+    localStorage.setItem(getKey("energy"), energy.toString());
+    localStorage.setItem(getKey("tap_power"), tapPower.toString());
+    localStorage.setItem(getKey("last_time"), lastSaveTime.toString());
+
+    // Сохранение в CloudStorage без перезаписи глобальных переменных
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.CloudStorage) {
+        tg.CloudStorage.setItem(getKey("coins"), coins.toString());
+        tg.CloudStorage.setItem(getKey("energy"), energy.toString());
+        tg.CloudStorage.setItem(getKey("tap_power"), tapPower.toString());
+        tg.CloudStorage.setItem(getKey("last_time"), lastSaveTime.toString());
+    }
+}
+
+function loadData() {
+    // 1. Сначала мгновенно читаем из localStorage
+    coins = sanitizeNumber(localStorage.getItem(getKey("coins")), 0);
+    energy = sanitizeNumber(localStorage.getItem(getKey("energy")), maxEnergy);
+    tapPower = sanitizeNumber(localStorage.getItem(getKey("tap_power")), 1);
+    lastSaveTime = sanitizeNumber(localStorage.getItem(getKey("last_time")), Date.now());
+
+    applyOfflineEnergy();
+    updateUI();
+
+    // 2. Затем фоново проверяем CloudStorage на случай более высоких значений
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.CloudStorage) {
+        tg.CloudStorage.getItem(getKey("tap_power"), (err, valP) => {
+            if (!err && valP !== null) {
+                const cloudPower = sanitizeNumber(valP, 1);
+                if (cloudPower > tapPower) {
+                    tapPower = cloudPower;
+                    updateUI();
+                }
+            }
+        });
+        tg.CloudStorage.getItem(getKey("coins"), (err, valC) => {
+            if (!err && valC !== null) {
+                const cloudCoins = sanitizeNumber(valC, 0);
+                if (cloudCoins > coins) {
+                    coins = cloudCoins;
+                    updateUI();
+                }
+            }
+        });
+    }
+}
+
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-
     if (tg) {
         tg.ready();
         tg.expand();
     }
 
-    // Загружаем локальные данные заранее
-    const localCoins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
-    const localEnergy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
-    const localTapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
-    const localTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
-
-    coins = localCoins;
-    energy = localEnergy;
-    tapPower = localTapPower;
-    lastSaveTime = localTime;
-
-    if (tg && tg.CloudStorage) {
-        tg.CloudStorage.getItem("user_coins", (err, valC) => {
-            if (!err && valC !== null) {
-                const cloudCoins = sanitizeNumber(valC, 0);
-                coins = Math.max(coins, cloudCoins);
-            }
-
-            tg.CloudStorage.getItem("user_energy", (errE, valE) => {
-                if (!errE && valE !== null) {
-                    const cloudEnergy = sanitizeNumber(valE, maxEnergy);
-                    energy = cloudEnergy;
-                }
-
-                tg.CloudStorage.getItem("user_tap_power", (errP, valP) => {
-                    if (!errP && valP !== null) {
-                        const cloudPower = sanitizeNumber(valP, 1);
-                        // Берём максимальный уровень power (чтобы не затирать прогресс)
-                        tapPower = Math.max(tapPower, cloudPower);
-                    }
-
-                    tg.CloudStorage.getItem("user_last_time", (errT, valT) => {
-                        if (!errT && valT !== null) {
-                            const cloudTime = sanitizeNumber(valT, Date.now());
-                            lastSaveTime = Math.max(lastSaveTime, cloudTime);
-                        }
-
-                        applyOfflineEnergy();
-                        updateUI();
-                        forceSave();
-                    });
-                });
-            });
-        });
-    } else {
-        applyOfflineEnergy();
-        updateUI();
-        forceSave();
-    }
-
+    loadData();
     setInterval(regenEnergy, 1000);
-}
-
-function forceSave() {
-    lastSaveTime = Date.now();
-    
-    localStorage.setItem("user_coins", coins.toString());
-    localStorage.setItem("user_energy", energy.toString());
-    localStorage.setItem("user_tap_power", tapPower.toString());
-    localStorage.setItem("user_last_time", lastSaveTime.toString());
-
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg && tg.CloudStorage) {
-        tg.CloudStorage.setItem("user_coins", coins.toString());
-        tg.CloudStorage.setItem("user_energy", energy.toString());
-        tg.CloudStorage.setItem("user_tap_power", tapPower.toString());
-        tg.CloudStorage.setItem("user_last_time", lastSaveTime.toString());
-    }
-}
-
-function saveCoins() {
-    lastSaveTime = Date.now();
-    
-    localStorage.setItem("user_coins", coins.toString());
-    localStorage.setItem("user_energy", energy.toString());
-    localStorage.setItem("user_tap_power", tapPower.toString());
-    localStorage.setItem("user_last_time", lastSaveTime.toString());
-
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => {
-        const tg = window.Telegram ? window.Telegram.WebApp : null;
-        if (tg && tg.CloudStorage) {
-            tg.CloudStorage.setItem("user_coins", coins.toString());
-            tg.CloudStorage.setItem("user_energy", energy.toString());
-            tg.CloudStorage.setItem("user_tap_power", tapPower.toString());
-            tg.CloudStorage.setItem("user_last_time", lastSaveTime.toString());
-        }
-    }, 300);
 }
 
 function updateUI() {
@@ -165,7 +141,7 @@ function buyMultitap(e) {
         coins -= multitapCost;
         tapPower += 1;
         updateUI();
-        forceSave();
+        saveData();
     }
 }
 
@@ -173,7 +149,7 @@ function regenEnergy() {
     if (energy < maxEnergy) {
         energy += 1;
         updateUI();
-        saveCoins();
+        saveData();
     }
 }
 
@@ -199,7 +175,7 @@ function handleTap(e) {
     energy -= 1;
     
     updateUI();
-    saveCoins();
+    saveData();
     
     let clientX, clientY;
     const tapArea = document.getElementById("tap-area");
@@ -242,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isBuying) return;
             isBuying = true;
             buyMultitap(e);
-            setTimeout(() => { isBuying = false; }, 200);
+            setTimeout(() => { isBuying = false; }, 300);
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
         multitapBtn.addEventListener("click", triggerBuy);
