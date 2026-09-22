@@ -47,18 +47,25 @@
         }
 
         #tap-area {
-            width: 200px;
-            height: 200px;
+            width: 220px;
+            height: 220px;
             border-radius: 50%;
             background: radial-gradient(circle, #ff9900, #cc7700);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 90px;
             cursor: pointer;
             box-shadow: 0 10px 25px rgba(255, 153, 0, 0.4);
             transition: transform 0.05s ease-in-out;
             touch-action: manipulation;
+            overflow: hidden;
+        }
+
+        #tap-area img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none;
         }
 
         #tap-area:active {
@@ -155,7 +162,10 @@
     </div>
 
     <div class="tap-container">
-        <div id="tap-area">🐒</div>
+        <div id="tap-area">
+            <!-- Качественная 3D-картинка обезьяны -->
+            <img src="https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f412.svg" alt="Monkey" id="monkey-img">
+        </div>
     </div>
 
     <div class="energy-container">
