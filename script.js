@@ -1,7 +1,8 @@
 // ==========================================
-// ДАННЫЕ СВЯЗИ С SUPABASE:
+// НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ):
 const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
-const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6";
+const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6"; // Вставь свой ключ из Supabase (начинается на sb_publishable...)
+const BOT_USERNAME = "MonkeyTapperTGbot."; // Имя бота без символа @ (например: MonkeyTapperBot)
 // ==========================================
 
 let coins = 0;
@@ -10,6 +11,7 @@ const maxEnergy = 1000;
 let tapPower = 1;
 let multitapCost = 50;
 let lastSaveTime = Date.now();
+let referralCount = 0;
 
 let saveTimeout = null;
 
@@ -18,13 +20,22 @@ function getUserId() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
         return tg.initDataUnsafe.user.id.toString();
     }
-    // Если открыли вне Telegram или в эмуляторе ПК без авторизации:
     let localDevId = localStorage.getItem("monkey_dev_user_id");
     if (!localDevId) {
         localDevId = "user_" + Math.random().toString(36).substring(2, 10);
         localStorage.setItem("monkey_dev_user_id", localDevId);
     }
     return localDevId;
+}
+
+// Получение ID пригласившего из параметров Telegram WebApp
+function getReferrerId() {
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        return tg.initDataUnsafe.start_param.toString();
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("tgWebAppStartParam") || null;
 }
 
 function sanitizeNumber(val, fallback) {
@@ -45,7 +56,6 @@ function applyOfflineEnergy() {
     lastSaveTime = now;
 }
 
-// Прямые HTTP-запросы к Supabase REST API
 async function saveToSupabase() {
     const userId = getUserId();
     lastSaveTime = Date.now();
@@ -75,11 +85,77 @@ async function saveToSupabase() {
 }
 
 function saveData() {
-    // Дебаунс сохранения (отправляем данные через 0.5 сек после последнего клика)
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
         saveToSupabase();
     }, 500);
+}
+
+// Обработка реферального бонуса при первом входе
+async function processReferral(userId) {
+    const referrerId = getReferrerId();
+    if (!referrerId || referrerId === userId) return;
+
+    try {
+        // Проверяем, не был ли реферал уже зарегистрирован
+        const checkRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referred_id=eq.${userId}`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const refData = await checkRef.json();
+
+        if (refData.length === 0) {
+            // Записываем связь реферала
+            await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
+                method: "POST",
+                headers: {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ referrer_id: referrerId, referred_id: userId })
+            });
+
+            // Начисляем бонус новому игроку (5,000 монет)
+            coins += 5000;
+            saveData();
+
+            // Начисляем бонус пригласившему (10,000 монет)
+            const getReferrer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
+                headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+            });
+            const referrerData = await getReferrer.json();
+
+            if (referrerData.length > 0) {
+                const oldCoins = sanitizeNumber(referrerData[0].coins, 0);
+                await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ coins: oldCoins + 10000 })
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка при обработке реферала:", e);
+    }
+}
+
+// Загрузка количества приглашенных рефералов
+async function loadReferralCount(userId) {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referrer_id=eq.${userId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const data = await response.json();
+        referralCount = data.length || 0;
+        const refCountEl = document.getElementById("ref-count");
+        if (refCountEl) refCountEl.textContent = "Приглашено друзей: " + referralCount;
+    } catch (e) {
+        console.error("Ошибка загрузки рефералов:", e);
+    }
 }
 
 async function loadData() {
@@ -106,11 +182,27 @@ async function loadData() {
             applyOfflineEnergy();
             updateUI();
         } else {
-            // Новый игрок — создаем первую запись
+            // Новый игрок
+            await processReferral(userId);
             saveData();
         }
+        
+        loadReferralCount(userId);
     } catch (e) {
         console.error("Ошибка загрузки из облака:", e);
+    }
+}
+
+function shareReferralLink() {
+    const userId = getUserId();
+    const shareUrl = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+    
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Заходи в Monkey Tapper и получи 5,000 монет в подарок! 🐒💰")}`);
+    } else {
+        navigator.clipboard.writeText(shareUrl);
+        alert("Реферальная ссылка скопирована в буфер обмена!");
     }
 }
 
@@ -183,15 +275,11 @@ function createFlyingOne(x, y, text) {
     const flyingOne = document.createElement("div");
     flyingOne.classList.add("flying-one");
     flyingOne.textContent = "+" + text;
-    
     flyingOne.style.left = x + "px";
     flyingOne.style.top = y + "px";
-    
     document.body.appendChild(flyingOne);
     
-    setTimeout(() => {
-        flyingOne.remove();
-    }, 1000);
+    setTimeout(() => { flyingOne.remove(); }, 1000);
 }
 
 function handleTap(e) {
@@ -248,5 +336,10 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
         multitapBtn.addEventListener("click", triggerBuy);
+    }
+
+    const refBtn = document.getElementById("ref-btn");
+    if (refBtn) {
+        refBtn.addEventListener("click", shareReferralLink);
     }
 });
