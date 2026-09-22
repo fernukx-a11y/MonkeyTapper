@@ -105,10 +105,9 @@ function saveData() {
     }, 500);
 }
 
-// Обработка реферального бонуса с отладочным алертом
+// Обработка реферального бонуса (без надоедливого алерта)
 async function processReferral(userId) {
     const referrerId = getReferrerId();
-    alert("Debug: User=" + userId + ", Ref=" + referrerId);
     
     if (!referrerId || referrerId === userId) return;
 
@@ -129,11 +128,7 @@ async function processReferral(userId) {
                 body: JSON.stringify({ referrer_id: referrerId, referred_id: userId })
             });
 
-            if (!resPostRef.ok) {
-                const errText = await resPostRef.text();
-                alert("Ошибка создания реферала: " + errText);
-                return;
-            }
+            if (!resPostRef.ok) return;
 
             coins += 5000;
 
@@ -153,12 +148,10 @@ async function processReferral(userId) {
                     },
                     body: JSON.stringify({ coins: oldCoins + 10000 })
                 });
-            } else {
-                alert("Пригласивший с ID " + referrerId + " не найден в таблице players!");
             }
         }
     } catch (e) {
-        alert("Сбой в processReferral: " + e.message);
+        console.error("Сбой в processReferral:", e);
     }
 }
 
@@ -214,7 +207,6 @@ async function loadData() {
 
 function shareReferralLink() {
     const userId = getUserId();
-    // ИСПРАВЛЕНО: добавлено /play, чтобы ссылка открывала мини-приложение, а не чат с ботом
     const shareUrl = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
