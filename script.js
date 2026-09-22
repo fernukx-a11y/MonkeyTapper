@@ -33,43 +33,59 @@ function initApp() {
         tg.expand();
     }
 
+    // Загружаем локальные данные заранее
+    const localCoins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
+    const localEnergy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
+    const localTapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
+    const localTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
+
+    coins = localCoins;
+    energy = localEnergy;
+    tapPower = localTapPower;
+    lastSaveTime = localTime;
+
     if (tg && tg.CloudStorage) {
-        tg.CloudStorage.getItem("user_coins", (err, value) => {
-            if (!err && value !== null) coins = sanitizeNumber(value, 0);
-            else coins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
-            
+        tg.CloudStorage.getItem("user_coins", (err, valC) => {
+            if (!err && valC !== null) {
+                const cloudCoins = sanitizeNumber(valC, 0);
+                coins = Math.max(coins, cloudCoins);
+            }
+
             tg.CloudStorage.getItem("user_energy", (errE, valE) => {
-                if (!errE && valE !== null) energy = sanitizeNumber(valE, maxEnergy);
-                else energy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
-                
+                if (!errE && valE !== null) {
+                    const cloudEnergy = sanitizeNumber(valE, maxEnergy);
+                    energy = cloudEnergy;
+                }
+
                 tg.CloudStorage.getItem("user_tap_power", (errP, valP) => {
-                    if (!errP && valP !== null) tapPower = sanitizeNumber(valP, 1);
-                    else tapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
-                    
+                    if (!errP && valP !== null) {
+                        const cloudPower = sanitizeNumber(valP, 1);
+                        // Берём максимальный уровень power (чтобы не затирать прогресс)
+                        tapPower = Math.max(tapPower, cloudPower);
+                    }
+
                     tg.CloudStorage.getItem("user_last_time", (errT, valT) => {
-                        if (!errT && valT !== null) lastSaveTime = sanitizeNumber(valT, Date.now());
-                        else lastSaveTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
-                        
+                        if (!errT && valT !== null) {
+                            const cloudTime = sanitizeNumber(valT, Date.now());
+                            lastSaveTime = Math.max(lastSaveTime, cloudTime);
+                        }
+
                         applyOfflineEnergy();
                         updateUI();
+                        forceSave();
                     });
                 });
             });
         });
     } else {
-        coins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
-        energy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
-        tapPower = sanitizeNumber(localStorage.getItem("user_tap_power"), 1);
-        lastSaveTime = sanitizeNumber(localStorage.getItem("user_last_time"), Date.now());
-        
         applyOfflineEnergy();
         updateUI();
+        forceSave();
     }
 
     setInterval(regenEnergy, 1000);
 }
 
-// Мгновенное и надежное сохранение
 function forceSave() {
     lastSaveTime = Date.now();
     
@@ -149,7 +165,7 @@ function buyMultitap(e) {
         coins -= multitapCost;
         tapPower += 1;
         updateUI();
-        forceSave(); // Мгновенное сохранение
+        forceSave();
     }
 }
 
