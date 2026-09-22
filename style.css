@@ -63,10 +63,10 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
-/* СТРОГО ОГРАНИЧИВАЕМ ЗОНУ КЛИКА РАЗМЕРОМ КРУГА */
+/* ЗОНА КЛИКА: это и есть наш неизменный золотой круг с контуром */
 #tap-area {
-    width: 260px;
-    height: 260px;
+    width: 220px;
+    height: 220px;
     margin: auto;
     display: flex;
     justify-content: center;
@@ -74,21 +74,24 @@ body {
     position: relative;
     cursor: pointer;
     border-radius: 50%;
+    background: radial-gradient(circle, rgba(250, 204, 21, 0.2) 0%, rgba(24, 24, 27, 0.9) 70%);
+    border: 3px solid #facc15;
+    box-shadow: 0 0 30px rgba(250, 204, 21, 0.25);
+    overflow: hidden; /* Обрезает всё, что выходит за пределы золотого круга */
     transition: transform 0.05s ease;
-    /* Убираем любые клики за пределами этого круга */
-    flex-grow: 0; 
 }
 
 #tap-area:active {
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 
-/* Обезьяна заполняет всю зону клика (весь золотой круг) */
+/* САМА ОБЕЗЬЯНА: увеличиваем её визуально внутри круга, а клики по её углам отключаем */
 #monkey-img {
-    width: 100%;
-    height: 100%;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
-    pointer-events: none;
+    transform: scale(1.6); /* Делаем обезьяну крупной */
+    pointer-events: none; /* Запрещаем клики по квадрату картинки, кликается только круг */
 }
 
 .energy-container {
