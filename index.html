@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Подключаем стили с обновленной версией v=113 -->
-    <link rel="stylesheet" href="style.css?v=113">
+    <!-- Подключаем стили с обновленной версией v=114 -->
+    <link rel="stylesheet" href="style.css?v=114">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -13,7 +13,7 @@
 
     <div class="game-container">
         
-        <!-- Контейнер для фоновых падающих бананов (строго внутри game-container) -->
+        <!-- Контейнер для фоновых падающих бананов -->
         <div id="background-effects"></div>
         
         <!-- Главный экран (Кликер + Канал и Друзья) -->
@@ -129,7 +129,7 @@
             </div>
         </div>
 
-        <!-- Нижняя навигация -->
+        <!-- Нижняя навигация (теперь строго в самом низу DOM-дерева) -->
         <div class="bottom-nav">
             <button class="nav-item active" onclick="switchScreen('game')">
                 <span class="nav-icon">🪙</span>
@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    <!-- Подключаем основной скрипт игры с версией v=113 -->
-    <script src="script.js?v=113"></script>
+    <!-- Подключаем основной скрипт игры -->
+    <script src="script.js?v=114"></script>
 </body>
 </html>
