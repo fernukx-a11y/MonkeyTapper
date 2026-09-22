@@ -122,7 +122,8 @@ function updateUI() {
     }
 }
 
-function buyMultitap() {
+function buyMultitap(e) {
+    if (e) e.preventDefault();
     if (coins >= multitapCost) {
         coins -= multitapCost;
         tapPower += 1;
@@ -199,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const multitapBtn = document.getElementById("multitap-btn");
     if (multitapBtn) {
+        multitapBtn.addEventListener("pointerdown", buyMultitap);
         multitapBtn.addEventListener("click", buyMultitap);
     }
 });
