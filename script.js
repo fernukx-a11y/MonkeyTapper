@@ -1,8 +1,9 @@
 let coins = 0;
+let saveTimeout = null;
+
 const button = document.getElementById("tap-btn");
 const coinsText = document.querySelector("p");
 
-// Получаем объект WebApp Telegram
 const tg = window.Telegram ? window.Telegram.WebApp : null;
 
 if (tg) {
@@ -10,48 +11,48 @@ if (tg) {
     tg.expand();
 }
 
-// Загружаем монеты из бесплатного облака Telegram (CloudStorage)
+// Загрузка монет из облака Telegram
 function loadCoins() {
     if (tg && tg.CloudStorage) {
         tg.CloudStorage.getItem("user_coins", (err, value) => {
-            if (!err && value) {
+            if (!err && value !== null && value !== undefined && value !== "") {
                 coins = parseInt(value, 10) || 0;
             } else {
-                coins = 0;
+                coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
             }
             updateUI();
         });
     } else {
-        // Запасной вариант для тестирования в обычном браузере
         coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
         updateUI();
     }
 }
 
-// Сохраняем монеты в облако Telegram
-function saveCoins() {
-    if (tg && tg.CloudStorage) {
-        tg.CloudStorage.setItem("user_coins", coins.toString(), (err, success) => {
-            if (err) console.error("Ошибка сохранения в CloudStorage:", err);
-        });
-    } else {
-        localStorage.setItem("user_coins", coins.toString());
-    }
+// Сохранение с задержкой (чтобы не спамить Telegram при быстрых тапах)
+function saveCoinsDebounced() {
+    localStorage.setItem("user_coins", coins.toString());
+
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => {
+        if (tg && tg.CloudStorage) {
+            tg.CloudStorage.setItem("user_coins", coins.toString(), (err) => {
+                if (err) console.error("CloudStorage error:", err);
+            });
+        }
+    }, 500);
 }
 
-// Обновляем текст на экране
 function updateUI() {
     if (coinsText) {
         coinsText.textContent = "💰 Монеты: " + coins;
     }
 }
 
-// Добавление монеты при клике/тапе
 function addCoin(e) {
     if (e) e.preventDefault();
     coins += 1;
     updateUI();
-    saveCoins(); // Автоматически сохраняем в облако Telegram
+    saveCoinsDebounced();
 }
 
 if (button) {
@@ -59,5 +60,4 @@ if (button) {
     button.addEventListener("click", addCoin);
 }
 
-// Запускаем загрузку при открытии
 loadCoins();
