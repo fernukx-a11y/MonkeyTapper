@@ -61,21 +61,22 @@ function createFlyingOne(x, y) {
 }
 
 function handleTap(e) {
-    if (e) e.preventDefault();
-    
     coins += 1;
     updateUI();
     saveCoins();
     
     let clientX, clientY;
-    if (e.changedTouches && e.changedTouches.length > 0) {
-        clientX = e.changedTouches[0].clientX;
-        clientY = e.changedTouches[0].clientY;
+
+    if (e.type === "touchstart" || e.type === "touchend") {
+        if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
+        }
     } else {
         clientX = e.clientX;
         clientY = e.clientY;
     }
-    
+
     if (clientX === undefined || clientY === undefined) {
         const rect = tapArea.getBoundingClientRect();
         clientX = rect.left + rect.width / 2;
@@ -86,7 +87,13 @@ function handleTap(e) {
 }
 
 if (tapArea) {
-    tapArea.addEventListener("pointerdown", handleTap);
+    // Поддержка кликов и на ПК, и на смартфонах без конфликтов
+    tapArea.addEventListener("pointerdown", (e) => {
+        // Вызываем только для левой кнопки мыши или сенсора
+        if (e.button === 0 || e.pointerType === "touch") {
+            handleTap(e);
+        }
+    });
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
