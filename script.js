@@ -28,7 +28,7 @@ function getUserId() {
     return localDevId;
 }
 
-// Улучшенное получение ID пригласившего из всех возможных источников
+// Получение ID пригласившего из всех возможных источников
 function getReferrerId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
@@ -42,7 +42,7 @@ function getReferrerId() {
     let paramFromUrl = urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || urlParams.get("start");
     if (paramFromUrl) return paramFromUrl.toString();
 
-    // 3. Проверяем хэш (некоторые версии Telegram передают параметры через #startapp=...)
+    // 3. Проверяем хэш
     if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         let paramFromHash = hashParams.get("tgWebAppStartParam") || hashParams.get("startapp") || hashParams.get("start");
@@ -214,7 +214,8 @@ async function loadData() {
 
 function shareReferralLink() {
     const userId = getUserId();
-    const shareUrl = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
+    // ИСПРАВЛЕНО: добавлено /play, чтобы ссылка открывала мини-приложение, а не чат с ботом
+    const shareUrl = `https://t.me/${BOT_USERNAME}/play?startapp=${userId}`;
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.openTelegramLink) {
