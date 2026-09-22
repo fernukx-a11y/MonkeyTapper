@@ -25,13 +25,33 @@ let saveTimeout = null;
 
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
+    
+    // 1. Пробуем получить из initDataUnsafe
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
         return tg.initDataUnsafe.user.id.toString();
     }
-    let localDevId = localStorage.getItem("monkey_dev_user_id");
+    
+    // 2. Пробуем распарсить initData вручную (для мобильных версий Telegram)
+    if (tg && tg.initData) {
+        try {
+            const urlParams = new URLSearchParams(tg.initData);
+            const userStr = urlParams.get('user');
+            if (userStr) {
+                const userObj = JSON.parse(userStr);
+                if (userObj && userObj.id) {
+                    return userObj.id.toString();
+                }
+            }
+        } catch (e) {
+            console.error("Ошибка парсинга initData:", e);
+        }
+    }
+
+    // 3. Запасной вариант для ПК / обычной вкладки (сохраняется навсегда в браузере)
+    let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
         localDevId = "user_" + Math.random().toString(36).substring(2, 10);
-        localStorage.setItem("monkey_dev_user_id", localDevId);
+        localStorage.setItem("monkey_persistent_user_id", localDevId);
     }
     return localDevId;
 }
@@ -99,7 +119,7 @@ async function saveToSupabase() {
     };
 
     try {
-        await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
             method: "POST",
             headers: {
                 "apikey": SUPABASE_ANON_KEY,
@@ -109,8 +129,13 @@ async function saveToSupabase() {
             },
             body: JSON.stringify(bodyData)
         });
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("Ошибка Supabase при сохранении:", response.status, errText);
+        }
     } catch (e) {
-        console.error("Ошибка сохранения в облако:", e);
+        console.error("Сетевая ошибка сохранения в облако:", e);
     }
 }
 
