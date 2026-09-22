@@ -2,7 +2,7 @@
 // НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ):
 const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
 const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6"; // Вставь свой ключ из Supabase (начинается на sb_publishable...)
-const BOT_USERNAME = "MonkeyTapperTGbot."; // Имя бота без символа @ (например: MonkeyTapperBot)
+const BOT_USERNAME = "MonkeyTapperTGbot"; // Имя бота без символа @ и без точки на конце
 // ==========================================
 
 let coins = 0;
@@ -35,7 +35,7 @@ function getReferrerId() {
         return tg.initDataUnsafe.start_param.toString();
     }
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("tgWebAppStartParam") || null;
+    return urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || null;
 }
 
 function sanitizeNumber(val, fallback) {
@@ -195,7 +195,8 @@ async function loadData() {
 
 function shareReferralLink() {
     const userId = getUserId();
-    const shareUrl = `https://t.me/${BOT_USERNAME}?start=${userId}`;
+    // Используем корректный параметр startapp для открытия мини-приложения
+    const shareUrl = `https://t.me/${BOT_USERNAME}?startapp=${userId}`;
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.openTelegramLink) {
