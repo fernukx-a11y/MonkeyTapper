@@ -394,22 +394,44 @@ function regenEnergy() {
     }
 }
 
-function createFlyingOne(x, y, text) {
-    const flyingOne = document.createElement("div");
-    flyingOne.classList.add("flying-one");
-    flyingOne.textContent = "+" + text;
-    flyingOne.style.left = x + "px";
-    flyingOne.style.top = y + "px";
-    document.body.appendChild(flyingOne);
+// Обновленная функция создания летящей цифры (поддерживает криты)
+function createFlyingOne(x, y, text, isCrit) {
+    const flyingEl = document.createElement("div");
+    flyingEl.classList.add(isCrit ? "flying-crit" : "flying-one");
+    flyingEl.textContent = isCrit ? `CRIT! +${text}` : `+${text}`;
+    flyingEl.style.left = x + "px";
+    flyingEl.style.top = y + "px";
+    document.body.appendChild(flyingEl);
     
-    setTimeout(() => { flyingOne.remove(); }, 800);
+    const duration = isCrit ? 900 : 800;
+    setTimeout(() => { flyingEl.remove(); }, duration);
 }
 
 function handleTap(e) {
     if (energy <= 0) return;
 
-    coins += tapPower;
     energy -= 1;
+
+    // --- ШАНС КРИТА (7%) ---
+    const critChance = 0.07;
+    let earnedCoins = tapPower;
+    let isCrit = Math.random() < critChance;
+
+    if (isCrit) {
+        earnedCoins *= 3; // Критический удар умножает доход в 3 раза
+        
+        // Мощная вибрация при крите в Telegram
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        }
+    } else {
+        // Легкая вибрация при обычном тапе
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+    }
+
+    coins += earnedCoins;
     
     updateUI();
     saveData();
@@ -433,7 +455,7 @@ function handleTap(e) {
         clientY = rect.top + rect.height / 2;
     }
     
-    createFlyingOne(clientX, clientY, tapPower);
+    createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
