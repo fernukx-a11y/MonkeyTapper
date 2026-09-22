@@ -56,7 +56,7 @@ body {
     box-shadow: 0 4px 10px rgba(243, 156, 18, 0.3);
 }
 
-/* Область клика с картинкой (круг) */
+/* Область клика с картинкой (идеальный круг) */
 #tap-area {
     width: 220px;
     height: 220px;
@@ -66,7 +66,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Обрезает картинку строго по кругу */
+    overflow: hidden; /* Обрезает всё по форме круга */
     border: 4px solid #f39c12;
     cursor: pointer;
     box-shadow: 0 0 25px rgba(243, 156, 18, 0.4);
@@ -77,12 +77,14 @@ body {
     transform: scale(0.95);
 }
 
-/* ИСПРАВЛЕНИЕ ДЛЯ АВАТАРКИ: картинка на весь круг */
+/* ИСПРАВЛЕНИЕ ДЛЯ АВАТАРКИ: строго по центру без смещений */
 #monkey-img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Растягивает картинку без искажений */
+    object-fit: cover; /* Растягивает и центрирует картинку без искажений */
     display: block;
+    margin: 0;
+    padding: 0;
     pointer-events: none;
 }
 
