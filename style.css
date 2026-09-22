@@ -41,7 +41,7 @@ p {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Картинка обезьяны */
+/* Элемент картинки monkey.png */
 #monkey-img {
     width: 200px;
     height: 200px;
@@ -50,6 +50,8 @@ p {
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     border: 5px solid #ffcc00;
     transition: box-shadow 0.1s ease;
+    /* Обрезаем серую шахматку фонового слоя */
+    clip-path: circle(48% at 50% 50%);
 }
 
 /* Эффект нажатия */
