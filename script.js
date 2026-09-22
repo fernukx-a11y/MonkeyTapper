@@ -3,11 +3,6 @@ let energy = 1000;
 const maxEnergy = 1000;
 let saveTimeout = null;
 
-const tapArea = document.getElementById("tap-area");
-const coinsDisplay = document.getElementById("coins-display");
-const energyDisplay = document.getElementById("energy-display");
-const energyBarFill = document.getElementById("energy-bar-fill");
-
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
 
@@ -16,7 +11,6 @@ function initApp() {
         tg.expand();
     }
 
-    // Загрузка сохраненных данных
     if (tg && tg.CloudStorage) {
         tg.CloudStorage.getItem("user_coins", (err, value) => {
             if (!err && value) coins = parseInt(value, 10) || 0;
@@ -35,7 +29,6 @@ function initApp() {
         updateUI();
     }
 
-    // Запускаем таймер регенерации энергии (1 ед. в секунду)
     setInterval(regenEnergy, 1000);
 }
 
@@ -54,10 +47,15 @@ function saveCoins() {
 }
 
 function updateUI() {
+    const coinsDisplay = document.getElementById("coins-display");
+    const energyDisplay = document.getElementById("energy-display");
+    const energyBarFill = document.getElementById("energy-bar-fill");
+
     if (coinsDisplay) coinsDisplay.textContent = "💰 Монеты: " + coins;
     if (energyDisplay) energyDisplay.textContent = energy;
+    
     if (energyBarFill) {
-        const percentage = (energy / maxEnergy) * 100;
+        const percentage = Math.max(0, Math.min(100, (energy / maxEnergy) * 100));
         energyBarFill.style.width = percentage + "%";
     }
 }
@@ -86,7 +84,6 @@ function createFlyingOne(x, y) {
 }
 
 function handleTap(e) {
-    // Проверка наличия энергии
     if (energy <= 0) return;
 
     coins += 1;
@@ -96,6 +93,7 @@ function handleTap(e) {
     saveCoins();
     
     let clientX, clientY;
+    const tapArea = document.getElementById("tap-area");
 
     if (e.type === "touchstart" || e.type === "touchend") {
         if (e.changedTouches && e.changedTouches.length > 0) {
@@ -107,7 +105,7 @@ function handleTap(e) {
         clientY = e.clientY;
     }
 
-    if (clientX === undefined || clientY === undefined) {
+    if ((clientX === undefined || clientY === undefined) && tapArea) {
         const rect = tapArea.getBoundingClientRect();
         clientX = rect.left + rect.width / 2;
         clientY = rect.top + rect.height / 2;
@@ -116,12 +114,14 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY);
 }
 
-if (tapArea) {
-    tapArea.addEventListener("pointerdown", (e) => {
-        if (e.button === 0 || e.pointerType === "touch") {
-            handleTap(e);
-        }
-    });
-}
-
-window.addEventListener("DOMContentLoaded", initApp);
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+    const tapArea = document.getElementById("tap-area");
+    if (tapArea) {
+        tapArea.addEventListener("pointerdown", (e) => {
+            if (e.button === 0 || e.pointerType === "touch") {
+                handleTap(e);
+            }
+        });
+    }
+});
