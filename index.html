@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Подключаем стили с обновленной версией v=112 -->
-    <link rel="stylesheet" href="style.css?v=112">
+    <!-- Подключаем стили с обновленной версией v=113 -->
+    <link rel="stylesheet" href="style.css?v=113">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -13,7 +13,7 @@
 
     <div class="game-container">
         
-        <!-- Главный экран (Кликер) -->
+        <!-- Главный экран (Кликер + Канал и Друзья) -->
         <div id="screen-game" class="screen active">
             <div class="header">
                 <div class="coins-container">
@@ -29,6 +29,37 @@
                 </div>
             </div>
 
+            <!-- Блок друзей и канала на главном экране -->
+            <div class="main-screen-bonuses">
+                <!-- Рефералка -->
+                <div class="upgrade-card compact-card">
+                    <div class="upgrade-info">
+                        <span class="upgrade-icon">👥</span>
+                        <div>
+                            <div class="upgrade-title">Друзья</div>
+                            <div class="upgrade-desc" id="ref-count">Приглашено: 0</div>
+                        </div>
+                    </div>
+                    <button id="ref-btn" class="upgrade-btn action-btn">
+                        <span>Пригласить</span>
+                    </button>
+                </div>
+
+                <!-- Канал -->
+                <div class="upgrade-card compact-card">
+                    <div class="upgrade-info">
+                        <span class="upgrade-icon">📢</span>
+                        <div>
+                            <div class="upgrade-title">Наш канал</div>
+                            <div class="upgrade-desc">+5 000 за подписку</div>
+                        </div>
+                    </div>
+                    <button id="channel-btn" class="upgrade-btn action-btn">
+                        <span>Проверить</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="energy-container">
                 <div class="energy-info">
                     <span>⚡ Энергия</span>
@@ -40,10 +71,10 @@
             </div>
         </div>
 
-        <!-- Экран прокачки и бонусов -->
+        <!-- Экран прокачки (только улучшения) -->
         <div id="screen-boosts" class="screen">
             <div class="boosts-header">
-                <h2>🚀 Прокачка и Бонусы</h2>
+                <h2>🚀 Прокачка</h2>
             </div>
             
             <div class="boosts-list">
@@ -58,34 +89,6 @@
                     </div>
                     <button id="multitap-btn" class="upgrade-btn">
                         <span>💰 <span id="multitap-cost">50</span></span>
-                    </button>
-                </div>
-
-                <!-- Рефералка -->
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">👥</span>
-                        <div>
-                            <div class="upgrade-title">Друзья</div>
-                            <div class="upgrade-desc" id="ref-count">Приглашено: 0</div>
-                        </div>
-                    </div>
-                    <button id="ref-btn" class="upgrade-btn action-btn">
-                        <span>Пригласить</span>
-                    </button>
-                </div>
-
-                <!-- Канал -->
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">📢</span>
-                        <div>
-                            <div class="upgrade-title">Наш канал</div>
-                            <div class="upgrade-desc">+5 000 монет за подписку</div>
-                        </div>
-                    </div>
-                    <button id="channel-btn" class="upgrade-btn action-btn">
-                        <span>Проверить</span>
                     </button>
                 </div>
             </div>
@@ -118,7 +121,7 @@
         </div>
     </div>
 
-    <!-- Подключаем основной скрипт игры с версией v=112 -->
-    <script src="script.js?v=112"></script>
+    <!-- Подключаем основной скрипт игры с версией v=113 -->
+    <script src="script.js?v=113"></script>
 </body>
 </html>
