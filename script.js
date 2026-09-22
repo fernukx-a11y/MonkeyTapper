@@ -248,7 +248,8 @@ async function claimChannelReward() {
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
-                channelBtn.querySelector(".upgrade-title").textContent = "✅ Награда получена";
+                const titleEl = channelBtn.querySelector(".upgrade-title") || channelBtn.querySelector("span");
+                if (titleEl) titleEl.textContent = "✅ Награда получена";
                 channelBtn.disabled = true;
             }
         }
@@ -266,7 +267,8 @@ async function checkChannelStatus(userId) {
         if (data && data.length > 0) {
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
-                channelBtn.querySelector(".upgrade-title").textContent = "✅ Награда получена";
+                const titleEl = channelBtn.querySelector(".upgrade-title") || channelBtn.querySelector("span");
+                if (titleEl) titleEl.textContent = "✅ Награда получена";
                 channelBtn.disabled = true;
             }
         }
