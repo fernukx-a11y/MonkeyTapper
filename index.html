@@ -50,7 +50,7 @@
             width: 220px;
             height: 220px;
             border-radius: 50%;
-            background: radial-gradient(circle, #ff9900, #cc7700);
+            background: transparent; /* Убрали фоновый градиент контейнера, чтобы видна была только картинка */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,13 +59,13 @@
             transition: transform 0.05s ease-in-out;
             touch-action: manipulation;
             overflow: hidden;
-            border: 4px solid #ff9900;
+            border: none; /* Убрали рамку контейнера */
         }
 
-        /* Увеличили картинку до 120%, чтобы белые уголки квадрата ушли за пределы круга */
+        /* Увеличили до 140%, чтобы квадратный файл полностью заполнил круг */
         #tap-area img {
-            width: 120%;
-            height: 120%;
+            width: 140%;
+            height: 140%;
             object-fit: cover;
             border-radius: 50%;
             pointer-events: none;
