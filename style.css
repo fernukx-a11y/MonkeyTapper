@@ -42,7 +42,7 @@ p {
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    overflow: hidden; /* Маскирует всё, что выходит за круг */
+    overflow: hidden;
     border: 5px solid #ffcc00;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
 }
@@ -52,17 +52,13 @@ p {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Увеличиваем масштаб на 18%, чтобы скрыть внешнюю рамку с шахматкой */
-    transform: scale(1.18); 
+    /* Зумируем сильнее (на 38%), чтобы гарантированно срезать весь фоновый слой с квадратами */
+    transform: scale(1.38); 
 }
 
 /* Эффект нажатия */
 #tap-area:active {
     transform: scale(0.92);
-}
-
-#tap-area:active #monkey-img {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Вылетающая цифра +1 */
