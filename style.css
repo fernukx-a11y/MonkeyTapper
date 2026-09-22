@@ -38,7 +38,7 @@ body {
     flex-direction: column;
     flex: 1;
     width: 100%;
-    padding: 16px 20px 80px 20px; /* Оставляем снизу место под навигацию */
+    padding: 16px 20px 80px 20px;
     overflow-y: auto;
     box-sizing: border-box;
     animation: fadeIn 0.3s ease;
@@ -53,7 +53,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Нижняя панель навигации — закреплена внизу */
+/* Нижняя панель навигации */
 .bottom-nav {
     position: absolute;
     bottom: 0;
@@ -98,6 +98,16 @@ body {
     width: 100%;
     margin-bottom: 10px;
     z-index: 10;
+}
+
+.coins-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.coin-icon {
+    font-size: 28px;
 }
 
 #coins-display {
@@ -153,6 +163,17 @@ body {
     pointer-events: none;
 }
 
+.main-screen-bonuses {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.compact-card {
+    padding: 8px 12px !important;
+}
+
 .energy-container {
     width: 100%;
     margin-bottom: 12px;
@@ -206,6 +227,23 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Стили заблокированных карточек */
+.upgrade-card.locked {
+    background-color: #121214;
+    border-color: #1f1f23;
+    opacity: 0.6;
+    filter: grayscale(80%);
+}
+
+.upgrade-card.locked .upgrade-icon {
+    filter: brightness(0.5);
+}
+
+.upgrade-card.locked .upgrade-title {
+    color: #71717a;
 }
 
 .upgrade-info {
@@ -221,6 +259,7 @@ body {
 .upgrade-title {
     font-size: 14px;
     font-weight: bold;
+    color: #fff;
 }
 
 .upgrade-desc {
@@ -238,11 +277,14 @@ body {
     font-weight: bold;
     font-size: 13px;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .upgrade-btn:disabled {
-    opacity: 0.5;
+    background: #27272a;
+    color: #71717a;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .action-btn {
@@ -250,7 +292,7 @@ body {
     color: #fff;
 }
 
-/* Падающие бананы на фоне */
+/* Эффекты анимаций */
 #background-effects {
     position: absolute;
     top: 0;
