@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Добавлен параметр v=2 для сброса кэша Telegram -->
-    <link rel="stylesheet" href="style.css?v=2">
-    <!-- Подключение SDK Telegram Mini Apps -->
+    <!-- Увеличиваем версию стилей v=3 для сброса кэша -->
+    <link rel="stylesheet" href="style.css?v=3">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -17,6 +16,14 @@
         <!-- Кнопка-обезьяна -->
         <div id="tap-area">
             <img src="monkey.png" id="monkey-img" alt="Кликай!">
+        </div>
+
+        <!-- Контейнер энергии -->
+        <div class="energy-container">
+            <div class="energy-text">⚡ <span id="energy-display">1000</span> / 1000</div>
+            <div class="energy-bar">
+                <div id="energy-fill" class="energy-fill"></div>
+            </div>
         </div>
     </div>
 
