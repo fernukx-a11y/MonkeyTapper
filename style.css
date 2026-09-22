@@ -39,19 +39,21 @@ p {
     cursor: pointer;
     transition: transform 0.05s ease-out;
     -webkit-tap-highlight-color: transparent;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden; /* Маскирует всё, что выходит за круг */
+    border: 5px solid #ffcc00;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
 }
 
 /* Элемент картинки monkey.png */
 #monkey-img {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-    border: 5px solid #ffcc00;
-    transition: box-shadow 0.1s ease;
-    /* Обрезаем серую шахматку фонового слоя */
-    clip-path: circle(48% at 50% 50%);
+    /* Увеличиваем масштаб на 18%, чтобы скрыть внешнюю рамку с шахматкой */
+    transform: scale(1.18); 
 }
 
 /* Эффект нажатия */
