@@ -31,7 +31,7 @@ p {
     font-weight: bold;
     color: #ffcc00;
     margin-top: 0;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     text-shadow: 0 2px 10px rgba(255, 204, 0, 0.4);
 }
 
@@ -41,8 +41,8 @@ p {
     cursor: pointer;
     transition: transform 0.05s ease-out;
     -webkit-tap-highlight-color: transparent;
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
     border: 5px solid #ffcc00;
@@ -61,7 +61,7 @@ p {
     transform: scale(0.92);
 }
 
-/* Вылетающая цифра +1 */
+/* Вылетающая цифра */
 .flying-one {
     position: absolute;
     font-size: 28px;
@@ -86,20 +86,20 @@ p {
 
 /* Стили для энергии */
 .energy-container {
-    margin-top: 40px;
-    width: 80%;
+    margin-top: 25px;
+    width: 85%;
 }
 
 .energy-text {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     color: #ffcc00;
 }
 
 .energy-bar-bg {
     width: 100%;
-    height: 16px;
+    height: 14px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     overflow: hidden;
@@ -112,4 +112,58 @@ p {
     background: linear-gradient(90deg, #ffcc00, #ff8800);
     border-radius: 10px;
     transition: width 0.1s linear;
+}
+
+/* Стили для кнопки улучшений */
+.upgrades-container {
+    margin-top: 20px;
+    width: 85%;
+}
+
+.upgrade-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #2a2d3d 0%, #1e202c 100%);
+    border: 2px solid #ffcc00;
+    border-radius: 14px;
+    padding: 12px 16px;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transition: transform 0.1s ease, opacity 0.2s ease;
+}
+
+.upgrade-btn:active {
+    transform: scale(0.96);
+}
+
+.upgrade-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #666;
+}
+
+.upgrade-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.upgrade-title {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.upgrade-desc {
+    font-size: 12px;
+    color: #aaaaaa;
+    margin-top: 2px;
+}
+
+.upgrade-cost {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffcc00;
 }
