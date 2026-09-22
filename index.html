@@ -50,7 +50,7 @@
             width: 220px;
             height: 220px;
             border-radius: 50%;
-            background: transparent; /* Убрали фоновый градиент контейнера, чтобы видна была только картинка */
+            background: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,10 +59,9 @@
             transition: transform 0.05s ease-in-out;
             touch-action: manipulation;
             overflow: hidden;
-            border: none; /* Убрали рамку контейнера */
+            border: none;
         }
 
-        /* Увеличили до 140%, чтобы квадратный файл полностью заполнил круг */
         #tap-area img {
             width: 140%;
             height: 140%;
@@ -181,6 +180,7 @@
     </div>
 
     <div class="upgrades-container">
+        <!-- Мультитап -->
         <div class="upgrade-card">
             <div>
                 <div><b>Мультитап (Ур. <span id="multitap-level">1</span>)</b></div>
@@ -192,13 +192,22 @@
         </div>
 
         <!-- Блок рефералов -->
-        <div id="referral-section" style="padding: 12px 15px; background: rgba(255,255,255,0.08); border-radius: 12px; text-align: center;">
+        <div style="padding: 12px 15px; background: rgba(255,255,255,0.08); border-radius: 12px; text-align: center;">
             <h3 style="font-size: 16px; margin-bottom: 4px;">👥 Пригласи друга</h3>
-            <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Получи <b>+10,000</b> монет за каждого друга!</p>
+            <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Получи <b>+10,000</b> монет за друга!</p>
             <button id="ref-btn" style="padding: 8px 16px; border-radius: 8px; background: #2ea44f; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%;">
                 📋 Скопировать ссылку
             </button>
             <p id="ref-count" style="margin-top: 6px; font-size: 12px; opacity: 0.7;">Приглашено друзей: 0</p>
+        </div>
+
+        <!-- Блок подписки на канал -->
+        <div style="padding: 12px 15px; background: rgba(255,255,255,0.08); border-radius: 12px; text-align: center;">
+            <h3 style="font-size: 16px; margin-bottom: 4px;">📢 Наш канал</h3>
+            <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Подпишись и получи <b>+5,000</b> монет!</p>
+            <button id="channel-btn" style="padding: 8px 16px; border-radius: 8px; background: #24a1de; color: white; border: none; font-weight: bold; cursor: pointer; width: 100%;">
+                📢 Подписаться (+5000 💰)
+            </button>
         </div>
     </div>
 
