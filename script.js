@@ -28,21 +28,28 @@ function getUserId() {
     return localDevId;
 }
 
-// Получение ID пригласившего из параметров Telegram WebApp с отладкой
+// Улучшенное получение ID пригласившего из всех возможных источников
 function getReferrerId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    console.log("Telegram WebApp объект:", tg);
-    console.log("initDataUnsafe:", tg ? tg.initDataUnsafe : "нет tg");
-    console.log("start_param:", tg && tg.initDataUnsafe ? tg.initDataUnsafe.start_param : "нет start_param");
-
+    
+    // 1. Проверяем стандартный start_param от Telegram WebApp
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
         return tg.initDataUnsafe.start_param.toString();
     }
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramFromUrl = urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || urlParams.get("start");
-    console.log("Параметр из URL:", paramFromUrl);
     
-    return paramFromUrl || null;
+    // 2. Проверяем параметры в обычной строке URL
+    const urlParams = new URLSearchParams(window.location.search);
+    let paramFromUrl = urlParams.get("tgWebAppStartParam") || urlParams.get("startapp") || urlParams.get("start");
+    if (paramFromUrl) return paramFromUrl.toString();
+
+    // 3. Проверяем хэш (некоторые версии Telegram передают параметры через #startapp=...)
+    if (window.location.hash) {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        let paramFromHash = hashParams.get("tgWebAppStartParam") || hashParams.get("startapp") || hashParams.get("start");
+        if (paramFromHash) return paramFromHash.toString();
+    }
+
+    return null;
 }
 
 function sanitizeNumber(val, fallback) {
@@ -98,10 +105,10 @@ function saveData() {
     }, 500);
 }
 
-// Обработка реферального бонуса с отладочными алертами
+// Обработка реферального бонуса с отладочным алертом
 async function processReferral(userId) {
     const referrerId = getReferrerId();
-    alert("Debug: User=" + userId + ", Ref=" + referrerId); // Покажет на экране кто кого приглашает
+    alert("Debug: User=" + userId + ", Ref=" + referrerId);
     
     if (!referrerId || referrerId === userId) return;
 
