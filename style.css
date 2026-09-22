@@ -74,8 +74,8 @@ body {
 }
 
 #monkey-img {
-    width: 210px;
-    height: 210px;
+    width: 160px;
+    height: 160px;
     object-fit: contain;
     transition: transform 0.05s ease;
 }
@@ -228,7 +228,6 @@ body {
 
 .leader-item {
     display: flex;
-    justify-content: space-height;
     justify-content: space-between;
     background-color: #27272a;
     padding: 9px 12px;
