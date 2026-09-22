@@ -67,8 +67,15 @@ async function saveToSupabase() {
     const userId = getUserId();
     lastSaveTime = Date.now();
 
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    let username = "Игрок";
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+    }
+
     const bodyData = {
         user_id: userId,
+        username: username,
         coins: coins,
         tap_power: tapPower,
         energy: energy,
@@ -234,7 +241,7 @@ async function loadLeaderboard() {
     listContainer.innerHTML = '<p class="loading-text">Загрузка рейтинга...</p>';
 
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?select=user_id,coins&order=coins.desc&limit=10`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?select=user_id,username,coins&order=coins.desc&limit=10`, {
             headers: { 
                 "apikey": SUPABASE_ANON_KEY, 
                 "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
@@ -255,11 +262,11 @@ async function loadLeaderboard() {
             else if (rank === 2) rankClass = "top-2";
             else if (rank === 3) rankClass = "top-3";
 
-            let shortName = "Игрок " + player.user_id.toString().substring(0, 6);
+            let displayName = player.username ? player.username : ("Игрок " + player.user_id.toString().substring(0, 4));
 
             html += `
                 <div class="leader-item ${rankClass}">
-                    <span>#${rank} ${shortName}</span>
+                    <span>#${rank} ${displayName}</span>
                     <span>💰 ${Number(player.coins).toLocaleString()}</span>
                 </div>
             `;
