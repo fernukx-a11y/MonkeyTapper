@@ -3,6 +3,11 @@ let energy = 1000;
 const maxEnergy = 1000;
 let saveTimeout = null;
 
+function sanitizeNumber(val, fallback) {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? fallback : parsed;
+}
+
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
 
@@ -13,19 +18,18 @@ function initApp() {
 
     if (tg && tg.CloudStorage) {
         tg.CloudStorage.getItem("user_coins", (err, value) => {
-            if (!err && value) coins = parseInt(value, 10) || 0;
-            else coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
+            if (!err && value !== null) coins = sanitizeNumber(value, 0);
+            else coins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
             
             tg.CloudStorage.getItem("user_energy", (errE, valE) => {
-                if (!errE && valE !== null) energy = parseInt(valE, 10);
-                else energy = parseInt(localStorage.getItem("user_energy"), 10) || maxEnergy;
+                if (!errE && valE !== null) energy = sanitizeNumber(valE, maxEnergy);
+                else energy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
                 updateUI();
             });
         });
     } else {
-        coins = parseInt(localStorage.getItem("user_coins"), 10) || 0;
-        const savedEnergy = localStorage.getItem("user_energy");
-        energy = savedEnergy !== null ? parseInt(savedEnergy, 10) : maxEnergy;
+        coins = sanitizeNumber(localStorage.getItem("user_coins"), 0);
+        energy = sanitizeNumber(localStorage.getItem("user_energy"), maxEnergy);
         updateUI();
     }
 
@@ -47,6 +51,10 @@ function saveCoins() {
 }
 
 function updateUI() {
+    // Гарантируем отсутствие NaN
+    if (isNaN(energy)) energy = maxEnergy;
+    if (isNaN(coins)) coins = 0;
+
     const coinsDisplay = document.getElementById("coins-display");
     const energyDisplay = document.getElementById("energy-display");
     const energyBarFill = document.getElementById("energy-bar-fill");
