@@ -63,12 +63,10 @@ body {
     box-shadow: 0 4px 10px rgba(251, 191, 36, 0.3);
 }
 
-/* Золотой круг — размер фиксированный */
+/* Золотой круг — НЕ МЕНЯЕМ */
 #tap-area {
     width: 220px;
     height: 220px;
-    min-width: 220px;
-    min-height: 220px;
     margin: auto;
     display: flex;
     justify-content: center;
@@ -87,12 +85,12 @@ body {
     transform: scale(0.95);
 }
 
-/* Обезьяна увеличивается отдельно от круга */
+/* Увеличиваем ТОЛЬКО обезьяну */
 #monkey-img {
-    position: absolute;
-    width: 190px;
-    height: 190px;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
+    transform: scale(1.8);
     pointer-events: none;
 }
 
