@@ -176,15 +176,41 @@ body {
     z-index: 100;
 }
 
+/* Добавлено для критических ударов */
+.flying-crit {
+    position: absolute;
+    font-size: 28px;
+    font-weight: bold;
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    animation: floatCrit 0.9s ease-out forwards;
+    pointer-events: none;
+    z-index: 101;
+}
+
 @keyframes floatUp {
     0% {
         opacity: 1;
         transform: translateY(0) scale(1);
     }
-
     100% {
         opacity: 0;
         transform: translateY(-50px) scale(1.2);
+    }
+}
+
+/* Добавлена анимация для критов */
+@keyframes floatCrit {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.8);
+    }
+    50% {
+        transform: translateY(-30px) scale(1.4);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-65px) scale(1.1);
     }
 }
 
