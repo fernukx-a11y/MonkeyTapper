@@ -1,7 +1,7 @@
 // ==========================================
 // НАСТРОЙКИ (ВСТАВЬ СВОИ ДАННЫЕ):
 const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
-const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6"; // Вставь свой ключ из Supabase (начинается на sb_publishable...)
+const SUPABASE_ANON_KEY = "sb_publishable_vAeHVzmBuxGcPT0JRCe7-Q_PP57Kqc6"; 
 const BOT_USERNAME = "MonkeyTapperTGbot"; // Имя бота без символа @ и без точки на конце
 // ==========================================
 
@@ -105,14 +105,12 @@ async function processReferral(userId) {
     if (!referrerId || referrerId === userId) return;
 
     try {
-        // Проверяем, не был ли реферал уже зарегистрирован
         const checkRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referred_id=eq.${userId}`, {
             headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
         });
         const refData = await checkRef.json();
 
         if (refData.length === 0) {
-            // Записываем связь реферала
             await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
                 method: "POST",
                 headers: {
@@ -123,11 +121,9 @@ async function processReferral(userId) {
                 body: JSON.stringify({ referrer_id: referrerId, referred_id: userId })
             });
 
-            // Начисляем бонус новому игроку (5,000 монет)
             coins += 5000;
             saveData();
 
-            // Начисляем бонус пригласившему (10,000 монет)
             const getReferrer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
@@ -151,7 +147,6 @@ async function processReferral(userId) {
     }
 }
 
-// Загрузка количества приглашенных рефералов
 async function loadReferralCount(userId) {
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referrer_id=eq.${userId}&select=*`, {
@@ -190,7 +185,6 @@ async function loadData() {
             applyOfflineEnergy();
             updateUI();
         } else {
-            // Новый игрок
             await processReferral(userId);
             saveData();
         }
