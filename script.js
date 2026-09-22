@@ -105,7 +105,7 @@ function saveData() {
     }, 500);
 }
 
-// Обработка реферального бонуса (без надоедливого алерта)
+// Обработка реферального бонуса
 async function processReferral(userId) {
     const referrerId = getReferrerId();
     
@@ -169,6 +169,75 @@ async function loadReferralCount(userId) {
     }
 }
 
+// Выдача награды за подписку на канал
+async function claimChannelReward() {
+    const userId = getUserId();
+    const channelUrl = "https://t.me/monkeytapper";
+
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(channelUrl);
+    } else {
+        window.open(channelUrl, "_blank");
+    }
+
+    try {
+        const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/channel_subscriptions?user_id=eq.${userId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const checkData = await checkRes.json();
+
+        if (checkData && checkData.length > 0) {
+            alert("Ты уже получил награду за подписку!");
+            return;
+        }
+
+        const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/channel_subscriptions`, {
+            method: "POST",
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+
+        if (insertRes.ok) {
+            coins += 5000;
+            updateUI();
+            saveData();
+            alert("Спасибо за подписку! Тебе начислено 5 000 монет! 🐒💰");
+            
+            const channelBtn = document.getElementById("channel-btn");
+            if (channelBtn) {
+                channelBtn.textContent = "✅ Награда получена";
+                channelBtn.disabled = true;
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка при выдаче награды за канал:", e);
+    }
+}
+
+// Проверка статуса подписки при старте игры
+async function checkChannelStatus(userId) {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/channel_subscriptions?user_id=eq.${userId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const channelBtn = document.getElementById("channel-btn");
+            if (channelBtn) {
+                channelBtn.textContent = "✅ Награда получена";
+                channelBtn.disabled = true;
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка проверки статуса подписки:", e);
+    }
+}
+
 async function loadData() {
     const userId = getUserId();
 
@@ -200,6 +269,7 @@ async function loadData() {
         }
         
         loadReferralCount(userId);
+        checkChannelStatus(userId);
     } catch (e) {
         console.error("Ошибка загрузки из облака:", e);
     }
@@ -353,5 +423,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const refBtn = document.getElementById("ref-btn");
     if (refBtn) {
         refBtn.addEventListener("click", shareReferralLink);
+    }
+
+    const channelBtn = document.getElementById("channel-btn");
+    if (channelBtn) {
+        channelBtn.addEventListener("click", claimChannelReward);
     }
 });
