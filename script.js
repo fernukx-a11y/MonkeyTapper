@@ -227,7 +227,6 @@ async function checkChannelStatus(userId) {
     }
 }
 
-// ЗАГРУЗКА ТАБЛИЦЫ ЛИДЕРОВ (ТОП-10)
 async function loadLeaderboard() {
     const listContainer = document.getElementById("leaderboard-list");
     if (!listContainer) return;
@@ -396,7 +395,7 @@ function createFlyingOne(x, y, text) {
     flyingOne.style.top = y + "px";
     document.body.appendChild(flyingOne);
     
-    setTimeout(() => { flyingOne.remove(); }, 1000);
+    setTimeout(() => { flyingOne.remove(); }, 800);
 }
 
 function handleTap(e) {
@@ -465,7 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
         channelBtn.addEventListener("click", claimChannelReward);
     }
 
-    // ЛОГИКА МОДАЛЬНОГО ОКНА ТАБЛИЦЫ ЛИДЕРОВ
     const modal = document.getElementById("leaderboard-modal");
     const leaderboardBtn = document.getElementById("leaderboard-btn");
     const closeModal = document.getElementById("close-modal");
