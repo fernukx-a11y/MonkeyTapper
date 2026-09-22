@@ -597,19 +597,23 @@ function handleTap(e) {
     createFlyingOne(clientX, clientY, earnedCoins, isCrit);
 }
 
-// ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ЭКРАНОВ
-function switchScreen(screenName) {
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ ДЛЯ 3 ЭКРАНОВ
+let currentScreenIndex = 0;
+
+function switchScreen(screenIndex) {
     const screensWrapper = document.querySelector('.screens-wrapper');
     const navItems = document.querySelectorAll('.nav-item');
     
+    currentScreenIndex = screenIndex;
     navItems.forEach(item => item.classList.remove('active'));
+    
+    if (navItems[screenIndex]) {
+        navItems[screenIndex].classList.add('active');
+    }
 
-    if (screenName === 'game') {
-        if (screensWrapper) screensWrapper.style.transform = 'translateX(0%)';
-        if (navItems[0]) navItems[0].classList.add('active');
-    } else if (screenName === 'boosts') {
-        if (screensWrapper) screensWrapper.style.transform = 'translateX(-50%)';
-        if (navItems[1]) navItems[1].classList.add('active');
+    if (screensWrapper) {
+        const movePercent = screenIndex * (100 / 3);
+        screensWrapper.style.transform = `translateX(-${movePercent}%)`;
     }
 }
 
@@ -642,9 +646,15 @@ function handleSwipe() {
 
     if (diffY < verticalThreshold) {
         if (diffX < -swipeThreshold) {
-            switchScreen('boosts');
+            // Свайп влево -> следующий экран
+            if (currentScreenIndex < 2) {
+                switchScreen(currentScreenIndex + 1);
+            }
         } else if (diffX > swipeThreshold) {
-            switchScreen('game');
+            // Свайп вправо -> предыдущий экран
+            if (currentScreenIndex > 0) {
+                switchScreen(currentScreenIndex - 1);
+            }
         }
     }
 }
@@ -652,11 +662,12 @@ function handleSwipe() {
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
     
-    // Привязка кликов к нижней навигации
+    // Привязка кликов к 3 кнопкам нижней навигации
     const navItems = document.querySelectorAll('.nav-item');
-    if (navItems.length >= 2) {
-        navItems[0].addEventListener('click', () => switchScreen('game'));
-        navItems[1].addEventListener('click', () => switchScreen('boosts'));
+    if (navItems.length >= 3) {
+        navItems[0].addEventListener('click', () => switchScreen(0));
+        navItems[1].addEventListener('click', () => switchScreen(1));
+        navItems[2].addEventListener('click', () => switchScreen(2));
     }
 
     const tapArea = document.getElementById("tap-area");
@@ -678,7 +689,7 @@ document.addEventListener("DOMContentLoaded", () => {
             setTimeout(() => { isBuying = false; }, 300);
         };
         multitapBtn.addEventListener("pointerdown", triggerBuy);
-        multit_btn_click = multitapBtn.addEventListener("click", triggerBuy);
+        multitapBtn.addEventListener("click", triggerBuy);
     }
 
     const p1Btn = document.getElementById("passive-1-btn");
