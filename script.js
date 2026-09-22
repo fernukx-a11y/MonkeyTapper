@@ -45,7 +45,6 @@ function updateUI() {
     }
 }
 
-// Эффект вылетающего "+1"
 function createFlyingOne(x, y) {
     const flyingOne = document.createElement("div");
     flyingOne.classList.add("flying-one");
@@ -69,20 +68,25 @@ function handleTap(e) {
     saveCoins();
     
     let clientX, clientY;
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
+    if (e.changedTouches && e.changedTouches.length > 0) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
     } else {
         clientX = e.clientX;
         clientY = e.clientY;
+    }
+    
+    if (clientX === undefined || clientY === undefined) {
+        const rect = tapArea.getBoundingClientRect();
+        clientX = rect.left + rect.width / 2;
+        clientY = rect.top + rect.height / 2;
     }
     
     createFlyingOne(clientX, clientY);
 }
 
 if (tapArea) {
-    tapArea.addEventListener("touchstart", handleTap, { passive: false });
-    tapArea.addEventListener("click", handleTap);
+    tapArea.addEventListener("pointerdown", handleTap);
 }
 
 window.addEventListener("DOMContentLoaded", initApp);
