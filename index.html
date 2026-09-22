@@ -71,10 +71,14 @@
             </div>
         </div>
 
-        <!-- Экран прокачки (только улучшения) -->
+        <!-- Экран прокачки (улучшения и пассивный доход) -->
         <div id="screen-boosts" class="screen">
             <div class="boosts-header">
                 <h2>🚀 Прокачка</h2>
+                <!-- Индикатор пассивного дохода -->
+                <div class="passive-header-info">
+                    Пассивный доход: <span id="passive-income-display">0</span> 🍌/сек
+                </div>
             </div>
             
             <div class="boosts-list">
@@ -89,6 +93,34 @@
                     </div>
                     <button id="multitap-btn" class="upgrade-btn">
                         <span>💰 <span id="multitap-cost">50</span></span>
+                    </button>
+                </div>
+
+                <!-- Банановый куст (Пассивный доход 1) -->
+                <div class="upgrade-card" id="card-passive-1">
+                    <div class="upgrade-info">
+                        <span class="upgrade-icon">🌿</span>
+                        <div>
+                            <div class="upgrade-title">Банановый куст</div>
+                            <div class="upgrade-desc">Уровень: <span id="p1-level">0</span> (+1 🍌/сек)</div>
+                        </div>
+                    </div>
+                    <button id="passive-1-btn" class="upgrade-btn">
+                        <span>💰 <span id="p1-cost">100</span></span>
+                    </button>
+                </div>
+
+                <!-- Банановая ферма (Пассивный доход 2 - с замком) -->
+                <div class="upgrade-card locked" id="card-passive-2">
+                    <div class="upgrade-info">
+                        <span class="upgrade-icon">🔒</span>
+                        <div>
+                            <div class="upgrade-title">Заблокировано</div>
+                            <div class="upgrade-desc">+5 🍌/сек (Треб: куст или 500 монет)</div>
+                        </div>
+                    </div>
+                    <button id="passive-2-btn" class="upgrade-btn">
+                        <span>💰 <span id="p2-cost">1000</span></span>
                     </button>
                 </div>
             </div>
