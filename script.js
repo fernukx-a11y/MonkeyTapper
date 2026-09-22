@@ -98,10 +98,10 @@ function saveData() {
     }, 500);
 }
 
-// Исправленная обработка реферального бонуса при первом входе
+// Обработка реферального бонуса с отладочными алертами
 async function processReferral(userId) {
     const referrerId = getReferrerId();
-    console.log("processReferral запущен. ID пользователя:", userId, "ID пригласившего:", referrerId);
+    alert("Debug: User=" + userId + ", Ref=" + referrerId); // Покажет на экране кто кого приглашает
     
     if (!referrerId || referrerId === userId) return;
 
@@ -112,8 +112,7 @@ async function processReferral(userId) {
         const refData = await checkRef.json();
 
         if (!refData || refData.length === 0) {
-            // 1. Создаем запись в таблице referrals
-            await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
+            const resPostRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
                 method: "POST",
                 headers: {
                     "apikey": SUPABASE_ANON_KEY,
@@ -123,10 +122,14 @@ async function processReferral(userId) {
                 body: JSON.stringify({ referrer_id: referrerId, referred_id: userId })
             });
 
-            // 2. Начисляем новичку +5000 монет
+            if (!resPostRef.ok) {
+                const errText = await resPostRef.text();
+                alert("Ошибка создания реферала: " + errText);
+                return;
+            }
+
             coins += 5000;
 
-            // 3. Находим пригласившего и добавляем ему +10000 монет
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
@@ -143,10 +146,12 @@ async function processReferral(userId) {
                     },
                     body: JSON.stringify({ coins: oldCoins + 10000 })
                 });
+            } else {
+                alert("Пригласивший с ID " + referrerId + " не найден в таблице players!");
             }
         }
     } catch (e) {
-        console.error("Ошибка при обработке реферала:", e);
+        alert("Сбой в processReferral: " + e.message);
     }
 }
 
@@ -168,7 +173,6 @@ async function loadData() {
     const userId = getUserId();
 
     try {
-        // Сначала проверяем реферальную связь и начисляем бонус при необходимости
         await processReferral(userId);
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=*`, {
