@@ -1,7 +1,7 @@
 // ==========================================
 // ДАННЫЕ СВЯЗИ С SUPABASE:
 const SUPABASE_URL = "https://odzqplffdudeqskaspgd.supabase.co"; 
-const SUPABASE_ANON_KEY = "СЮДА_ВСТАВЬ_ТВОЙ_ANON_KEY"; // Скопируй длинный ключ из Project Settings (⚙️) -> API Keys
+const SUPABASE_ANON_KEY = "odzqplffdudeqskaspgd"; // Скопируй длинный ключ из Project Settings (⚙️) -> API Keys
 // ==========================================
 
 let coins = 0;
