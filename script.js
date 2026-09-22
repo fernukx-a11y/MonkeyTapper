@@ -98,19 +98,21 @@ function saveData() {
     }, 500);
 }
 
-// Обработка реферального бонуса при первом входе
+// Исправленная обработка реферального бонуса при первом входе
 async function processReferral(userId) {
     const referrerId = getReferrerId();
     console.log("processReferral запущен. ID пользователя:", userId, "ID пригласившего:", referrerId);
+    
     if (!referrerId || referrerId === userId) return;
 
     try {
-        const checkRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referred_id=eq.${userId}`, {
+        const checkRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referred_id=eq.${userId}&select=*`, {
             headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
         });
         const refData = await checkRef.json();
 
-        if (refData.length === 0) {
+        if (!refData || refData.length === 0) {
+            // 1. Создаем запись в таблице referrals
             await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
                 method: "POST",
                 headers: {
@@ -121,15 +123,16 @@ async function processReferral(userId) {
                 body: JSON.stringify({ referrer_id: referrerId, referred_id: userId })
             });
 
+            // 2. Начисляем новичку +5000 монет
             coins += 5000;
-            saveData();
 
-            const getReferrer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
+            // 3. Находим пригласившего и добавляем ему +10000 монет
+            const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
-            const referrerData = await getReferrer.json();
+            const referrerData = await getRefPlayer.json();
 
-            if (referrerData.length > 0) {
+            if (referrerData && referrerData.length > 0) {
                 const oldCoins = sanitizeNumber(referrerData[0].coins, 0);
                 await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}`, {
                     method: "PATCH",
@@ -165,6 +168,9 @@ async function loadData() {
     const userId = getUserId();
 
     try {
+        // Сначала проверяем реферальную связь и начисляем бонус при необходимости
+        await processReferral(userId);
+
         const response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=*`, {
             method: "GET",
             headers: {
@@ -177,7 +183,7 @@ async function loadData() {
 
         if (data && data.length > 0) {
             const player = data[0];
-            coins = sanitizeNumber(player.coins, 0);
+            coins = sanitizeNumber(player.coins, coins);
             tapPower = sanitizeNumber(player.tap_power, 1);
             energy = sanitizeNumber(player.energy, maxEnergy);
             lastSaveTime = sanitizeNumber(player.last_time, Date.now());
@@ -185,8 +191,8 @@ async function loadData() {
             applyOfflineEnergy();
             updateUI();
         } else {
-            await processReferral(userId);
-            saveData();
+            saveToSupabase();
+            updateUI();
         }
         
         loadReferralCount(userId);
