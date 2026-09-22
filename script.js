@@ -351,7 +351,6 @@ function shareReferralLink() {
     }
 }
 
-// Фоновые падающие бананы
 function initBackgroundBananas() {
     let bgContainer = document.getElementById("background-effects");
     if (!bgContainer) {
@@ -414,7 +413,6 @@ function updateUI() {
     const multitapCostDisplay = document.getElementById("multitap-cost");
     const multitapBtn = document.getElementById("multitap-btn");
 
-    // Элементы пассивного дохода
     const passiveIncomeDisplay = document.getElementById("passive-income-display");
     const p1Level = document.getElementById("p1-level");
     const p1Cost = document.getElementById("p1-cost");
@@ -440,18 +438,15 @@ function updateUI() {
         multitapBtn.disabled = coins < multitapCost;
     }
 
-    // Рендер пассивного дохода 1 (Куст)
     if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS;
     if (p1Level) p1Level.textContent = passive1Level;
     if (p1Cost) p1Cost.textContent = passive1Cost;
     if (p1Btn) p1Btn.disabled = coins < passive1Cost;
 
-    // Рендер пассивного дохода 2 (Ферма) с замками
     if (p2Level) p2Level.textContent = passive2Level;
     if (p2Cost) p2Cost.textContent = passive2Cost;
 
     if (cardPassive2 && p2Btn) {
-        // Открываем ферму, если куплен куст (passive1Level > 0) ИЛИ если у игрока много монет (например, >= 500)
         if (passive1Level > 0 || coins >= 500) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
@@ -483,7 +478,6 @@ function buyMultitap(e) {
     }
 }
 
-// Покупка пассивного дохода 1 (Куст: +1 монета/сек)
 function buyPassive1(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     if (coins >= passive1Cost) {
@@ -496,7 +490,6 @@ function buyPassive1(e) {
     }
 }
 
-// Покупка пассивного дохода 2 (Ферма: +5 монет/сек)
 function buyPassive2(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     const cardPassive2 = document.getElementById("card-passive-2");
@@ -510,7 +503,6 @@ function buyPassive2(e) {
     }
 }
 
-// Тик игры каждую секунду (энергия + пассивный доход)
 function gameTick() {
     if (energy < maxEnergy) {
         energy = Math.min(maxEnergy, energy + 1);
@@ -658,7 +650,6 @@ document.addEventListener("DOMContentLoaded", () => {
         multitapBtn.addEventListener("click", triggerBuy);
     }
 
-    // Кнопки пассивного дохода
     const p1Btn = document.getElementById("passive-1-btn");
     if (p1Btn) {
         p1Btn.addEventListener("click", buyPassive1);
