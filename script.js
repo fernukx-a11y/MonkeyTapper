@@ -9,14 +9,14 @@ let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
 let tapPower = 1;
-let multitapCost = 50;
+let multitapCost = 100; // Хардкорный старт
 
-// Пассивный доход
+// Пассивный доход (жесткая экономика)
 let passiveIncomePS = 0;
 let passive1Level = 0;
-let passive1Cost = 100;
+let passive1Cost = 300;  // Куст стоит дороже
 let passive2Level = 0;
-let passive2Cost = 1000;
+let passive2Cost = 2500; // Ферма — серьезный рубеж
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
@@ -74,17 +74,23 @@ function sanitizeNumber(val, fallback) {
     return isNaN(parsed) ? fallback : parsed;
 }
 
+// Жесткая экспонента для мультитапа (множитель 2.3)
 function calculateCost(power) {
-    return 50 * Math.pow(2, power - 1);
+    return Math.floor(100 * Math.pow(2.3, power - 1));
 }
 
 function applyOfflineProgress() {
     const now = Date.now();
     const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
     if (secondsPassed > 0) {
-        energy = Math.min(maxEnergy, energy + secondsPassed);
+        // Энергия восстанавливается медленнее (1 ед. за 2 сек)
+        const energyRestored = Math.floor(secondsPassed / 2);
+        energy = Math.min(maxEnergy, energy + energyRestored);
+        
         if (passiveIncomePS > 0) {
-            coins += passiveIncomePS * secondsPassed;
+            // Офлайн-фарм идет с коэффициентом 0.5 (в 2 раза слабее)
+            const offlineCoins = Math.floor(passiveIncomePS * secondsPassed * 0.5);
+            coins += offlineCoins;
         }
     }
     lastSaveTime = now;
@@ -165,7 +171,7 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            coins += 5000;
+            coins += 2000; // Уменьшили реф-бонус для жесткой экономики
 
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -181,7 +187,7 @@ async function processReferral(userId) {
                         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ coins: oldCoins + 10000 })
+                    body: JSON.stringify({ coins: oldCoins + 5000 })
                 });
             }
         }
@@ -237,10 +243,10 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 5000;
+            coins += 2500; // Сбалансированная награда за подписку
             updateUI();
             saveData();
-            alert("Спасибо за подписку! Тебе начислено 5 000 монет! 🐒💰");
+            alert("Спасибо за подписку! Тебе начислено 2 500 монет! 🐒💰");
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
@@ -343,9 +349,9 @@ async function loadData() {
             
             passiveIncomePS = sanitizeNumber(player.passive_income_ps, 0);
             passive1Level = sanitizeNumber(player.passive1_level, 0);
-            passive1Cost = sanitizeNumber(player.passive1_cost, 100);
+            passive1Cost = sanitizeNumber(player.passive1_cost, 300);
             passive2Level = sanitizeNumber(player.passive2_level, 0);
-            passive2Cost = sanitizeNumber(player.passive2_cost, 1000);
+            passive2Cost = sanitizeNumber(player.passive2_cost, 2500);
 
             applyOfflineProgress();
             updateUI();
@@ -367,7 +373,7 @@ function shareReferralLink() {
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Заходи в Monkey Tapper и получи 5,000 монет в подарок! 🐒💰")}`);
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Заходи в Monkey Tapper и попробуй выжить в хардкорной экономике! 🐒💰")}`);
     } else {
         navigator.clipboard.writeText(shareUrl);
         alert("Реферальная ссылка скопирована в буфер обмена!");
@@ -464,13 +470,21 @@ function updateUI() {
     if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS;
     if (p1Level) p1Level.textContent = passive1Level;
     if (p1Cost) p1Cost.textContent = passive1Cost;
-    if (p1Btn) p1Btn.disabled = coins < passive1Cost;
+    if (p1Btn) {
+        p1Btn.disabled = coins < passive1Cost;
+        // Обновляем текст кнопки куста, если нужно
+        const spanCost = p1Btn.querySelector("span span") || p1Btn.querySelector("span");
+        if(spanCost && spanCost !== p1Btn) {
+            // сохраняем значок монетки
+        }
+    }
 
     if (p2Level) p2Level.textContent = passive2Level;
     if (p2Cost) p2Cost.textContent = passive2Cost;
 
     if (cardPassive2 && p2Btn) {
-        if (passive1Level > 0 || coins >= 500) {
+        // Усложненное условие разблокировки фермы: нужен хотя бы 1 уровень куста ИЛИ 1000 монет
+        if (passive1Level > 0 || coins >= 1000) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
@@ -507,7 +521,8 @@ function buyPassive1(e) {
         coins -= passive1Cost;
         passive1Level++;
         passiveIncomePS += 1;
-        passive1Cost = Math.floor(passive1Cost * 1.6);
+        // Коэффициент удорожания куста увеличен до 1.9 (жесткая экономика)
+        passive1Cost = Math.floor(passive1Cost * 1.9);
         updateUI();
         saveData();
     }
@@ -520,15 +535,21 @@ function buyPassive2(e) {
         coins -= passive2Cost;
         passive2Level++;
         passiveIncomePS += 5;
-        passive2Cost = Math.floor(passive2Cost * 1.7);
+        // Коэффициент удорожания фермы увеличен до 2.0
+        passive2Cost = Math.floor(passive2Cost * 2.0);
         updateUI();
         saveData();
     }
 }
 
+let tickCounter = 0;
 function gameTick() {
-    if (energy < maxEnergy) {
-        energy = Math.min(maxEnergy, energy + 1);
+    tickCounter++;
+    // Энергия восстанавливается медленнее: 1 единица каждые 2 секунды
+    if (tickCounter % 2 === 0) {
+        if (energy < maxEnergy) {
+            energy = Math.min(maxEnergy, energy + 1);
+        }
     }
     if (passiveIncomePS > 0) {
         coins += passiveIncomePS;
@@ -554,7 +575,7 @@ function handleTap(e) {
 
     energy -= 1;
 
-    const critChance = 0.07;
+    const critChance = 0.05; // Чуть снизили шанс крита (5%)
     let earnedCoins = tapPower;
     let isCrit = Math.random() < critChance;
 
