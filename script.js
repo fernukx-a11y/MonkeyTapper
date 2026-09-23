@@ -123,7 +123,7 @@ async function saveToSupabase() {
     };
 
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?on_conflict=user_id`, {
             method: "POST",
             headers: {
                 "apikey": SUPABASE_ANON_KEY,
@@ -136,10 +136,12 @@ async function saveToSupabase() {
 
         if (!response.ok) {
             const errText = await response.text();
-            console.error("Ошибка Supabase при сохранении:", response.status, errText);
+            console.error("❌ Ошибка Supabase при сохранении:", response.status, errText);
+        } else {
+            console.log("💾 Прогресс успешно сохранен в Supabase. Монет:", coins);
         }
     } catch (e) {
-        console.error("Сетевая ошибка сохранения в облако:", e);
+        console.error("🌐 Сетевая ошибка сохранения в облако:", e);
     }
 }
 
@@ -149,6 +151,17 @@ function saveData() {
         saveToSupabase();
     }, 500);
 }
+
+// Сохраняем данные мгновенно при сворачивании / закрытии приложения
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+        saveToSupabase();
+    }
+});
+
+window.addEventListener("beforeunload", () => {
+    saveToSupabase();
+});
 
 async function processReferral(userId) {
     const referrerId = getReferrerId();
@@ -329,7 +342,7 @@ async function loadLeaderboard() {
 
 async function loadData() {
     const userId = getUserId();
-    console.log("Загрузка данных для ID:", userId);
+    console.log("📥 Загрузка данных для ID:", userId);
 
     try {
         await processReferral(userId);
@@ -359,9 +372,9 @@ async function loadData() {
 
             applyOfflineProgress();
             updateUI();
-            console.log("Прогресс успешно загружен из Supabase!");
+            console.log("✅ Прогресс успешно загружен из Supabase! Монет:", coins);
         } else {
-            console.log("Игрок не найден в базе, создаем новую запись...");
+            console.log("⚠️ Игрок не найден в базе, создаем новую запись...");
             await saveToSupabase();
             updateUI();
         }
@@ -369,7 +382,7 @@ async function loadData() {
         loadReferralCount(userId);
         checkChannelStatus(userId);
     } catch (e) {
-        console.error("Ошибка загрузки из облака:", e);
+        console.error("❌ Ошибка загрузки из облака:", e);
     }
 }
 
@@ -466,7 +479,6 @@ function updateUI() {
         energyBarFill.style.width = percentage + "%";
     }
 
-    // Мультитап (макс 6 ур)
     const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
     if (multitapLevel) multitapLevel.textContent = currentVirtualLevel > 6 ? 6 : currentVirtualLevel;
     if (multitapPower) multitapPower.textContent = tapPower.toFixed(1);
@@ -479,7 +491,6 @@ function updateUI() {
         if (multitapBtn) multitapBtn.disabled = coins < multitapCost;
     }
 
-    // Куст (макс 6 ур)
     if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS.toFixed(1);
     if (p1Level) p1Level.textContent = passive1Level;
     if (passive1Level >= 6) {
@@ -490,7 +501,6 @@ function updateUI() {
         if (p1Btn) p1Btn.disabled = coins < passive1Cost;
     }
 
-    // Ферма (макс 6 ур)
     if (p2Level) p2Level.textContent = passive2Level;
     if (cardPassive2 && p2Btn) {
         if (passive2Level >= 6) {
@@ -685,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
 
     const channelBtn = document.getElementById("channel-btn");
+    if (channelBtn) channelBtn.addEventListener("pointerdown5", (e) => { e.preventDefault(); claimChannelReward(); });
     if (channelBtn) channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
 
     const modal = document.getElementById("leaderboard-modal");
