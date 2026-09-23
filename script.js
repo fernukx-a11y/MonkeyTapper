@@ -9,14 +9,14 @@ let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
 let tapPower = 1;
-let multitapCost = 100; // Хардкорный старт
+let multitapCost = 500; // Старт мультитапа 500 монет!
 
-// Пассивный доход (жесткая экономика)
+// Пассивный доход (АДСКИЙ ХАРДКОР)
 let passiveIncomePS = 0;
 let passive1Level = 0;
-let passive1Cost = 300;  // Куст стоит дороже
+let passive1Cost = 1000;  // Куст теперь стоит 1000 монет!
 let passive2Level = 0;
-let passive2Cost = 2500; // Ферма — серьезный рубеж
+let passive2Cost = 15000; // Ферма стоит 15 000 монет!
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
@@ -74,22 +74,22 @@ function sanitizeNumber(val, fallback) {
     return isNaN(parsed) ? fallback : parsed;
 }
 
-// Жесткая экспонента для мультитапа (множитель 2.3)
+// Ультра-экспонента для мультитапа (множитель 3.0 — цены улетают в космос)
 function calculateCost(power) {
-    return Math.floor(100 * Math.pow(2.3, power - 1));
+    return Math.floor(500 * Math.pow(3.0, power - 1));
 }
 
 function applyOfflineProgress() {
     const now = Date.now();
     const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
     if (secondsPassed > 0) {
-        // Энергия восстанавливается медленнее (1 ед. за 2 сек)
-        const energyRestored = Math.floor(secondsPassed / 2);
+        // Энергия восстанавливается очень медленно (1 ед. за 5 секунд)
+        const energyRestored = Math.floor(secondsPassed / 5);
         energy = Math.min(maxEnergy, energy + energyRestored);
         
         if (passiveIncomePS > 0) {
-            // Офлайн-фарм идет с коэффициентом 0.5 (в 2 раза слабее)
-            const offlineCoins = Math.floor(passiveIncomePS * secondsPassed * 0.5);
+            // Офлайн-фарм идет с жестоким коэффициентом 0.2 (в 5 раз слабее)
+            const offlineCoins = Math.floor(passiveIncomePS * secondsPassed * 0.2);
             coins += offlineCoins;
         }
     }
@@ -171,7 +171,7 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            coins += 2000; // Уменьшили реф-бонус для жесткой экономики
+            coins += 500; // Жалкие крохи за реферала
 
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -187,7 +187,7 @@ async function processReferral(userId) {
                         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ coins: oldCoins + 5000 })
+                    body: JSON.stringify({ coins: oldCoins + 1000 })
                 });
             }
         }
@@ -228,7 +228,7 @@ async function claimChannelReward() {
         const checkData = await checkRes.json();
 
         if (checkData && checkData.length > 0) {
-            alert("Ты уже получил награду за подписку!");
+            alert("Ты уже получил награду!");
             return;
         }
 
@@ -243,10 +243,10 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 2500; // Сбалансированная награда за подписку
+            coins += 500; // За подписку тоже минимум
             updateUI();
             saveData();
-            alert("Спасибо за подписку! Тебе начислено 2 500 монет! 🐒💰");
+            alert("Спасибо за подписку! Тебе начислено 500 монет! 🐒");
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
@@ -295,7 +295,7 @@ async function loadLeaderboard() {
         const data = await response.json();
 
         if (!data || data.length === 0) {
-            listContainer.innerHTML = '<p class="loading-text">Пока нет игроков в рейтинге</p>';
+            listContainer.innerHTML = '<p class="loading-text">Пока нет выживших в рейтинге</p>';
             return;
         }
 
@@ -349,9 +349,9 @@ async function loadData() {
             
             passiveIncomePS = sanitizeNumber(player.passive_income_ps, 0);
             passive1Level = sanitizeNumber(player.passive1_level, 0);
-            passive1Cost = sanitizeNumber(player.passive1_cost, 300);
+            passive1Cost = sanitizeNumber(player.passive1_cost, 1000);
             passive2Level = sanitizeNumber(player.passive2_level, 0);
-            passive2Cost = sanitizeNumber(player.passive2_cost, 2500);
+            passive2Cost = sanitizeNumber(player.passive2_cost, 15000);
 
             applyOfflineProgress();
             updateUI();
@@ -373,10 +373,10 @@ function shareReferralLink() {
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Заходи в Monkey Tapper и попробуй выжить в хардкорной экономике! 🐒💰")}`);
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Слабо выжить в адски сложном Monkey Tapper? 🐒🔥")}`);
     } else {
         navigator.clipboard.writeText(shareUrl);
-        alert("Реферальная ссылка скопирована в буфер обмена!");
+        alert("Ссылка скопирована!");
     }
 }
 
@@ -472,19 +472,14 @@ function updateUI() {
     if (p1Cost) p1Cost.textContent = passive1Cost;
     if (p1Btn) {
         p1Btn.disabled = coins < passive1Cost;
-        // Обновляем текст кнопки куста, если нужно
-        const spanCost = p1Btn.querySelector("span span") || p1Btn.querySelector("span");
-        if(spanCost && spanCost !== p1Btn) {
-            // сохраняем значок монетки
-        }
     }
 
     if (p2Level) p2Level.textContent = passive2Level;
     if (p2Cost) p2Cost.textContent = passive2Cost;
 
     if (cardPassive2 && p2Btn) {
-        // Усложненное условие разблокировки фермы: нужен хотя бы 1 уровень куста ИЛИ 1000 монет
-        if (passive1Level > 0 || coins >= 1000) {
+        // Ферма разблокируется только если есть 1 куст ИЛИ аж 5000 монет!
+        if (passive1Level > 0 || coins >= 5000) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
@@ -496,17 +491,14 @@ function updateUI() {
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
             if (iconEl) iconEl.textContent = "🔒";
-            if (titleEl) titleEl.textContent = "Заблокировано";
+            if (titleEl) titleEl.textContent = "Заблокировано (нужен куст или 5k монет)";
             p2Btn.disabled = true;
         }
     }
 }
 
 function buyMultitap(e) {
-    if (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (coins >= multitapCost) {
         coins -= multitapCost;
         tapPower += 1;
@@ -521,8 +513,8 @@ function buyPassive1(e) {
         coins -= passive1Cost;
         passive1Level++;
         passiveIncomePS += 1;
-        // Коэффициент удорожания куста увеличен до 1.9 (жесткая экономика)
-        passive1Cost = Math.floor(passive1Cost * 1.9);
+        // Коэффициент удорожания куста — 2.5 (жестко)
+        passive1Cost = Math.floor(passive1Cost * 2.5);
         updateUI();
         saveData();
     }
@@ -535,8 +527,8 @@ function buyPassive2(e) {
         coins -= passive2Cost;
         passive2Level++;
         passiveIncomePS += 5;
-        // Коэффициент удорожания фермы увеличен до 2.0
-        passive2Cost = Math.floor(passive2Cost * 2.0);
+        // Коэффициент удорожания фермы — 2.8
+        passive2Cost = Math.floor(passive2Cost * 2.8);
         updateUI();
         saveData();
     }
@@ -545,8 +537,8 @@ function buyPassive2(e) {
 let tickCounter = 0;
 function gameTick() {
     tickCounter++;
-    // Энергия восстанавливается медленнее: 1 единица каждые 2 секунды
-    if (tickCounter % 2 === 0) {
+    // Энергия восстанавливается очень медленно: 1 единица каждые 5 секунд!
+    if (tickCounter % 5 === 0) {
         if (energy < maxEnergy) {
             energy = Math.min(maxEnergy, energy + 1);
         }
@@ -566,8 +558,7 @@ function createFlyingOne(x, y, text, isCrit) {
     flyingEl.style.top = y + "px";
     document.body.appendChild(flyingEl);
     
-    const duration = isCrit ? 900 : 800;
-    setTimeout(() => { flyingEl.remove(); }, duration);
+    setTimeout(() => { flyingEl.remove(); }, 800);
 }
 
 function handleTap(e) {
@@ -575,7 +566,7 @@ function handleTap(e) {
 
     energy -= 1;
 
-    const critChance = 0.05; // Чуть снизили шанс крита (5%)
+    const critChance = 0.03; // Крит всего 3%
     let earnedCoins = tapPower;
     let isCrit = Math.random() < critChance;
 
@@ -591,7 +582,6 @@ function handleTap(e) {
     }
 
     coins += earnedCoins;
-    
     updateUI();
     saveData();
     
@@ -621,27 +611,16 @@ function switchScreen(target) {
     const screens = document.querySelectorAll('.screen');
     const navItems = document.querySelectorAll('.nav-item');
     
-    let activeIndex = 0;
-    if (target === 'boosts' || target === 1) {
-        activeIndex = 1;
-    } else {
-        activeIndex = 0;
-    }
+    let activeIndex = (target === 'boosts' || target === 1) ? 1 : 0;
 
     screens.forEach((screen, index) => {
-        if (index === activeIndex) {
-            screen.classList.add('active');
-        } else {
-            screen.classList.remove('active');
-        }
+        if (index === activeIndex) screen.classList.add('active');
+        else screen.classList.remove('active');
     });
 
     navItems.forEach((item, index) => {
-        if (index === activeIndex) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
-        }
+        if (index === activeIndex) item.classList.add('active');
+        else item.classList.remove('active');
     });
 }
 
@@ -650,14 +629,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     const navItems = document.querySelectorAll('.nav-item');
     if (navItems.length >= 2) {
-        navItems[0].addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            switchScreen('game');
-        });
-        navItems[1].addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            switchScreen('boosts');
-        });
+        navItems[0].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('game'); });
+        navItems[1].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('boosts'); });
     }
 
     const tapArea = document.getElementById("tap-area");
@@ -673,35 +646,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const multitapBtn = document.getElementById("multitap-btn");
     if (multitapBtn) {
         let isBuying = false;
-        const triggerBuy = (e) => {
+        multitapBtn.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             if (isBuying) return;
             isBuying = true;
             buyMultitap(e);
             setTimeout(() => { isBuying = false; }, 300);
-        };
-        multitapBtn.addEventListener("pointerdown", triggerBuy);
+        });
     }
 
     const p1Btn = document.getElementById("passive-1-btn");
-    if (p1Btn) {
-        p1Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive1(e); });
-    }
+    if (p1Btn) p1Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive1(e); });
 
     const p2Btn = document.getElementById("passive-2-btn");
-    if (p2Btn) {
-        p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
-    }
+    if (p2Btn) p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
 
     const refBtn = document.getElementById("ref-btn");
-    if (refBtn) {
-        refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
-    }
+    if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
 
     const channelBtn = document.getElementById("channel-btn");
-    if (channelBtn) {
-        channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
-    }
+    if (channelBtn) channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
 
     const modal = document.getElementById("leaderboard-modal");
     const leaderboardBtn = document.getElementById("leaderboard-btn");
@@ -723,8 +687,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     window.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
-        }
+        if (e.target === modal) modal.style.display = "none";
     });
 });
