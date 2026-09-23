@@ -9,14 +9,14 @@ let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
 let tapPower = 1;
-let multitapCost = 500; // Старт мультитапа 500 монет!
+let multitapCost = 50; // Мягкий старт для новичка, но дальше — ад
 
-// Пассивный доход (АДСКИЙ ХАРДКОР)
+// Пассивный доход (Сбалансированный хардкор)
 let passiveIncomePS = 0;
 let passive1Level = 0;
-let passive1Cost = 1000;  // Куст теперь стоит 1000 монет!
+let passive1Cost = 150;  // Куст доступен, но требует накоплений
 let passive2Level = 0;
-let passive2Cost = 15000; // Ферма стоит 15 000 монет!
+let passive2Cost = 2000; // Ферма — серьезная цель
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
@@ -74,21 +74,21 @@ function sanitizeNumber(val, fallback) {
     return isNaN(parsed) ? fallback : parsed;
 }
 
-// Ультра-экспонента для мультитапа (множитель 3.0 — цены улетают в космос)
+// Экспонента для мультитапа (множитель 3.0 — цены растут бешено)
 function calculateCost(power) {
-    return Math.floor(500 * Math.pow(3.0, power - 1));
+    return Math.floor(50 * Math.pow(3.0, power - 1));
 }
 
 function applyOfflineProgress() {
     const now = Date.now();
     const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
     if (secondsPassed > 0) {
-        // Энергия восстанавливается очень медленно (1 ед. за 5 секунд)
+        // Энергия восстанавливается медленно (1 ед. за 5 секунд)
         const energyRestored = Math.floor(secondsPassed / 5);
         energy = Math.min(maxEnergy, energy + energyRestored);
         
         if (passiveIncomePS > 0) {
-            // Офлайн-фарм идет с жестоким коэффициентом 0.2 (в 5 раз слабее)
+            // Офлайн-фарм в 5 раз слабее
             const offlineCoins = Math.floor(passiveIncomePS * secondsPassed * 0.2);
             coins += offlineCoins;
         }
@@ -171,7 +171,7 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            coins += 500; // Жалкие крохи за реферала
+            coins += 100; // Реферал получает скромный бонус
 
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -187,7 +187,7 @@ async function processReferral(userId) {
                         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ coins: oldCoins + 1000 })
+                    body: JSON.stringify({ coins: oldCoins + 250 }) // Пригласивший получает 250
                 });
             }
         }
@@ -243,10 +243,10 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 500; // За подписку тоже минимум
+            coins += 250; // Награда за подписку
             updateUI();
             saveData();
-            alert("Спасибо за подписку! Тебе начислено 500 монет! 🐒");
+            alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒");
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
@@ -295,7 +295,7 @@ async function loadLeaderboard() {
         const data = await response.json();
 
         if (!data || data.length === 0) {
-            listContainer.innerHTML = '<p class="loading-text">Пока нет выживших в рейтинге</p>';
+            listContainer.innerHTML = '<p class="loading-text">Пока нет игроков в рейтинге</p>';
             return;
         }
 
@@ -349,9 +349,9 @@ async function loadData() {
             
             passiveIncomePS = sanitizeNumber(player.passive_income_ps, 0);
             passive1Level = sanitizeNumber(player.passive1_level, 0);
-            passive1Cost = sanitizeNumber(player.passive1_cost, 1000);
+            passive1Cost = sanitizeNumber(player.passive1_cost, 150);
             passive2Level = sanitizeNumber(player.passive2_level, 0);
-            passive2Cost = sanitizeNumber(player.passive2_cost, 15000);
+            passive2Cost = sanitizeNumber(player.passive2_cost, 2000);
 
             applyOfflineProgress();
             updateUI();
@@ -373,7 +373,7 @@ function shareReferralLink() {
     
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Слабо выжить в адски сложном Monkey Tapper? 🐒🔥")}`);
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent("Заходи в ультра-хардкорный Monkey Tapper! 🐒🍌")}`);
     } else {
         navigator.clipboard.writeText(shareUrl);
         alert("Ссылка скопирована!");
@@ -478,8 +478,8 @@ function updateUI() {
     if (p2Cost) p2Cost.textContent = passive2Cost;
 
     if (cardPassive2 && p2Btn) {
-        // Ферма разблокируется только если есть 1 куст ИЛИ аж 5000 монет!
-        if (passive1Level > 0 || coins >= 5000) {
+        // Ферма открывается, если есть куст ИЛИ 1000 монет
+        if (passive1Level > 0 || coins >= 1000) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
@@ -491,7 +491,7 @@ function updateUI() {
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
             if (iconEl) iconEl.textContent = "🔒";
-            if (titleEl) titleEl.textContent = "Заблокировано (нужен куст или 5k монет)";
+            if (titleEl) titleEl.textContent = "Заблокировано (нужен куст или 1k монет)";
             p2Btn.disabled = true;
         }
     }
@@ -513,8 +513,7 @@ function buyPassive1(e) {
         coins -= passive1Cost;
         passive1Level++;
         passiveIncomePS += 1;
-        // Коэффициент удорожания куста — 2.5 (жестко)
-        passive1Cost = Math.floor(passive1Cost * 2.5);
+        passive1Cost = Math.floor(passive1Cost * 2.5); // Удорожание куста
         updateUI();
         saveData();
     }
@@ -527,8 +526,7 @@ function buyPassive2(e) {
         coins -= passive2Cost;
         passive2Level++;
         passiveIncomePS += 5;
-        // Коэффициент удорожания фермы — 2.8
-        passive2Cost = Math.floor(passive2Cost * 2.8);
+        passive2Cost = Math.floor(passive2Cost * 2.8); // Удорожание фермы
         updateUI();
         saveData();
     }
@@ -537,7 +535,7 @@ function buyPassive2(e) {
 let tickCounter = 0;
 function gameTick() {
     tickCounter++;
-    // Энергия восстанавливается очень медленно: 1 единица каждые 5 секунд!
+    // Энергия восстанавливается раз в 5 секунд
     if (tickCounter % 5 === 0) {
         if (energy < maxEnergy) {
             energy = Math.min(maxEnergy, energy + 1);
@@ -566,7 +564,7 @@ function handleTap(e) {
 
     energy -= 1;
 
-    const critChance = 0.03; // Крит всего 3%
+    const critChance = 0.03; // Крит 3%
     let earnedCoins = tapPower;
     let isCrit = Math.random() < critChance;
 
