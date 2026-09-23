@@ -291,10 +291,10 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 250; 
+            coins += 250; // <--- Вернули 250 монет
             updateUI();
             saveData();
-            alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒");
+            alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒"); // <--- Текст предупреждения тоже обновлен
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
@@ -688,7 +688,7 @@ function switchScreen(target) {
     });
 }
 
-document.Println = console.log; // На всякий случай
+document.Println = console.log;
 
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
