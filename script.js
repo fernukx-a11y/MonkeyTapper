@@ -24,8 +24,11 @@ let saveTimeout = null;
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
+    // 1. Пытаемся взять реальный ID из Telegram
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-        return tg.initDataUnsafe.user.id.toString();
+        const id = tg.initDataUnsafe.user.id.toString();
+        console.log("👤 Определен Telegram ID:", id);
+        return id;
     }
     
     if (tg && tg.initData) {
@@ -35,7 +38,9 @@ function getUserId() {
             if (userStr) {
                 const userObj = JSON.parse(userStr);
                 if (userObj && userObj.id) {
-                    return userObj.id.toString();
+                    const id = userObj.id.toString();
+                    console.log("👤 Определен Telegram ID из initData:", id);
+                    return id;
                 }
             }
         } catch (e) {
@@ -43,10 +48,14 @@ function getUserId() {
         }
     }
 
+    // 2. Если зашли из браузера — ищем сохраненный ID в localStorage
     let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
-        localDevId = "user_" + Math.random().toString(36).substring(2, 10);
+        localDevId = "browser_" + Math.random().toString(36).substring(2, 10);
         localStorage.setItem("monkey_persistent_user_id", localDevId);
+        console.log("⚠️ Запуск вне Telegram. Создан постоянный локальный ID:", localDevId);
+    } else {
+        console.log("💻 Используется сохраненный локальный ID:", localDevId);
     }
     return localDevId;
 }
@@ -98,6 +107,7 @@ function applyOfflineProgress() {
     lastSaveTime = now;
 }
 
+// НАДЕЖНОЕ СОХРАНЕНИЕ ЧЕРЕЗ ПРОВЕРКУ (УМНЫЙ UPSERT)
 async function saveToSupabase() {
     const userId = getUserId();
     lastSaveTime = Date.now();
@@ -123,22 +133,45 @@ async function saveToSupabase() {
     };
 
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/players?on_conflict=user_id`, {
-            method: "POST",
+        // Сначала проверяем, есть ли уже этот пользователь в базе
+        const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=user_id`, {
             headers: {
                 "apikey": SUPABASE_ANON_KEY,
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                "Content-Type": "application/json",
-                "Prefer": "resolution=merge-duplicates"
-            },
-            body: JSON.stringify(bodyData)
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            }
         });
+        const checkData = await checkRes.json();
+
+        let response;
+        if (checkData && checkData.length > 0) {
+            // Если есть — обновляем через PATCH
+            response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}`, {
+                method: "PATCH",
+                headers: {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            });
+        } else {
+            // Если нет — создаем через POST
+            response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
+                method: "POST",
+                headers: {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            });
+        }
 
         if (!response.ok) {
             const errText = await response.text();
             console.error("❌ Ошибка Supabase при сохранении:", response.status, errText);
         } else {
-            console.log("💾 Прогресс успешно сохранен в Supabase. Монет:", coins);
+            console.log(`💾 Успешно сохранено! Монет: ${coins.toFixed(1)}, Сила тапа: ${tapPower}`);
         }
     } catch (e) {
         console.error("🌐 Сетевая ошибка сохранения в облако:", e);
@@ -342,7 +375,7 @@ async function loadLeaderboard() {
 
 async function loadData() {
     const userId = getUserId();
-    console.log("📥 Загрузка данных для ID:", userId);
+    console.log("📥 Запрос загрузки данных для ID:", userId);
 
     try {
         await processReferral(userId);
@@ -372,7 +405,7 @@ async function loadData() {
 
             applyOfflineProgress();
             updateUI();
-            console.log("✅ Прогресс успешно загружен из Supabase! Монет:", coins);
+            console.log("✅ Прогресс успешно загружен из Supabase! Монет:", coins, "Тап:", tapPower);
         } else {
             console.log("⚠️ Игрок не найден в базе, создаем новую запись...");
             await saveToSupabase();
@@ -625,10 +658,11 @@ function handleTap(e) {
         }
     } else {
         clientX = e.clientX;
+        clientY = e.clientX ? e.clientX : 0;
         clientY = e.clientY;
     }
 
-    if ((clientX === undefined || clientY === undefined) && tapArea) {
+    if ((clientX === undefined || clientY === undefined || (clientX === 0 && clientY === 0)) && tapArea) {
         const rect = tapArea.getBoundingClientRect();
         clientX = rect.left + rect.width / 2;
         clientY = rect.top + rect.height / 2;
@@ -653,6 +687,8 @@ function switchScreen(target) {
         else item.classList.remove('active');
     });
 }
+
+document.Println = console.log; // На всякий случай
 
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
@@ -695,7 +731,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
 
     const channelBtn = document.getElementById("channel-btn");
-    if (channelBtn) channelBtn.addEventListener("pointerdown5", (e) => { e.preventDefault(); claimChannelReward(); });
     if (channelBtn) channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
 
     const modal = document.getElementById("leaderboard-modal");
