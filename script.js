@@ -329,6 +329,7 @@ async function loadLeaderboard() {
 
 async function loadData() {
     const userId = getUserId();
+    console.log("Загрузка данных для ID:", userId);
 
     try {
         await processReferral(userId);
@@ -358,8 +359,10 @@ async function loadData() {
 
             applyOfflineProgress();
             updateUI();
+            console.log("Прогресс успешно загружен из Supabase!");
         } else {
-            saveToSupabase();
+            console.log("Игрок не найден в базе, создаем новую запись...");
+            await saveToSupabase();
             updateUI();
         }
         
@@ -463,7 +466,7 @@ function updateUI() {
         energyBarFill.style.width = percentage + "%";
     }
 
-    // Уровень Мультитапа (максимум 6)
+    // Мультитап (макс 6 ур)
     const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
     if (multitapLevel) multitapLevel.textContent = currentVirtualLevel > 6 ? 6 : currentVirtualLevel;
     if (multitapPower) multitapPower.textContent = tapPower.toFixed(1);
@@ -476,7 +479,7 @@ function updateUI() {
         if (multitapBtn) multitapBtn.disabled = coins < multitapCost;
     }
 
-    // Уровень Куста (максимум 6)
+    // Куст (макс 6 ур)
     if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS.toFixed(1);
     if (p1Level) p1Level.textContent = passive1Level;
     if (passive1Level >= 6) {
@@ -487,7 +490,7 @@ function updateUI() {
         if (p1Btn) p1Btn.disabled = coins < passive1Cost;
     }
 
-    // Уровень Фермы (максимум 6)
+    // Ферма (макс 6 ур)
     if (p2Level) p2Level.textContent = passive2Level;
     if (cardPassive2 && p2Btn) {
         if (passive2Level >= 6) {
