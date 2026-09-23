@@ -8,7 +8,7 @@ const BOT_USERNAME = "MonkeyTapperTGbot";
 let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
-let tapPower = 0.2; // НА СТАРТЕ ДАЕТ 0.2 МОНЕТЫ ЗА ТАП!
+let tapPower = 0.2; 
 let multitapCost = 50; 
 
 let passiveIncomePS = 0;
@@ -68,7 +68,6 @@ function getReferrerId() {
     return null;
 }
 
-// Безопасное чтение чисел (теперь поддерживает дробные)
 function sanitizeFloat(val, fallback) {
     const parsed = parseFloat(val);
     return isNaN(parsed) ? fallback : parsed;
@@ -79,9 +78,7 @@ function sanitizeInt(val, fallback) {
     return isNaN(parsed) ? fallback : parsed;
 }
 
-// Расчет стоимости мультитапа (исходя из текущего уровня мощи)
 function calculateCost(power) {
-    // Вычисляем примерный уровень по формуле (power - 0.2) / 0.2 + 1
     const level = Math.round((power - 0.2) / 0.2) + 1;
     return Math.floor(50 * Math.pow(3.0, level - 1));
 }
@@ -458,7 +455,6 @@ function updateUI() {
     const p2Cost = document.getElementById("p2-cost");
     const p2Btn = document.getElementById("passive-2-btn");
 
-    // Красиво выводим монеты (округляем до 1 знака после запятой)
     if (coinsDisplay) coinsDisplay.textContent = coins.toFixed(1);
     if (energyDisplay) energyDisplay.textContent = Math.floor(energy);
     
@@ -467,32 +463,46 @@ function updateUI() {
         energyBarFill.style.width = percentage + "%";
     }
 
-    // Вычисляем виртуальный уровень мультитапа для отображения (начиная с 1)
+    // Уровень Мультитапа (максимум 6)
     const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
-    if (multitapLevel) multitapLevel.textContent = currentVirtualLevel;
+    if (multitapLevel) multitapLevel.textContent = currentVirtualLevel > 6 ? 6 : currentVirtualLevel;
     if (multitapPower) multitapPower.textContent = tapPower.toFixed(1);
-    if (multitapCostDisplay) multitapCostDisplay.textContent = multitapCost;
-    if (multitapBtn) {
-        multitapBtn.disabled = coins < multitapCost;
+    
+    if (currentVirtualLevel >= 6) {
+        if (multitapCostDisplay) multitapCostDisplay.textContent = "MAX";
+        if (multitapBtn) multitapBtn.disabled = true;
+    } else {
+        if (multitapCostDisplay) multitapCostDisplay.textContent = multitapCost;
+        if (multitapBtn) multitapBtn.disabled = coins < multitapCost;
     }
 
+    // Уровень Куста (максимум 6)
     if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS.toFixed(1);
     if (p1Level) p1Level.textContent = passive1Level;
-    if (p1Cost) p1Cost.textContent = passive1Cost;
-    if (p1Btn) {
-        p1Btn.disabled = coins < passive1Cost;
+    if (passive1Level >= 6) {
+        if (p1Cost) p1Cost.textContent = "MAX";
+        if (p1Btn) p1Btn.disabled = true;
+    } else {
+        if (p1Cost) p1Cost.textContent = passive1Cost;
+        if (p1Btn) p1Btn.disabled = coins < passive1Cost;
     }
 
+    // Уровень Фермы (максимум 6)
     if (p2Level) p2Level.textContent = passive2Level;
-    if (p2Cost) p2Cost.textContent = passive2Cost;
-
     if (cardPassive2 && p2Btn) {
-        if (passive1Level > 0 || coins >= 1000) {
+        if (passive2Level >= 6) {
+            cardPassive2.classList.remove("locked");
+            if (p2Cost) p2Cost.textContent = "MAX";
+            p2Btn.disabled = true;
+            const titleEl = cardPassive2.querySelector(".upgrade-title");
+            if (titleEl) titleEl.textContent = "Банановая ферма (MAX)";
+        } else if (passive1Level > 0 || coins >= 1000) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
             const titleEl = cardPassive2.querySelector(".upgrade-title");
             if (iconEl) iconEl.textContent = "🏭";
             if (titleEl) titleEl.textContent = "Банановая ферма";
+            if (p2Cost) p2Cost.textContent = passive2Cost;
             p2Btn.disabled = coins < passive2Cost;
         } else {
             cardPassive2.classList.add("locked");
@@ -500,6 +510,7 @@ function updateUI() {
             const titleEl = cardPassive2.querySelector(".upgrade-title");
             if (iconEl) iconEl.textContent = "🔒";
             if (titleEl) titleEl.textContent = "Заблокировано (нужен куст или 1k монет)";
+            if (p2Cost) p2Cost.textContent = passive2Cost;
             p2Btn.disabled = true;
         }
     }
@@ -507,9 +518,10 @@ function updateUI() {
 
 function buyMultitap(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (coins >= multitapCost) {
+    const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
+    if (currentVirtualLevel < 6 && coins >= multitapCost) {
         coins -= multitapCost;
-        tapPower = Number((tapPower + 0.2).toFixed(2)); // Каждый апгрейд добавляет +0.2 к тапу
+        tapPower = Number((tapPower + 0.2).toFixed(2)); 
         updateUI();
         saveData();
     }
@@ -517,10 +529,10 @@ function buyMultitap(e) {
 
 function buyPassive1(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (coins >= passive1Cost) {
+    if (passive1Level < 6 && coins >= passive1Cost) {
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); // Куст дает +0.5 в сек
+        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); 
         passive1Cost = Math.floor(passive1Cost * 2.5); 
         updateUI();
         saveData();
@@ -530,10 +542,10 @@ function buyPassive1(e) {
 function buyPassive2(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     const cardPassive2 = document.getElementById("card-passive-2");
-    if (coins >= passive2Cost && cardPassive2 && !cardPassive2.classList.contains("locked")) {
+    if (passive2Level < 6 && coins >= passive2Cost && cardPassive2 && !cardPassive2.classList.contains("locked")) {
         coins -= passive2Cost;
         passive2Level++;
-        passiveIncomePS = Number((passiveIncomePS + 2.0).toFixed(1)); // Ферма дает +2.0 в сек
+        passiveIncomePS = Number((passiveIncomePS + 2.0).toFixed(1)); 
         passive2Cost = Math.floor(passive2Cost * 2.8); 
         updateUI();
         saveData();
