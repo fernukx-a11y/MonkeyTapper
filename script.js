@@ -133,7 +133,6 @@ async function saveToSupabase() {
     };
 
     try {
-        // Сначала проверяем, есть ли уже этот пользователь в базе
         const checkRes = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=user_id`, {
             headers: {
                 "apikey": SUPABASE_ANON_KEY,
@@ -144,7 +143,6 @@ async function saveToSupabase() {
 
         let response;
         if (checkData && checkData.length > 0) {
-            // Если есть — обновляем через PATCH
             response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}`, {
                 method: "PATCH",
                 headers: {
@@ -155,7 +153,6 @@ async function saveToSupabase() {
                 body: JSON.stringify(bodyData)
             });
         } else {
-            // Если нет — создаем через POST
             response = await fetch(`${SUPABASE_URL}/rest/v1/players`, {
                 method: "POST",
                 headers: {
@@ -185,7 +182,6 @@ function saveData() {
     }, 500);
 }
 
-// Сохраняем данные мгновенно при сворачивании / закрытии приложения
 document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
         saveToSupabase();
@@ -219,8 +215,10 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
+            // Бонус рефералу (кто перешел) — добавляем локально, сохранится в loadData
             coins += 100; 
 
+            // Находим реферера (основу) в базе данных и накидываем ему +250 монет
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
@@ -237,6 +235,7 @@ async function processReferral(userId) {
                     },
                     body: JSON.stringify({ coins: oldCoins + 250 })
                 });
+                console.log(`🎁 Реферал засчитан! Основе (${referrerId}) начислено +250 монет.`);
             }
         }
     } catch (e) {
@@ -291,10 +290,10 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 250; // <--- Вернули 250 монет
+            coins += 250; 
             updateUI();
             saveData();
-            alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒"); // <--- Текст предупреждения тоже обновлен
+            alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒");
             
             const channelBtn = document.getElementById("channel-btn");
             if (channelBtn) {
@@ -378,6 +377,7 @@ async function loadData() {
     console.log("📥 Запрос загрузки данных для ID:", userId);
 
     try {
+        // Сначала отрабатываем реферал (если этот аккаунт перешел по ссылке)
         await processReferral(userId);
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=*`, {
