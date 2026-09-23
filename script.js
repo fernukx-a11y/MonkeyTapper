@@ -8,15 +8,14 @@ const BOT_USERNAME = "MonkeyTapperTGbot";
 let coins = 0;
 let energy = 1000;
 const maxEnergy = 1000;
-let tapPower = 1;
-let multitapCost = 50; // Мягкий старт для новичка, но дальше — ад
+let tapPower = 0.2; // НА СТАРТЕ ДАЕТ 0.2 МОНЕТЫ ЗА ТАП!
+let multitapCost = 50; 
 
-// Пассивный доход (Сбалансированный хардкор)
 let passiveIncomePS = 0;
 let passive1Level = 0;
-let passive1Cost = 150;  // Куст доступен, но требует накоплений
+let passive1Cost = 150;  
 let passive2Level = 0;
-let passive2Cost = 2000; // Ферма — серьезная цель
+let passive2Cost = 2000; 
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
@@ -69,27 +68,33 @@ function getReferrerId() {
     return null;
 }
 
-function sanitizeNumber(val, fallback) {
+// Безопасное чтение чисел (теперь поддерживает дробные)
+function sanitizeFloat(val, fallback) {
+    const parsed = parseFloat(val);
+    return isNaN(parsed) ? fallback : parsed;
+}
+
+function sanitizeInt(val, fallback) {
     const parsed = parseInt(val, 10);
     return isNaN(parsed) ? fallback : parsed;
 }
 
-// Экспонента для мультитапа (множитель 3.0 — цены растут бешено)
+// Расчет стоимости мультитапа (исходя из текущего уровня мощи)
 function calculateCost(power) {
-    return Math.floor(50 * Math.pow(3.0, power - 1));
+    // Вычисляем примерный уровень по формуле (power - 0.2) / 0.2 + 1
+    const level = Math.round((power - 0.2) / 0.2) + 1;
+    return Math.floor(50 * Math.pow(3.0, level - 1));
 }
 
 function applyOfflineProgress() {
     const now = Date.now();
     const secondsPassed = Math.floor((now - lastSaveTime) / 1000);
     if (secondsPassed > 0) {
-        // Энергия восстанавливается медленно (1 ед. за 5 секунд)
         const energyRestored = Math.floor(secondsPassed / 5);
         energy = Math.min(maxEnergy, energy + energyRestored);
         
         if (passiveIncomePS > 0) {
-            // Офлайн-фарм в 5 раз слабее
-            const offlineCoins = Math.floor(passiveIncomePS * secondsPassed * 0.2);
+            const offlineCoins = passiveIncomePS * secondsPassed * 0.2;
             coins += offlineCoins;
         }
     }
@@ -171,7 +176,7 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            coins += 100; // Реферал получает скромный бонус
+            coins += 100; 
 
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -179,7 +184,7 @@ async function processReferral(userId) {
             const referrerData = await getRefPlayer.json();
 
             if (referrerData && referrerData.length > 0) {
-                const oldCoins = sanitizeNumber(referrerData[0].coins, 0);
+                const oldCoins = sanitizeFloat(referrerData[0].coins, 0);
                 await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}`, {
                     method: "PATCH",
                     headers: {
@@ -187,7 +192,7 @@ async function processReferral(userId) {
                         "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ coins: oldCoins + 250 }) // Пригласивший получает 250
+                    body: JSON.stringify({ coins: oldCoins + 250 })
                 });
             }
         }
@@ -243,7 +248,7 @@ async function claimChannelReward() {
         });
 
         if (insertRes.ok) {
-            coins += 250; // Награда за подписку
+            coins += 250; 
             updateUI();
             saveData();
             alert("Спасибо за подписку! Тебе начислено 250 монет! 🐒");
@@ -308,11 +313,12 @@ async function loadLeaderboard() {
             else if (rank === 3) rankClass = "top-3";
 
             let displayName = player.username ? player.username : ("Игрок " + player.user_id.toString().substring(0, 4));
+            let playerCoins = Number(player.coins).toFixed(1);
 
             html += `
                 <div class="leader-item ${rankClass}" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <span>#${rank} ${displayName}</span>
-                    <span>💰 ${Number(player.coins).toLocaleString()}</span>
+                    <span>💰 ${playerCoins}</span>
                 </div>
             `;
         });
@@ -342,16 +348,16 @@ async function loadData() {
 
         if (data && data.length > 0) {
             const player = data[0];
-            coins = sanitizeNumber(player.coins, coins);
-            tapPower = sanitizeNumber(player.tap_power, 1);
-            energy = sanitizeNumber(player.energy, maxEnergy);
-            lastSaveTime = sanitizeNumber(player.last_time, Date.now());
+            coins = sanitizeFloat(player.coins, coins);
+            tapPower = sanitizeFloat(player.tap_power, 0.2);
+            energy = sanitizeInt(player.energy, maxEnergy);
+            lastSaveTime = sanitizeInt(player.last_time, Date.now());
             
-            passiveIncomePS = sanitizeNumber(player.passive_income_ps, 0);
-            passive1Level = sanitizeNumber(player.passive1_level, 0);
-            passive1Cost = sanitizeNumber(player.passive1_cost, 150);
-            passive2Level = sanitizeNumber(player.passive2_level, 0);
-            passive2Cost = sanitizeNumber(player.passive2_cost, 2000);
+            passiveIncomePS = sanitizeFloat(player.passive_income_ps, 0);
+            passive1Level = sanitizeInt(player.passive1_level, 0);
+            passive1Cost = sanitizeInt(player.passive1_cost, 150);
+            passive2Level = sanitizeInt(player.passive2_level, 0);
+            passive2Cost = sanitizeInt(player.passive2_cost, 2000);
 
             applyOfflineProgress();
             updateUI();
@@ -429,7 +435,7 @@ function initApp() {
 function updateUI() {
     if (isNaN(energy)) energy = maxEnergy;
     if (isNaN(coins)) coins = 0;
-    if (isNaN(tapPower) || tapPower < 1) tapPower = 1;
+    if (isNaN(tapPower) || tapPower < 0.2) tapPower = 0.2;
 
     multitapCost = calculateCost(tapPower);
 
@@ -452,7 +458,8 @@ function updateUI() {
     const p2Cost = document.getElementById("p2-cost");
     const p2Btn = document.getElementById("passive-2-btn");
 
-    if (coinsDisplay) coinsDisplay.textContent = Math.floor(coins).toLocaleString();
+    // Красиво выводим монеты (округляем до 1 знака после запятой)
+    if (coinsDisplay) coinsDisplay.textContent = coins.toFixed(1);
     if (energyDisplay) energyDisplay.textContent = Math.floor(energy);
     
     if (energyBarFill) {
@@ -460,14 +467,16 @@ function updateUI() {
         energyBarFill.style.width = percentage + "%";
     }
 
-    if (multitapLevel) multitapLevel.textContent = tapPower;
-    if (multitapPower) multitapPower.textContent = tapPower;
+    // Вычисляем виртуальный уровень мультитапа для отображения (начиная с 1)
+    const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
+    if (multitapLevel) multitapLevel.textContent = currentVirtualLevel;
+    if (multitapPower) multitapPower.textContent = tapPower.toFixed(1);
     if (multitapCostDisplay) multitapCostDisplay.textContent = multitapCost;
     if (multitapBtn) {
         multitapBtn.disabled = coins < multitapCost;
     }
 
-    if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS;
+    if (passiveIncomeDisplay) passiveIncomeDisplay.textContent = passiveIncomePS.toFixed(1);
     if (p1Level) p1Level.textContent = passive1Level;
     if (p1Cost) p1Cost.textContent = passive1Cost;
     if (p1Btn) {
@@ -478,7 +487,6 @@ function updateUI() {
     if (p2Cost) p2Cost.textContent = passive2Cost;
 
     if (cardPassive2 && p2Btn) {
-        // Ферма открывается, если есть куст ИЛИ 1000 монет
         if (passive1Level > 0 || coins >= 1000) {
             cardPassive2.classList.remove("locked");
             const iconEl = cardPassive2.querySelector(".upgrade-icon");
@@ -501,7 +509,7 @@ function buyMultitap(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     if (coins >= multitapCost) {
         coins -= multitapCost;
-        tapPower += 1;
+        tapPower = Number((tapPower + 0.2).toFixed(2)); // Каждый апгрейд добавляет +0.2 к тапу
         updateUI();
         saveData();
     }
@@ -512,8 +520,8 @@ function buyPassive1(e) {
     if (coins >= passive1Cost) {
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS += 1;
-        passive1Cost = Math.floor(passive1Cost * 2.5); // Удорожание куста
+        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); // Куст дает +0.5 в сек
+        passive1Cost = Math.floor(passive1Cost * 2.5); 
         updateUI();
         saveData();
     }
@@ -525,8 +533,8 @@ function buyPassive2(e) {
     if (coins >= passive2Cost && cardPassive2 && !cardPassive2.classList.contains("locked")) {
         coins -= passive2Cost;
         passive2Level++;
-        passiveIncomePS += 5;
-        passive2Cost = Math.floor(passive2Cost * 2.8); // Удорожание фермы
+        passiveIncomePS = Number((passiveIncomePS + 2.0).toFixed(1)); // Ферма дает +2.0 в сек
+        passive2Cost = Math.floor(passive2Cost * 2.8); 
         updateUI();
         saveData();
     }
@@ -535,14 +543,13 @@ function buyPassive2(e) {
 let tickCounter = 0;
 function gameTick() {
     tickCounter++;
-    // Энергия восстанавливается раз в 5 секунд
     if (tickCounter % 5 === 0) {
         if (energy < maxEnergy) {
             energy = Math.min(maxEnergy, energy + 1);
         }
     }
     if (passiveIncomePS > 0) {
-        coins += passiveIncomePS;
+        coins = Number((coins + passiveIncomePS).toFixed(2));
     }
     updateUI();
     saveData();
@@ -564,7 +571,7 @@ function handleTap(e) {
 
     energy -= 1;
 
-    const critChance = 0.03; // Крит 3%
+    const critChance = 0.03; 
     let earnedCoins = tapPower;
     let isCrit = Math.random() < critChance;
 
@@ -579,7 +586,7 @@ function handleTap(e) {
         }
     }
 
-    coins += earnedCoins;
+    coins = Number((coins + earnedCoins).toFixed(2));
     updateUI();
     saveData();
     
@@ -602,7 +609,7 @@ function handleTap(e) {
         clientY = rect.top + rect.height / 2;
     }
     
-    createFlyingOne(clientX, clientY, earnedCoins, isCrit);
+    createFlyingOne(clientX, clientY, earnedCoins.toFixed(1), isCrit);
 }
 
 function switchScreen(target) {
