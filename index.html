@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Подключаем стили с обновленной версией v=119 -->
-    <link rel="stylesheet" href="style.css?v=119">
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="style.css?v=120">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -17,7 +17,7 @@
         <div id="background-effects"></div>
         
         <!-- Главный экран (Кликер + Канал, Друзья и Энергия) -->
-        <div id="screen-game" class="screen active">
+        <div id="screen-game" class="screen active" style="display: flex; flex-direction: column;">
             <div class="header">
                 <div class="coins-container">
                     <span class="coin-icon">💰</span>
@@ -34,7 +34,6 @@
 
             <!-- Блок друзей и канала на главном экране -->
             <div class="main-screen-bonuses">
-                <!-- Рефералка -->
                 <div class="upgrade-card compact-card">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">👥</span>
@@ -48,7 +47,6 @@
                     </button>
                 </div>
 
-                <!-- Канал -->
                 <div class="upgrade-card compact-card">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">📢</span>
@@ -76,7 +74,7 @@
         </div>
 
         <!-- Экран прокачки (улучшения и пассивный доход) -->
-        <div id="screen-boosts" class="screen">
+        <div id="screen-boosts" class="screen" style="display: none; flex-direction: column;">
             <div class="boosts-header">
                 <h2>🚀 Прокачка</h2>
                 <div class="passive-header-info">
@@ -85,7 +83,6 @@
             </div>
             
             <div class="boosts-list">
-                <!-- Мультитап -->
                 <div class="upgrade-card">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">👆</span>
@@ -99,7 +96,6 @@
                     </button>
                 </div>
 
-                <!-- Банановый куст (Пассивный доход 1) -->
                 <div class="upgrade-card" id="card-passive-1">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">🌿</span>
@@ -113,7 +109,6 @@
                     </button>
                 </div>
 
-                <!-- Банановая ферма (Пассивный доход 2) -->
                 <div class="upgrade-card locked" id="card-passive-2">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">🔒</span>
@@ -130,7 +125,7 @@
         </div>
 
         <!-- Экран профиля игрока -->
-        <div id="screen-profile" class="screen">
+        <div id="screen-profile" class="screen" style="display: none; flex-direction: column;">
             <div class="boosts-header">
                 <h2>👤 Профиль</h2>
             </div>
@@ -162,7 +157,7 @@
             </div>
         </div>
 
-        <!-- Нижняя навигация с использованием правильного переключения классов -->
+        <!-- Нижняя навигация -->
         <div class="bottom-nav">
             <button class="nav-item active nav-btn" onclick="switchTab('screen-game', this)">
                 <span class="nav-icon">🪙</span>
@@ -180,7 +175,7 @@
 
     </div>
 
-    <!-- Модальное окно рейтинга -->
+    <!-- Модальные окна -->
     <div id="leaderboard-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -193,7 +188,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно просмотра чужого профиля -->
     <div id="view-profile-modal" class="modal" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
         <div class="modal-content" style="background: #1e1e1e; padding: 20px; border-radius: 12px; text-align: left; width: 85%; max-width: 320px; border: 1px solid rgba(255,255,255,0.1); color: white; position: relative;">
             <button onclick="document.getElementById('view-profile-modal').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
@@ -205,17 +199,9 @@
                 <p><b>📈 Пассивный доход:</b> <span id="vp-passive">...</span>/сек</p>
                 <p><b>👥 Приглашено друзей:</b> <span id="vp-refs">...</span></p>
             </div>
-
-            <div id="prisoner-section" style="margin-top: 15px; text-align: center; display: none;">
-                <p id="vp-status-text" style="color: #ffcc00; font-size: 14px; margin-bottom: 10px;"></p>
-                <button id="ransom-btn" onclick="buyRansom()" style="background: linear-gradient(135deg, #ff9900, #ff5500); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: none; width: 100%;">
-                    Выкупить за <span id="ransom-price">0</span> 💰
-                </button>
-            </div>
         </div>
     </div>
 
-    <!-- Модальное окно для смены никнейма -->
     <div id="rename-modal" class="modal" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
         <div class="modal-content" style="background: #1e1e1e; padding: 20px; border-radius: 12px; text-align: center; width: 85%; max-width: 320px; border: 1px solid rgba(255,255,255,0.1);">
             <h3 style="margin-top: 0; color: white;">Сменить никнейм</h3>
@@ -228,39 +214,47 @@
         </div>
     </div>
 
-    <!-- Корректная функция переключения экранов через класс active и возврат вибрации -->
+    <!-- Жесткое управление экранами и интеграция вибрации -->
     <script>
         function switchTab(screenId, btnElement) {
-            // Убираем класс active у всех экранов
+            // Принудительно скрываем все экраны
             const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => s.classList.remove('active'));
+            screens.forEach(s => {
+                s.style.display = 'none';
+                s.classList.remove('active');
+            });
 
-            // Добавляем класс active нужному экрану
+            // Показываем выбранный экран
             const targetScreen = document.getElementById(screenId);
-            if (targetScreen) targetScreen.classList.add('active');
+            if (targetScreen) {
+                targetScreen.style.display = 'flex';
+                targetScreen.classList.add('active');
+            }
 
-            // Переключаем подсветку кнопок навигации
+            // Переключаем активную кнопку в навигации
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(n => n.classList.remove('active'));
             if (btnElement) btnElement.classList.add('active');
         }
 
-        // Интеграция вибрации Telegram Haptic Feedback в функцию тапа
-        const originalHandleTap = window.handleTap;
-        window.handleTap = function(event) {
-            // Вызываем тактильную отдачу (вибрацию) через Telegram WebApp
-            const tg = window.Telegram ? window.Telegram.WebApp : null;
-            if (tg && tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
-            // Вызываем оригинальный кликер
-            if (typeof originalHandleTap === 'function') {
-                originalHandleTap(event);
-            }
-        };
+        // Перехватываем клик для добавления вибрации через Telegram WebApp
+        window.addEventListener('DOMContentLoaded', () => {
+            const originalHandleTap = window.handleTap;
+            window.handleTap = function(event) {
+                // Вибрация
+                const tg = window.Telegram ? window.Telegram.WebApp : null;
+                if (tg && tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+                // Вызов основной игровой функции тапа
+                if (typeof originalHandleTap === 'function') {
+                    originalHandleTap(event);
+                }
+            };
+        });
     </script>
 
-    <!-- Подключаем основной скрипт игры -->
-    <script src="script.js?v=119"></script>
+    <!-- Подключаем основной скрипт -->
+    <script src="script.js?v=120"></script>
 </body>
 </html>
