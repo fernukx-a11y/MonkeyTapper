@@ -835,6 +835,7 @@ function updateProfileUI() {
     const profTap = document.getElementById("prof-tap");
     const profPassive = document.getElementById("prof-passive");
     const profEnergy = document.getElementById("prof-energy");
+    const profRefs = document.getElementById("prof-refs");
 
     if (profUsername) profUsername.textContent = username;
     if (profUserid) profUserid.textContent = getUserId();
@@ -842,30 +843,133 @@ function updateProfileUI() {
     if (profTap) profTap.textContent = tapPower.toFixed(1);
     if (profPassive) profPassive.textContent = passiveIncomePS.toFixed(1);
     if (profEnergy) profEnergy.textContent = `${Math.floor(energy)} / ${maxEnergy}`;
+    if (profRefs) profRefs.textContent = referralCount;
 }
 
-function buyMultitap(e) {
+// Покупка улучшений кликера (Мультитап)
+async function buyMultitap(e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
-    if (currentVirtualLevel < 6 && coins >= multitapCost) {
-        coins -= multitapCost;
-        tapPower = Number((tapPower + 0.2).toFixed(2)); 
-        updateUI();
-        saveData();
+    if (coins < multitapCost) {
+        alert("Недостаточно монет!");
+        return;
     }
+
+    const currentVirtualLevel = Math.round((tapPower - 0.2) / 0.2) + 1;
+    if (currentVirtualLevel >= 6) {
+        alert("Достигнут максимальный уровень мультитапа!");
+        return;
+    }
+
+    coins -= multitapCost;
+    tapPower = Number((tapPower + 0.2).toFixed(2)); 
+    
+    updateUI();
+    saveData();
 }
 
-function buyPassive1(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (passive1Level < 6 && coins >= passive1Cost) {
+// Покупка пассивных улучшений (Куст / Ферма)
+async function buyPassive(tier) {
+    if (tier === 1) {
+        if (passive1Level >= 6) {
+            alert("Достигнут максимальный уровень!");
+            return;
+        }
+        if (coins < passive1Cost) {
+            alert("Недостаточно монет!");
+            return;
+        }
+
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1));
-        passive1Cost = Math.floor(passive1Cost * 2.5);
-        updateUI();
-        saveData();
+        passiveIncomePS = Number((passiveIncomePS + 1).toFixed(1));
+        passive1Cost = Math.floor(passive1Cost * 1.8);
+
+    } else if (tier === 2) {
+        if (passive2Level >= 6) {
+            alert("Достигнут максимальный уровень!");
+            return;
+        }
+        if (coins < passive2Cost) {
+            alert("Недостаточно монет!");
+            return;
+        }
+
+        coins -= passive2Cost;
+        passive2Level++;
+        passiveIncomePS = Number((passiveIncomePS + 5).toFixed(1));
+        passive2Cost = Math.floor(passive2Cost * 2.0);
+    }
+
+    updateUI();
+    saveData();
+}
+
+// Обработка клика по главной кнопке (банану/обезьянке)
+function handleTap(event) {
+    if (energy < tapPower) {
+        alert("Недостаточно энергии!");
+        return;
+    }
+
+    energy = Math.max(0, energy - tapPower);
+    coins += tapPower;
+
+    updateUI();
+    saveData();
+
+    // Визуальный эффект всплывающей цифры при клике
+    if (event) {
+        const x = event.clientX || (event.touches ? event.touches[0].clientX : window.innerWidth / 2);
+        const y = event.clientY || (event.touches ? event.touches[0].clientY : window.innerHeight / 2);
+
+        const floatText = document.createElement("div");
+        floatText.className = "floating-tap-text";
+        floatText.textContent = "+" + tapPower.toFixed(1);
+        floatText.style.left = x + "px";
+        floatText.style.top = y + "px";
+        document.body.appendChild(floatText);
+
+        setTimeout(() => {
+            floatText.remove();
+        }, 1000);
     }
 }
 
-// Автоматический запуск приложения при загрузке страницы
-window.addEventListener("DOMContentLoaded", initApp);
+// Управление вкладками интерфейса
+function switchTab(tabId) {
+    const tabs = document.querySelectorAll(".tab-content");
+    tabs.forEach(tab => {
+        tab.style.display = "none";
+    });
+
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) {
+        activeTab.style.display = "block";
+    }
+
+    const navButtons = document.querySelectorAll(".nav-btn");
+    navButtons.forEach(btn => btn.classList.remove("active"));
+    
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add("active");
+    }
+
+    if (tabId === "leaderboard-tab") {
+        loadLeaderboard();
+    }
+}
+
+// Закрытие модальных окон при клике вне их зоны
+window.onclick = function(event) {
+    const modals = document.querySelectorAll(".modal");
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+};
+
+// Запуск инициализации при загрузке документа
+document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+});
