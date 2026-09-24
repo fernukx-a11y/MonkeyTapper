@@ -5,9 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
     <!-- Подключаем стили -->
-    <link rel="stylesheet" href="style.css?v=120">
+    <link rel="stylesheet" href="style.css?v=122">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Жесткие стили для переключения экранов, чтобы они никогда не накладывались */
+        .screen {
+            display: none !important;
+        }
+        .screen.active {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        /* Возвращаем и гарантируем анимацию нажатия на тапалку */
+        .monkey-container {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .monkey-container:active {
+            transform: scale(0.92);
+        }
+        .monkey-img {
+            pointer-events: none;
+        }
+    </style>
 </head>
 <body>
 
@@ -17,7 +41,7 @@
         <div id="background-effects"></div>
         
         <!-- Главный экран (Кликер + Канал, Друзья и Энергия) -->
-        <div id="screen-game" class="screen active" style="display: flex; flex-direction: column;">
+        <div id="screen-game" class="screen active">
             <div class="header">
                 <div class="coins-container">
                     <span class="coin-icon">💰</span>
@@ -74,7 +98,7 @@
         </div>
 
         <!-- Экран прокачки (улучшения и пассивный доход) -->
-        <div id="screen-boosts" class="screen" style="display: none; flex-direction: column;">
+        <div id="screen-boosts" class="screen">
             <div class="boosts-header">
                 <h2>🚀 Прокачка</h2>
                 <div class="passive-header-info">
@@ -125,7 +149,7 @@
         </div>
 
         <!-- Экран профиля игрока -->
-        <div id="screen-profile" class="screen" style="display: none; flex-direction: column;">
+        <div id="screen-profile" class="screen">
             <div class="boosts-header">
                 <h2>👤 Профиль</h2>
             </div>
@@ -214,39 +238,33 @@
         </div>
     </div>
 
-    <!-- Жесткое управление экранами и интеграция вибрации -->
+    <!-- Управление экранами и перехватчик вибрации -->
     <script>
         function switchTab(screenId, btnElement) {
-            // Принудительно скрываем все экраны
+            // Убираем active со всех экранов
             const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => {
-                s.style.display = 'none';
-                s.classList.remove('active');
-            });
+            screens.forEach(s => s.classList.remove('active'));
 
-            // Показываем выбранный экран
+            // Добавляем active нужному экрану
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
-                targetScreen.style.display = 'flex';
                 targetScreen.classList.add('active');
             }
 
-            // Переключаем активную кнопку в навигации
+            // Переключаем класс на кнопках навигации
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(n => n.classList.remove('active'));
             if (btnElement) btnElement.classList.add('active');
         }
 
-        // Перехватываем клик для добавления вибрации через Telegram WebApp
+        // Интеграция вибрации и сохранения тапа
         window.addEventListener('DOMContentLoaded', () => {
             const originalHandleTap = window.handleTap;
             window.handleTap = function(event) {
-                // Вибрация
                 const tg = window.Telegram ? window.Telegram.WebApp : null;
                 if (tg && tg.HapticFeedback) {
                     tg.HapticFeedback.impactOccurred('medium');
                 }
-                // Вызов основной игровой функции тапа
                 if (typeof originalHandleTap === 'function') {
                     originalHandleTap(event);
                 }
@@ -255,6 +273,6 @@
     </script>
 
     <!-- Подключаем основной скрипт -->
-    <script src="script.js?v=120"></script>
+    <script src="script.js?v=122"></script>
 </body>
 </html>
