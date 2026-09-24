@@ -35,30 +35,31 @@ body, html {
 }
 
 /* ==========================================
-   ФОНОВЫЕ ЭФФЕКТЫ (ПАДАЮЩИЕ БАНАНЫ)
+   ФОНОВЫЕ ЭФФЕКТЫ (ПАДАЮЩИЕ БАНАНЫ) - ИСПРАВЛЕНО ДЛЯ ТЕЛЕФОНОВ
    ========================================== */
 #background-effects {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     pointer-events: none;
     overflow: hidden;
     z-index: 1;
 }
 
 .falling-banana {
-    position: absolute;
-    top: -40px;
-    opacity: 0.18;
+    position: fixed;
+    top: -50px;
+    opacity: 0.25;
     pointer-events: none;
+    will-change: transform;
     animation: fallDown linear infinite;
 }
 
 @keyframes fallDown {
     0% {
-        transform: translateY(-40px) rotate(0deg);
+        transform: translateY(-50px) rotate(0deg);
     }
     100% {
         transform: translateY(105vh) rotate(360deg);
