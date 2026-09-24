@@ -7,14 +7,14 @@ if (tg) {
 
 const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {
     id: 999999,
-    first_name: "ПК Игрок",
-    username: "pc_player"
+    first_name: "Игрок",
+    username: "player"
 };
 
 const userId = String(user.id);
 const defaultUsername = user.first_name || "Обезьянка";
 
-// Игровые переменные (возвращаем правильный начальный тап 0.2 или текущий уровень)
+// Игровые переменные
 let coins = 0;
 let tapPower = 0.2; 
 let multitapLevel = 1;
@@ -32,7 +32,7 @@ window.addEventListener('DOMContentLoaded', () => {
     initGame();
     initBackgroundBananas();
 
-    // Пассивный доход (считаем корректно раз в секунду)
+    // Пассивный доход (раз в секунду)
     setInterval(() => {
         if (passiveIncome > 0) {
             coins += passiveIncome;
@@ -41,28 +41,26 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // Восстановление энергии: 1 единица раз в 2 секунды (или подстрой под себя, чтобы не было слишком быстро)
+    // Восстановление энергии
     setInterval(() => {
         if (energy < maxEnergy) {
-            energy = Math.min(maxEnergy, energy + 2);
+            energy = Math.min(maxEnergy, energy + 1);
             updateEnergyUI();
         }
-    }, 2000);
+    }, 1000);
 
-    // УНИВЕРСАЛЬНЫЙ ОБРАБОТЧИК ТАПОВ ДЛЯ ТЕЛЕФОНОВ И ПК
-    const monkeyContainer = document.getElementById('tap-area') || document.querySelector('.monkey-container');
+    // Навешиваем обработчики кликов/тапов на обезьянку
+    const monkeyContainer = document.getElementById('monkey-btn') || document.querySelector('.monkey-container');
     if (monkeyContainer) {
-        const triggerTap = (e) => {
-            // Предотвращаем баги с двойным срабатыванием (эмуляция мыши после тача)
-            if (e.type === 'touchstart') {
-                e.preventDefault();
-            }
-
+        // Убираем возможные дубликаты и вешаем надежные события
+        monkeyContainer.addEventListener('click', (e) => {
             handleTap(e);
-        };
-
-        monkeyContainer.addEventListener('touchstart', triggerTap, { passive: false });
-        monkeyContainer.addEventListener('click', triggerTap);
+        });
+        
+        monkeyContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Предотвращаем эмуляцию клика и зум
+            handleTap(e);
+        }, { passive: false });
     }
 });
 
@@ -89,18 +87,18 @@ function initGame() {
     updateProfileDisplay();
 }
 
-// Функция тапа (теперь строго использует tapPower)
+// Функция тапа (универсальная и для ПК, и для телефона)
 function handleTap(e) {
     if (energy <= 0) return;
 
     let earned = tapPower;
-    energy = Math.max(0, energy - 1); // Тратим 1 энергии за тап
+    energy = Math.max(0, energy - 1);
 
     coins += earned;
     updateUI();
     updateEnergyUI();
 
-    // Анимация нажатия на обезьянку
+    // Анимация нажатия
     const monkeyContainer = document.querySelector('.monkey-container');
     if (monkeyContainer) {
         monkeyContainer.classList.add('tapped');
@@ -114,14 +112,14 @@ function handleTap(e) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // Летящая циферка (округляем для красоты, если дробное)
+    // Летящая циферка
     let displayEarned = earned < 1 ? earned.toFixed(1) : Math.floor(earned);
     createFloatingText(e, `+${displayEarned}`, earned >= 1 ? 'flying-crit' : 'flying-one');
 
     debounceSave();
 }
 
-// Эффект всплывающих монет
+// Эффект всплывающих монет при клике
 function createFloatingText(e, text, className) {
     const container = document.getElementById('background-effects');
     if (!container) return;
@@ -157,7 +155,7 @@ function createFloatingText(e, text, className) {
 function updateUI() {
     const coinsDisplay = document.getElementById('coins-display');
     if (coinsDisplay) {
-        coinsDisplay.innerText = coins.toFixed(1); // Поддержка отображения десятых долей монет
+        coinsDisplay.innerText = coins.toFixed(1);
     }
 
     setElemText('multitap-level', multitapLevel);
@@ -189,10 +187,7 @@ function updateProfileDisplay() {
     if (pId) pId.innerText = userId;
 
     setElemText('prof-coins', coins.toFixed(1));
-    setElemText('prof-tap', tapPower.toFixed(1));
-    setElemText('prof-passive', passiveIncome.toFixed(1));
     setElemText('prof-energy', `${Math.floor(energy)} / ${maxEnergy}`);
-    setElemText('prof-refs', refsCount);
 }
 
 function setElemText(id, text) {
@@ -225,7 +220,7 @@ function buyMultitap() {
     if (coins >= multitapCost) {
         coins -= multitapCost;
         multitapLevel++;
-        tapPower += 0.2; // Увеличиваем силу тапа плавно (было +0.2 за уровень)
+        tapPower += 0.2; 
         multitapCost = Math.floor(multitapCost * 1.7);
         
         updateUI();
@@ -282,7 +277,7 @@ function createBanana(container) {
 
     banana.style.left = `${randomLeft}%`;
     banana.style.fontSize = `${randomSize}px`;
-    banana.style.animationDuration = `${randomDuration}s`;
+    banana.style.animationDuration = `${randomDurations = randomDuration}s`;
     banana.style.animationDelay = `${randomDelay}s`;
 
     container.appendChild(banana);
@@ -292,7 +287,7 @@ function createBanana(container) {
     });
 }
 
-// Дополнительные функции
+// Управление профилем и модалками
 function openRenameModal() {
     const modal = document.getElementById('rename-modal');
     const input = document.getElementById('username-input');
@@ -315,7 +310,10 @@ function saveUsername() {
 }
 
 function shareReferralLink() {
-    const refLink = `https://t.me/share/url?url=${encodeURIComponent("https://t.me/your_bot_username?start=" + userId)}&text=${encodeURIComponent("🐒 Зарабатывай бананы вместе со мной в Monkey Tapper!")}`;
+    // Укажи здесь юзернейм своего бота без @ (например, "my_monkey_bot")
+    const botUsername = "your_bot_username"; 
+    const refLink = `https://t.me/share/url?url=${encodeURIComponent("https://t.me/" + botUsername + "?start=" + userId)}&text=${encodeURIComponent("🐒 Зарабатывай бананы вместе со мной в Monkey Tapper!")}`;
+    
     if (tg && tg.openTelegramLink) {
         tg.openTelegramLink(refLink);
     } else {
