@@ -63,20 +63,27 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Загрузка данных
+// Загрузка данных с жесткой защитой от старых багов
 function initGame() {
     try {
         const savedCoins = localStorage.getItem(`monkey_coins_${userId}`);
         if (savedCoins !== null) {
             coins = parseFloat(savedCoins);
-            tapPower = parseFloat(localStorage.getItem(`monkey_tap_${userId}`) || "0.2");
             multitapLevel = parseInt(localStorage.getItem(`monkey_mlevel_${userId}`) || "1");
+            
+            // ЖЕСТКАЯ ПРИВЯЗКА: 1 уровень = всегда 0.2, каждый следующий +0.2
+            tapPower = Math.round((0.2 + (multitapLevel - 1) * 0.2) * 10) / 10;
+
             multitapCost = parseInt(localStorage.getItem(`monkey_mcost_${userId}`) || "50");
             energy = parseInt(localStorage.getItem(`monkey_energy_${userId}`) || "1000");
             passiveIncome = parseFloat(localStorage.getItem(`monkey_passive_${userId}`) || "0");
             refsCount = parseInt(localStorage.getItem(`monkey_refs_${userId}`) || "0");
             p1Level = parseInt(localStorage.getItem(`monkey_p1_${userId}`) || "0");
             p1Cost = parseInt(localStorage.getItem(`monkey_p1cost_${userId}`) || "100");
+        } else {
+            // Если игра запускается впервые — точно 0.2
+            tapPower = 0.2;
+            multitapLevel = 1;
         }
     } catch (e) {
         console.error("Ошибка чтения localStorage:", e);
@@ -86,7 +93,7 @@ function initGame() {
     updateProfileDisplay();
 }
 
-// Функция тапа (исправлен расчет и защита от скачков до 2)
+// Функция тапа
 function handleTap(e) {
     if (energy <= 0) return;
 
@@ -118,7 +125,7 @@ function handleTap(e) {
     debounceSave();
 }
 
-// Эффект всплывающих монет (исправлены координаты поверх контейнера)
+// Эффект всплывающих монет поверх контейнера
 function createFloatingText(e, text, className) {
     const container = document.querySelector('.game-container');
     if (!container) return;
@@ -222,7 +229,7 @@ function buyMultitap() {
     if (coins >= multitapCost) {
         coins = Math.round((coins - multitapCost) * 10) / 10;
         multitapLevel++;
-        tapPower = Math.round((tapPower + 0.2) * 10) / 10; 
+        tapPower = Math.round((0.2 + (multitapLevel - 1) * 0.2) * 10) / 10; 
         multitapCost = Math.floor(multitapCost * 1.7);
         
         updateUI();
@@ -312,7 +319,7 @@ function saveUsername() {
 }
 
 function shareReferralLink() {
-    const botUsername = "your_bot_username"; // Укажи свой юзернейм бота
+    const botUsername = "your_bot_username"; 
     const refLink = `https://t.me/share/url?url=${encodeURIComponent("https://t.me/" + botUsername + "?start=" + userId)}&text=${encodeURIComponent("🐒 Зарабатывай бананы вместе со мной в Monkey Tapper!")}`;
     
     if (tg && tg.openTelegramLink) {
