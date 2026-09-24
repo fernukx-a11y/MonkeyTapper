@@ -206,6 +206,14 @@
                 <p><b>📈 Пассивный доход:</b> <span id="vp-passive">...</span>/сек</p>
                 <p><b>👥 Приглашено друзей:</b> <span id="vp-refs">...</span></p>
             </div>
+
+            <!-- Блок статуса заключенного и кнопки выкупа -->
+            <div id="prisoner-section" style="margin-top: 15px; text-align: center; display: none;">
+                <p id="vp-status-text" style="color: #ffcc00; font-size: 14px; margin-bottom: 10px;"></p>
+                <button id="ransom-btn" onclick="buyRansom()" style="background: linear-gradient(135deg, #ff9900, #ff5500); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: none; width: 100%;">
+                    Выкупить за <span id="ransom-price">0</span> 💰
+                </button>
+            </div>
         </div>
     </div>
 
