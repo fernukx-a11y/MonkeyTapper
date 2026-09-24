@@ -18,10 +18,10 @@ let passive1Cost = 150;
 let passive2Level = 0;
 let passive2Cost = 2000; 
 
-// Новые переменные системы заключенных:
+// Переменные системы заключенных:
 let playerStatus = "free"; // "free" или "prisoner"
 let ownerId = null;        // ID текущего владельца
-let protectionUntil = 0;   // Timestamp окончания защиты от перепродажи
+let protectionUntil = 0;   // Timestamp окончания защиты
 
 let lastSaveTime = Date.now();
 let referralCount = 0;
@@ -88,6 +88,45 @@ function sanitizeInt(val, fallback) {
 function calculateCost(power) {
     const level = Math.round((power - 0.2) / 0.2) + 1;
     return Math.floor(50 * Math.pow(3.0, level - 1));
+}
+
+// Формула расчета стоимости выкупа заключенного
+function calculatePrisonerPrice(playerData) {
+    if (!playerData) return 1000;
+    const coinsVal = sanitizeFloat(playerData.coins, 0);
+    const tapVal = sanitizeFloat(playerData.tap_power, 0.2);
+    const passiveVal = sanitizeFloat(playerData.passive_income_ps, 0);
+
+    let price = coinsVal * 0.5 + tapVal * 500 + passiveVal * 200;
+    return Math.max(500, Math.floor(price));
+}
+
+// Защита от циклов (чтобы не зациклить цепочку владельцев)
+async function checkCircularDependency(targetUserId, newOwnerId) {
+    if (targetUserId === newOwnerId) return true;
+
+    let currentOwner = newOwnerId;
+    let depth = 0;
+    
+    while (currentOwner && depth < 10) {
+        if (currentOwner === targetUserId) return true;
+
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${currentOwner}&select=owner_id`, {
+                headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+            });
+            const data = await res.json();
+            if (data && data.length > 0) {
+                currentOwner = data[0].owner_id;
+            } else {
+                break;
+            }
+        } catch (e) {
+            break;
+        }
+        depth++;
+    }
+    return false;
 }
 
 function applyOfflineProgress() {
@@ -205,6 +244,10 @@ async function processReferral(userId) {
         const refData = await checkRef.json();
 
         if (!refData || refData.length === 0) {
+            // Проверка на циклы перед тем как сделать реферала заключенным
+            const isCircular = await checkCircularDependency(userId, referrerId);
+            if (isCircular) return;
+
             const resPostRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
                 method: "POST",
                 headers: {
@@ -217,7 +260,7 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            // Устанавливаем статус заключенного при переходе по реферальной ссылке
+            // Приглашенный становится заключенным у реферера
             playerStatus = "prisoner";
             ownerId = referrerId;
 
@@ -457,7 +500,7 @@ async function loadData() {
             passive2Level = sanitizeInt(player.passive2_level, 0);
             passive2Cost = sanitizeInt(player.passive2_cost, 2000);
 
-            // Загружаем статус заключенного из базы
+            // Загружаем данные по тюрьме
             playerStatus = player.status || "free";
             ownerId = player.owner_id || null;
             protectionUntil = sanitizeInt(player.protection_until, 0);
