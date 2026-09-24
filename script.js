@@ -343,7 +343,7 @@ async function loadLeaderboard() {
             let playerCoins = Number(player.coins).toFixed(1);
 
             html += `
-                <div class="leader-item ${rankClass}" style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="leader-item ${rankClass}" onclick="openPlayerProfile('${player.user_id}')" style="display: flex; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: background 0.2s;">
                     <span>#${rank} ${displayName}</span>
                     <span>💰 ${playerCoins}</span>
                 </div>
@@ -354,6 +354,45 @@ async function loadLeaderboard() {
     } catch (e) {
         console.error("Ошибка загрузки лидеров:", e);
         listContainer.innerHTML = '<p class="loading-text">Ошибка загрузки рейтинга</p>';
+    }
+}
+
+// Функция открытия чужого профиля по клику из таблицы лидеров
+async function openPlayerProfile(targetUserId) {
+    const modal = document.getElementById("view-profile-modal");
+    if (modal) modal.style.display = "flex";
+
+    document.getElementById("vp-username").textContent = "Загрузка...";
+    document.getElementById("vp-coins").textContent = "...";
+    document.getElementById("vp-tap").textContent = "...";
+    document.getElementById("vp-passive").textContent = "...";
+    document.getElementById("vp-refs").textContent = "...";
+
+    try {
+        const resPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${targetUserId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const playerData = await resPlayer.json();
+
+        if (playerData && playerData.length > 0) {
+            const p = playerData[0];
+            document.getElementById("vp-username").textContent = p.username || "Игрок";
+            document.getElementById("vp-coins").textContent = Number(p.coins || 0).toFixed(1);
+            document.getElementById("vp-tap").textContent = Number(p.tap_power || 0.2).toFixed(1);
+            document.getElementById("vp-passive").textContent = Number(p.passive_income_ps || 0).toFixed(1);
+        } else {
+            document.getElementById("vp-username").textContent = "Не найден";
+        }
+
+        const resRefs = await fetch(`${SUPABASE_URL}/rest/v1/referrals?referrer_id=eq.${targetUserId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const refsData = await resRefs.json();
+        document.getElementById("vp-refs").textContent = refsData ? refsData.length : 0;
+
+    } catch (e) {
+        console.error("Ошибка при открытии профиля игрока:", e);
+        document.getElementById("vp-username").textContent = "Ошибка загрузки";
     }
 }
 
@@ -563,7 +602,6 @@ function updateUI() {
         }
     }
 
-    // Обновляем экран профиля
     updateProfileUI();
 }
 
@@ -775,5 +813,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("click", (e) => {
         if (e.target === modal) modal.style.display = "none";
+        const viewProfileModal = document.getElementById("view-profile-modal");
+        if (e.target === viewProfileModal) viewProfileModal.style.display = "none";
     });
 });
