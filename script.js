@@ -25,8 +25,9 @@ let saveTimeout = null;
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-        return tg.initDataUnsafe.user.id.toString();
+    // Пытаемся получить настоящий текстовый username из Telegram (например, "peshiy4")
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) {
+        return tg.initDataUnsafe.user.username.toLowerCase();
     }
     
     if (tg && tg.initData) {
@@ -35,17 +36,23 @@ function getUserId() {
             const userStr = urlParams.get('user');
             if (userStr) {
                 const userObj = JSON.parse(userStr);
-                if (userObj && userObj.id) return userObj.id.toString();
+                if (userObj && userObj.username) {
+                    return userObj.username.toLowerCase();
+                }
+                if (userObj && userObj.id) {
+                    return userObj.id.toString();
+                }
             }
         } catch (e) {}
     }
 
+    // Если нет юзернейма в Telegram (или запуск в браузере), генерируем/берем дефолтный с твоего примера
     let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
-        localDevId = "browser_" + Math.random().toString(36).substring(2, 10);
+        localDevId = "peshiy4"; // Твой пример для теста
         localStorage.setItem("monkey_persistent_user_id", localDevId);
     }
-    return localDevId;
+    return localDevId.toLowerCase();
 }
 
 function getReferrerId() {
@@ -101,9 +108,12 @@ async function saveToSupabase() {
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        if (!username || username === "Игрок") {
-            username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+        if (!username || username === "Игрок" || username.startsWith("@peshiy")) {
+            let tgName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+            username = tgName.startsWith("@") ? tgName : "@" + tgName;
         }
+    } else if (!username.startsWith("@")) {
+        username = "@" + username;
     }
 
     const bodyData = {
@@ -339,7 +349,8 @@ async function loadLeaderboard() {
             else if (rank === 2) rankClass = "top-2";
             else if (rank === 3) rankClass = "top-3";
 
-            let displayName = player.username ? player.username : ("Игрок " + player.user_id.toString().substring(0, 4));
+            let rawName = player.username || player.user_id;
+            let displayName = rawName.startsWith("@") ? rawName : "@" + rawName;
             let playerCoins = Number(player.coins).toFixed(1);
 
             html += `
@@ -357,7 +368,6 @@ async function loadLeaderboard() {
     }
 }
 
-// Функция открытия чужого профиля по клику из таблицы лидеров
 async function openPlayerProfile(targetUserId) {
     const modal = document.getElementById("view-profile-modal");
     if (modal) modal.style.display = "flex";
@@ -376,7 +386,8 @@ async function openPlayerProfile(targetUserId) {
 
         if (playerData && playerData.length > 0) {
             const p = playerData[0];
-            document.getElementById("vp-username").textContent = p.username || "Игрок";
+            let rawName = p.username || p.user_id;
+            document.getElementById("vp-username").textContent = rawName.startsWith("@") ? rawName : "@" + rawName;
             document.getElementById("vp-coins").textContent = Number(p.coins || 0).toFixed(1);
             document.getElementById("vp-tap").textContent = Number(p.tap_power || 0.2).toFixed(1);
             document.getElementById("vp-passive").textContent = Number(p.passive_income_ps || 0).toFixed(1);
@@ -413,7 +424,9 @@ async function loadData() {
 
         if (data && data.length > 0) {
             const player = data[0];
-            username = player.username || "Игрок";
+            let rawName = player.username || userId;
+            username = rawName.startsWith("@") ? rawName : "@" + rawName;
+            
             coins = sanitizeFloat(player.coins, coins);
             tapPower = sanitizeFloat(player.tap_power, 0.2);
             energy = sanitizeInt(player.energy, maxEnergy);
@@ -430,7 +443,10 @@ async function loadData() {
         } else {
             const tg = window.Telegram ? window.Telegram.WebApp : null;
             if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+                let tgName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || userId;
+                username = tgName.startsWith("@") ? tgName : "@" + tgName;
+            } else {
+                username = userId.startsWith("@") ? userId : "@" + userId;
             }
             await saveToSupabase();
             updateUI();
@@ -451,12 +467,12 @@ function openRenameModal() {
 async function saveUsername() {
     const input = document.getElementById("username-input");
     if (!input) return;
-    const newName = input.value.trim();
+    let newName = input.value.trim();
     if (newName.length < 2) {
         alert("Ник слишком короткий!");
         return;
     }
-    username = newName;
+    username = newName.startsWith("@") ? newName : "@" + newName;
     const modal = document.getElementById("rename-modal");
     if (modal) modal.style.display = "none";
     updateProfileUI();
@@ -637,7 +653,7 @@ function buyPassive1(e) {
     if (passive1Level < 6 && coins >= passive1Cost) {
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); 
+        passiveIncomePS =Number((passiveIncomePS + 0.5).toFixed(1)); 
         passive1Cost = Math.floor(passive1Cost * 2.5); 
         updateUI();
         saveData();
