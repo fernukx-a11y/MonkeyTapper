@@ -35,7 +35,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Пассивный доход (раз в секунду)
     setInterval(() => {
         if (passiveIncome > 0) {
-            coins += passiveIncome;
+            coins = Math.round((coins + passiveIncome) * 10) / 10;
             updateUI();
             debounceSave();
         }
@@ -52,13 +52,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // Навешиваем обработчики кликов/тапов на обезьянку
     const monkeyContainer = document.getElementById('monkey-btn') || document.querySelector('.monkey-container');
     if (monkeyContainer) {
-        // Убираем возможные дубликаты и вешаем надежные события
         monkeyContainer.addEventListener('click', (e) => {
             handleTap(e);
         });
         
         monkeyContainer.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Предотвращаем эмуляцию клика и зум
+            e.preventDefault(); // Предотвращаем эмуляцию клика и зум на мобилках
             handleTap(e);
         }, { passive: false });
     }
@@ -87,14 +86,14 @@ function initGame() {
     updateProfileDisplay();
 }
 
-// Функция тапа (универсальная и для ПК, и для телефона)
+// Функция тапа (исправлен расчет и защита от скачков до 2)
 function handleTap(e) {
     if (energy <= 0) return;
 
-    let earned = tapPower;
+    let earned = Math.round(tapPower * 10) / 10;
     energy = Math.max(0, energy - 1);
 
-    coins += earned;
+    coins = Math.round((coins + earned) * 10) / 10;
     updateUI();
     updateEnergyUI();
 
@@ -112,21 +111,22 @@ function handleTap(e) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // Летящая циферка
+    // Летящая циферка поверх обезьянки
     let displayEarned = earned < 1 ? earned.toFixed(1) : Math.floor(earned);
     createFloatingText(e, `+${displayEarned}`, earned >= 1 ? 'flying-crit' : 'flying-one');
 
     debounceSave();
 }
 
-// Эффект всплывающих монет при клике
+// Эффект всплывающих монет (исправлены координаты поверх контейнера)
 function createFloatingText(e, text, className) {
-    const container = document.getElementById('background-effects');
+    const container = document.querySelector('.game-container');
     if (!container) return;
 
     const el = document.createElement('div');
     el.className = className;
     el.innerText = text;
+    el.style.zIndex = "99999"; // Гарантированно поверх всех элементов
 
     let clientX = window.innerWidth / 2;
     let clientY = window.innerHeight / 2;
@@ -141,8 +141,10 @@ function createFloatingText(e, text, className) {
         }
     }
 
-    el.style.left = `${clientX - 15}px`;
-    el.style.top = `${clientY - 20}px`;
+    const rect = container.getBoundingClientRect();
+    el.style.position = 'absolute';
+    el.style.left = `${clientX - rect.left - 15}px`;
+    el.style.top = `${clientY - rect.top - 20}px`;
 
     container.appendChild(el);
 
@@ -218,9 +220,9 @@ function debounceSave() {
 // Покупка мультитапа
 function buyMultitap() {
     if (coins >= multitapCost) {
-        coins -= multitapCost;
+        coins = Math.round((coins - multitapCost) * 10) / 10;
         multitapLevel++;
-        tapPower += 0.2; 
+        tapPower = Math.round((tapPower + 0.2) * 10) / 10; 
         multitapCost = Math.floor(multitapCost * 1.7);
         
         updateUI();
@@ -240,9 +242,9 @@ function buyMultitap() {
 function buyPassive(id) {
     if (id === 1) {
         if (coins >= p1Cost) {
-            coins -= p1Cost;
+            coins = Math.round((coins - p1Cost) * 10) / 10;
             p1Level++;
-            passiveIncome += 0.5;
+            passiveIncome = Math.round((passiveIncome + 0.5) * 10) / 10;
             p1Cost = Math.floor(p1Cost * 1.8);
 
             updateUI();
@@ -277,7 +279,7 @@ function createBanana(container) {
 
     banana.style.left = `${randomLeft}%`;
     banana.style.fontSize = `${randomSize}px`;
-    banana.style.animationDuration = `${randomDurations = randomDuration}s`;
+    banana.style.animationDuration = `${randomDuration}s`;
     banana.style.animationDelay = `${randomDelay}s`;
 
     container.appendChild(banana);
@@ -310,8 +312,7 @@ function saveUsername() {
 }
 
 function shareReferralLink() {
-    // Укажи здесь юзернейм своего бота без @ (например, "my_monkey_bot")
-    const botUsername = "your_bot_username"; 
+    const botUsername = "your_bot_username"; // Укажи свой юзернейм бота
     const refLink = `https://t.me/share/url?url=${encodeURIComponent("https://t.me/" + botUsername + "?start=" + userId)}&text=${encodeURIComponent("🐒 Зарабатывай бананы вместе со мной в Monkey Tapper!")}`;
     
     if (tg && tg.openTelegramLink) {
@@ -327,7 +328,7 @@ function claimChannelReward() {
         alert("Вы уже получили награду за подписку!");
         return;
     }
-    coins += 250;
+    coins = Math.round((coins + 250) * 10) / 10;
     localStorage.setItem(`monkey_channel_claimed_${userId}`, "true");
     updateUI();
     alert("Успешно! Начислено +250 монет 🍌");
