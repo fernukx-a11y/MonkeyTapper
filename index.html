@@ -23,11 +23,13 @@
                     <span class="coin-icon">💰</span>
                     <span id="coins-display">0</span>
                 </div>
-                <button id="leaderboard-btn" class="leaderboard-btn">🏆 Рейтинг</button>
+                <!-- Добавлен вызов модального окна рейтинга -->
+                <button id="leaderboard-btn" class="leaderboard-btn" onclick="document.getElementById('leaderboard-modal').style.display='flex'; loadLeaderboard();">🏆 Рейтинг</button>
             </div>
 
             <div class="tap-content">
-                <div id="tap-area" class="monkey-container">
+                <!-- Добавлен обработчик клика для тапалки -->
+                <div id="tap-area" class="monkey-container" onclick="handleTap(event)">
                     <img src="monkey.png" alt="Monkey" class="monkey-img" draggable="false">
                 </div>
             </div>
@@ -43,7 +45,8 @@
                             <div class="upgrade-desc" id="ref-count">Приглашено: 0</div>
                         </div>
                     </div>
-                    <button id="ref-btn" class="upgrade-btn action-btn">
+                    <!-- Добавлен вызов функции приглашения -->
+                    <button id="ref-btn" class="upgrade-btn action-btn" onclick="shareReferralLink()">
                         <span>Пригласить</span>
                     </button>
                 </div>
@@ -57,7 +60,8 @@
                             <div class="upgrade-desc">+250 за подписку</div>
                         </div>
                     </div>
-                    <button id="channel-btn" class="upgrade-btn action-btn">
+                    <!-- Добавлен вызов функции получения награды за канал -->
+                    <button id="channel-btn" class="upgrade-btn action-btn" onclick="claimChannelReward()">
                         <span>Проверить</span>
                     </button>
                 </div>
@@ -76,7 +80,7 @@
         </div>
 
         <!-- Экран прокачки (улучшения и пассивный доход) -->
-        <div id="screen-boosts" class="screen">
+        <div id="screen-boosts" class="screen" style="display: none;">
             <div class="boosts-header">
                 <h2>🚀 Прокачка</h2>
                 <!-- Индикатор пассивного дохода -->
@@ -95,7 +99,8 @@
                             <div class="upgrade-desc">Уровень: <span id="multitap-level">1</span> (+<span id="multitap-power">1</span> к тапу)</div>
                         </div>
                     </div>
-                    <button id="multitap-btn" class="upgrade-btn">
+                    <!-- Добавлен вызов покупки мультитапа -->
+                    <button id="multitap-btn" class="upgrade-btn" onclick="buyMultitap(event)">
                         <span>💰 <span id="multitap-cost">50</span></span>
                     </button>
                 </div>
@@ -109,12 +114,13 @@
                             <div class="upgrade-desc">Уровень: <span id="p1-level">0</span> (+0.5 🍌/сек)</div>
                         </div>
                     </div>
-                    <button id="passive-1-btn" class="upgrade-btn">
+                    <!-- Добавлен вызов покупки куста (tier 1) -->
+                    <button id="passive-1-btn" class="upgrade-btn" onclick="buyPassive(1)">
                         <span>💰 <span id="p1-cost">100</span></span>
                     </button>
                 </div>
 
-                <!-- Банановая ферма (Пассивный доход 2 - с замком) -->
+                <!-- Банановая ферма (Пассивный доход 2) -->
                 <div class="upgrade-card locked" id="card-passive-2">
                     <div class="upgrade-info">
                         <span class="upgrade-icon">🔒</span>
@@ -123,7 +129,8 @@
                             <div class="upgrade-desc">+2.0 🍌/сек (Треб: куст или 500 монет)</div>
                         </div>
                     </div>
-                    <button id="passive-2-btn" class="upgrade-btn">
+                    <!-- Добавлен вызов покупки фермы (tier 2) -->
+                    <button id="passive-2-btn" class="upgrade-btn" onclick="buyPassive(2)">
                         <span>💰 <span id="p2-cost">1000</span></span>
                     </button>
                 </div>
@@ -131,7 +138,7 @@
         </div>
 
         <!-- Экран профиля игрока -->
-        <div id="screen-profile" class="screen">
+        <div id="screen-profile" class="screen" style="display: none;">
             <div class="boosts-header">
                 <h2>👤 Профиль</h2>
             </div>
@@ -163,17 +170,17 @@
             </div>
         </div>
 
-        <!-- Нижняя навигация -->
+        <!-- Нижняя навигация (с переключением экранов через switchTab) -->
         <div class="bottom-nav">
-            <button class="nav-item active">
+            <button class="nav-item active nav-btn" onclick="switchTab('screen-game', this)">
                 <span class="nav-icon">🪙</span>
                 <span class="nav-text">Клик</span>
             </button>
-            <button class="nav-item">
+            <button class="nav-item nav-btn" onclick="switchTab('screen-boosts', this)">
                 <span class="nav-icon">🚀</span>
                 <span class="nav-text">Прокачка</span>
             </button>
-            <button class="nav-item">
+            <button class="nav-item nav-btn" onclick="switchTab('screen-profile', this)">
                 <span class="nav-icon">👤</span>
                 <span class="nav-text">Профиль</span>
             </button>
@@ -186,7 +193,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>🏆 Топ-10 Игроков</h3>
-                <button id="close-modal" class="close-btn">&times;</button>
+                <button id="close-modal" class="close-btn" onclick="document.getElementById('leaderboard-modal').style.display='none'">&times;</button>
             </div>
             <div id="leaderboard-list" class="leaderboard-list">
                 <p class="loading-text">Загрузка рейтинга...</p>
@@ -229,6 +236,29 @@
             </div>
         </div>
     </div>
+
+    <!-- Вспомогательная функция для переключения экранов снизу -->
+    <script>
+        function switchTab(screenId, btnElement) {
+            // Скрываем все экраны
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(s => s.style.display = 'none');
+
+            // Показываем нужный экран
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) targetScreen.style.display = 'block';
+
+            // Переключаем активный класс у кнопок навигации
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(n => n.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            // Если открыли вкладку рейтинга (если решите вынести в отдельный экран), можно обновить
+            if (screenId === 'leaderboard-tab') {
+                loadLeaderboard();
+            }
+        }
+    </script>
 
     <!-- Подключаем основной скрипт игры с версией v=118 -->
     <script src="script.js?v=118"></script>
