@@ -28,6 +28,9 @@ let p1Level = 0;
 let p1Cost = 100;
 let saveTimeout = null;
 
+// Защита от двойного срабатывания (клик + тач на мобилках)
+let lastTapTime = 0;
+
 window.addEventListener('DOMContentLoaded', () => {
     initGame();
     initBackgroundBananas();
@@ -49,21 +52,28 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }, 1000);
 
-    // Навешиваем обработчики кликов/тапов на обезьянку
+    // Навешиваем обработчики
     const monkeyContainer = document.getElementById('monkey-btn') || document.querySelector('.monkey-container');
     if (monkeyContainer) {
-        monkeyContainer.addEventListener('click', (e) => {
-            handleTap(e);
-        });
-        
+        // На мобилках используем touchstart, на ПК click. Разделяем их по времени, чтобы не было двойных кликов.
         monkeyContainer.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Предотвращаем эмуляцию клика и зум на мобилках
+            e.preventDefault();
+            const now = Date.now();
+            if (now - lastTapTime < 50) return; // Защита от дублирования
+            lastTapTime = now;
             handleTap(e);
         }, { passive: false });
+
+        monkeyContainer.addEventListener('click', (e) => {
+            const now = Date.now();
+            if (now - lastTapTime < 50) return; // Если только что сработал touch, игнорируем click
+            lastTapTime = now;
+            handleTap(e);
+        });
     }
 });
 
-// Загрузка данных с жесткой защитой от старых багов
+// Загрузка данных
 function initGame() {
     try {
         const savedCoins = localStorage.getItem(`monkey_coins_${userId}`);
@@ -71,7 +81,7 @@ function initGame() {
             coins = parseFloat(savedCoins);
             multitapLevel = parseInt(localStorage.getItem(`monkey_mlevel_${userId}`) || "1");
             
-            // ЖЕСТКАЯ ПРИВЯЗКА: 1 уровень = всегда 0.2, каждый следующий +0.2
+            // Жесткая привязка тапа к уровню
             tapPower = Math.round((0.2 + (multitapLevel - 1) * 0.2) * 10) / 10;
 
             multitapCost = parseInt(localStorage.getItem(`monkey_mcost_${userId}`) || "50");
@@ -81,7 +91,6 @@ function initGame() {
             p1Level = parseInt(localStorage.getItem(`monkey_p1_${userId}`) || "0");
             p1Cost = parseInt(localStorage.getItem(`monkey_p1cost_${userId}`) || "100");
         } else {
-            // Если игра запускается впервые — точно 0.2
             tapPower = 0.2;
             multitapLevel = 1;
         }
@@ -118,8 +127,9 @@ function handleTap(e) {
         tg.HapticFeedback.impactOccurred('medium');
     }
 
-    // Летящая циферка поверх обезьянки
-    let displayEarned = earned < 1 ? earned.toFixed(1) : Math.floor(earned);
+    // Летящая циферка (теперь всегда корректно показывает дробные значения, например +0.2)
+    let displayEarned = earned < 1 ? earned.toFixed(1) : earned;
+    // Используем класс 'flying-one' для всех значений меньше 1, чтобы анимация была одинаковой и точной
     createFloatingText(e, `+${displayEarned}`, earned >= 1 ? 'flying-crit' : 'flying-one');
 
     debounceSave();
@@ -133,7 +143,7 @@ function createFloatingText(e, text, className) {
     const el = document.createElement('div');
     el.className = className;
     el.innerText = text;
-    el.style.zIndex = "99999"; // Гарантированно поверх всех элементов
+    el.style.zIndex = "99999"; 
 
     let clientX = window.innerWidth / 2;
     let clientY = window.innerHeight / 2;
@@ -145,6 +155,9 @@ function createFloatingText(e, text, className) {
         } else if (e.touches && e.touches.length > 0) {
             clientX = e.touches[0].clientX;
             clientY = e.touches[0].clientY;
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
         }
     }
 
