@@ -18,6 +18,11 @@ let passive1Cost = 150;
 let passive2Level = 0;
 let passive2Cost = 2000; 
 
+// Новые переменные системы заключенных:
+let playerStatus = "free"; // "free" или "prisoner"
+let ownerId = null;        // ID текущего владельца
+let protectionUntil = 0;   // Timestamp окончания защиты от перепродажи
+
 let lastSaveTime = Date.now();
 let referralCount = 0;
 let saveTimeout = null;
@@ -25,7 +30,6 @@ let saveTimeout = null;
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
-    // Пытаемся получить настоящий текстовый username из Telegram (например, "peshiy4")
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) {
         return tg.initDataUnsafe.user.username.toLowerCase();
     }
@@ -46,10 +50,9 @@ function getUserId() {
         } catch (e) {}
     }
 
-    // Если нет юзернейма в Telegram (или запуск в браузере), генерируем/берем дефолтный с твоего примера
     let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
-        localDevId = "peshiy4"; // Твой пример для теста
+        localDevId = "peshiy4"; 
         localStorage.setItem("monkey_persistent_user_id", localDevId);
     }
     return localDevId.toLowerCase();
@@ -110,7 +113,6 @@ async function saveToSupabase() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         if (!username || username === "Игрок" || username.startsWith("@peshiy")) {
             let tgName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
-            // Если игрок еще не менял ник вручную, подтягиваем из телеграма
             if (!window._customUsernameSet) {
                 username = tgName.startsWith("@") ? tgName : "@" + tgName;
             }
@@ -130,7 +132,10 @@ async function saveToSupabase() {
         passive1_level: passive1Level,
         passive1_cost: passive1Cost,
         passive2_level: passive2Level,
-        passive2_cost: passive2Cost
+        passive2_cost: passive2Cost,
+        status: playerStatus,
+        owner_id: ownerId,
+        protection_until: protectionUntil
     };
 
     try {
@@ -211,6 +216,10 @@ async function processReferral(userId) {
             });
 
             if (!resPostRef.ok) return;
+
+            // Устанавливаем статус заключенного при переходе по реферальной ссылке
+            playerStatus = "prisoner";
+            ownerId = referrerId;
 
             coins += 100; 
 
@@ -372,11 +381,9 @@ async function loadLeaderboard() {
 }
 
 async function openPlayerProfile(targetUserId) {
-    // 1. Скрываем модальное окно рейтинга
     const leaderboardModal = document.getElementById("leaderboard-modal");
     if (leaderboardModal) leaderboardModal.style.display = "none";
 
-    // 2. Открываем модальное окно профиля игрока и вытаскиваем в корень
     const modal = document.getElementById("view-profile-modal");
     if (modal) {
         document.body.appendChild(modal);
@@ -449,6 +456,11 @@ async function loadData() {
             passive1Cost = sanitizeInt(player.passive1_cost, 150);
             passive2Level = sanitizeInt(player.passive2_level, 0);
             passive2Cost = sanitizeInt(player.passive2_cost, 2000);
+
+            // Загружаем статус заключенного из базы
+            playerStatus = player.status || "free";
+            ownerId = player.owner_id || null;
+            protectionUntil = sanitizeInt(player.protection_until, 0);
 
             applyOfflineProgress();
             updateUI();
@@ -819,7 +831,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (p2Btn) p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
 
     const refBtn = document.getElementById("ref-btn");
-    if (refBtn) refBtn.getElementById = shareReferralLink; // fallback
     if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
 
     const channelBtn = document.getElementById("channel-btn");
