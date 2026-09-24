@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Подключаем стили с обновленной версией v=118 -->
-    <link rel="stylesheet" href="style.css?v=118">
+    <!-- Подключаем стили с обновленной версией v=119 -->
+    <link rel="stylesheet" href="style.css?v=119">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -23,12 +23,10 @@
                     <span class="coin-icon">💰</span>
                     <span id="coins-display">0</span>
                 </div>
-                <!-- Добавлен вызов модального окна рейтинга -->
                 <button id="leaderboard-btn" class="leaderboard-btn" onclick="document.getElementById('leaderboard-modal').style.display='flex'; loadLeaderboard();">🏆 Рейтинг</button>
             </div>
 
             <div class="tap-content">
-                <!-- Добавлен обработчик клика для тапалки -->
                 <div id="tap-area" class="monkey-container" onclick="handleTap(event)">
                     <img src="monkey.png" alt="Monkey" class="monkey-img" draggable="false">
                 </div>
@@ -45,7 +43,6 @@
                             <div class="upgrade-desc" id="ref-count">Приглашено: 0</div>
                         </div>
                     </div>
-                    <!-- Добавлен вызов функции приглашения -->
                     <button id="ref-btn" class="upgrade-btn action-btn" onclick="shareReferralLink()">
                         <span>Пригласить</span>
                     </button>
@@ -60,7 +57,6 @@
                             <div class="upgrade-desc">+250 за подписку</div>
                         </div>
                     </div>
-                    <!-- Добавлен вызов функции получения награды за канал -->
                     <button id="channel-btn" class="upgrade-btn action-btn" onclick="claimChannelReward()">
                         <span>Проверить</span>
                     </button>
@@ -80,10 +76,9 @@
         </div>
 
         <!-- Экран прокачки (улучшения и пассивный доход) -->
-        <div id="screen-boosts" class="screen" style="display: none;">
+        <div id="screen-boosts" class="screen">
             <div class="boosts-header">
                 <h2>🚀 Прокачка</h2>
-                <!-- Индикатор пассивного дохода -->
                 <div class="passive-header-info">
                     Пассивный доход: <span id="passive-income-display">0</span> 🍌/сек
                 </div>
@@ -99,7 +94,6 @@
                             <div class="upgrade-desc">Уровень: <span id="multitap-level">1</span> (+<span id="multitap-power">1</span> к тапу)</div>
                         </div>
                     </div>
-                    <!-- Добавлен вызов покупки мультитапа -->
                     <button id="multitap-btn" class="upgrade-btn" onclick="buyMultitap(event)">
                         <span>💰 <span id="multitap-cost">50</span></span>
                     </button>
@@ -114,7 +108,6 @@
                             <div class="upgrade-desc">Уровень: <span id="p1-level">0</span> (+0.5 🍌/сек)</div>
                         </div>
                     </div>
-                    <!-- Добавлен вызов покупки куста (tier 1) -->
                     <button id="passive-1-btn" class="upgrade-btn" onclick="buyPassive(1)">
                         <span>💰 <span id="p1-cost">100</span></span>
                     </button>
@@ -129,7 +122,6 @@
                             <div class="upgrade-desc">+2.0 🍌/сек (Треб: куст или 500 монет)</div>
                         </div>
                     </div>
-                    <!-- Добавлен вызов покупки фермы (tier 2) -->
                     <button id="passive-2-btn" class="upgrade-btn" onclick="buyPassive(2)">
                         <span>💰 <span id="p2-cost">1000</span></span>
                     </button>
@@ -138,7 +130,7 @@
         </div>
 
         <!-- Экран профиля игрока -->
-        <div id="screen-profile" class="screen" style="display: none;">
+        <div id="screen-profile" class="screen">
             <div class="boosts-header">
                 <h2>👤 Профиль</h2>
             </div>
@@ -170,7 +162,7 @@
             </div>
         </div>
 
-        <!-- Нижняя навигация (с переключением экранов через switchTab) -->
+        <!-- Нижняя навигация с использованием правильного переключения классов -->
         <div class="bottom-nav">
             <button class="nav-item active nav-btn" onclick="switchTab('screen-game', this)">
                 <span class="nav-icon">🪙</span>
@@ -214,7 +206,6 @@
                 <p><b>👥 Приглашено друзей:</b> <span id="vp-refs">...</span></p>
             </div>
 
-            <!-- Блок статуса заключенного и кнопки выкупа -->
             <div id="prisoner-section" style="margin-top: 15px; text-align: center; display: none;">
                 <p id="vp-status-text" style="color: #ffcc00; font-size: 14px; margin-bottom: 10px;"></p>
                 <button id="ransom-btn" onclick="buyRansom()" style="background: linear-gradient(135deg, #ff9900, #ff5500); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; display: none; width: 100%;">
@@ -237,30 +228,39 @@
         </div>
     </div>
 
-    <!-- Вспомогательная функция для переключения экранов снизу -->
+    <!-- Корректная функция переключения экранов через класс active и возврат вибрации -->
     <script>
         function switchTab(screenId, btnElement) {
-            // Скрываем все экраны
+            // Убираем класс active у всех экранов
             const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => s.style.display = 'none');
+            screens.forEach(s => s.classList.remove('active'));
 
-            // Показываем нужный экран
+            // Добавляем класс active нужному экрану
             const targetScreen = document.getElementById(screenId);
-            if (targetScreen) targetScreen.style.display = 'block';
+            if (targetScreen) targetScreen.classList.add('active');
 
-            // Переключаем активный класс у кнопок навигации
+            // Переключаем подсветку кнопок навигации
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(n => n.classList.remove('active'));
             if (btnElement) btnElement.classList.add('active');
-
-            // Если открыли вкладку рейтинга (если решите вынести в отдельный экран), можно обновить
-            if (screenId === 'leaderboard-tab') {
-                loadLeaderboard();
-            }
         }
+
+        // Интеграция вибрации Telegram Haptic Feedback в функцию тапа
+        const originalHandleTap = window.handleTap;
+        window.handleTap = function(event) {
+            // Вызываем тактильную отдачу (вибрацию) через Telegram WebApp
+            const tg = window.Telegram ? window.Telegram.WebApp : null;
+            if (tg && tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            // Вызываем оригинальный кликер
+            if (typeof originalHandleTap === 'function') {
+                originalHandleTap(event);
+            }
+        };
     </script>
 
-    <!-- Подключаем основной скрипт игры с версией v=118 -->
-    <script src="script.js?v=118"></script>
+    <!-- Подключаем основной скрипт игры -->
+    <script src="script.js?v=119"></script>
 </body>
 </html>
