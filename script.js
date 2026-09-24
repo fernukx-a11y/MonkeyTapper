@@ -21,10 +21,11 @@ let passive2Cost = 2000;
 let lastSaveTime = Date.now();
 let referralCount = 0;
 let saveTimeout = null;
+let tickCounter = 0; // Счетчик для тиков таймера
 
 // Переменные для системы заключенных и выкупа
 let currentViewedUserId = null; 
-let currentRansomPrice = 0;   
+let currentRansomPrice = 0;    
 
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -93,12 +94,11 @@ function calculateCost(power) {
 function calculatePrisonerPrice(playerObj) {
     const pCoins = Number(playerObj.coins || 0);
     const pPassive = Number(playerObj.passive_income_ps || 0);
-    // Базовая формула выкупа: часть монет игрока + надбавка за пассивку
     let price = Math.floor(pCoins * 0.3 + pPassive * 100 + 200);
-    return Math.max(100, price); // Минимум 100 монет
+    return Math.max(100, price);
 }
 
-// Проверка на циклическую зависимость (чтобы владелец не стал заключенным у своего же заключенного)
+// Проверка на циклическую зависимость
 async function checkCircularDependency(targetUserId, myUserId) {
     if (targetUserId === myUserId) return true;
     let currentId = targetUserId;
@@ -440,7 +440,6 @@ async function openPlayerProfile(targetUserId) {
             document.getElementById("vp-tap").textContent = Number(p.tap_power || 0.2).toFixed(1);
             document.getElementById("vp-passive").textContent = Number(p.passive_income_ps || 0).toFixed(1);
 
-            // Статус заключенного в профиле
             if (prisonerSection) {
                 prisonerSection.style.display = "block";
                 const myUserId = getUserId();
@@ -477,7 +476,6 @@ async function openPlayerProfile(targetUserId) {
     }
 }
 
-// Функция выкупа заключенного
 async function buyRansom() {
     if (!currentViewedUserId) return;
     const myUserId = getUserId();
@@ -562,7 +560,6 @@ async function buyRansom() {
     }
 }
 
-// Сбор налогов с заключенных
 async function collectPrisonersIncome() {
     const myUserId = getUserId();
     if (!myUserId) return;
@@ -578,7 +575,7 @@ async function collectPrisonersIncome() {
 
             for (const p of prisoners) {
                 const prisonerPassive = Number(p.passive_income_ps || 0);
-                const tribute = prisonerPassive * 0.2; // 20% от пассивки заключенного
+                const tribute = prisonerPassive * 0.2; 
                 totalTribute += tribute;
             }
 
@@ -713,6 +710,25 @@ function initBackgroundBananas() {
     }, 700);
 }
 
+// Игровой тик: восстанавливает энергию и капает пассивный доход
+function gameTick() {
+    tickCounter++;
+
+    // Восстановление энергии по 1 единице каждые 5 секунд
+    if (tickCounter % 5 === 0) {
+        if (energy < maxEnergy) {
+            energy = Math.min(maxEnergy, energy + 1);
+            updateUI();
+        }
+    }
+
+    // Пассивный доход монет каждую секунду
+    if (passiveIncomePS > 0) {
+        coins += passiveIncomePS;
+        updateUI();
+    }
+}
+
 function initApp() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) {
@@ -723,7 +739,7 @@ function initApp() {
     loadData();
     initBackgroundBananas();
     setInterval(gameTick, 1000);
-    setInterval(collectPrisonersIncome, 10000); // Сбор налогов с заключенных раз в 10 сек
+    setInterval(collectPrisonersIncome, 10000); 
 }
 
 function updateUI() {
@@ -844,183 +860,12 @@ function buyPassive1(e) {
     if (passive1Level < 6 && coins >= passive1Cost) {
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); 
-        passive1Cost = Math.floor(passive1Cost * 2.5); 
+        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1));
+        passive1Cost = Math.floor(passive1Cost * 2.5);
         updateUI();
         saveData();
     }
 }
 
-function buyPassive2(e) {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    const cardPassive2 = document.getElementById("card-passive-2");
-    if (passive2Level < 6 && coins >= passive2Cost && cardPassive2 && !cardPassive2.classList.contains("locked")) {
-        coins -= passive2Cost;
-        passive2Level++;
-        passiveIncomePS = Number((passiveIncomePS + 2.0).toFixed(1)); 
-        passive2Cost = Math.floor(passive2Cost * 2.8); 
-        updateUI();
-        saveData();
-    }
-}
-
-let tickCounter = 0;
-function gameTick() {
-    tickCounter++;
-    if (tickCounter % 5 === 0) {
-        if (energy < maxEnergy) {
-            energy = Math.min(maxEnergy, energy + 1);
-        }
-    }
-    if (passiveIncomePS > 0) {
-        coins = Number((coins + passiveIncomePS).toFixed(2));
-    }
-    updateUI();
-    saveData();
-}
-
-function createFlyingOne(x, y, text, isCrit) {
-    const flyingEl = document.createElement("div");
-    flyingEl.classList.add(isCrit ? "flying-crit" : "flying-one");
-    flyingEl.textContent = isCrit ? `CRIT! +${text}` : `+${text}`;
-    flyingEl.style.left = x + "px";
-    flyingEl.style.top = y + "px";
-    document.body.appendChild(flyingEl);
-    
-    setTimeout(() => { flyingEl.remove(); }, 800);
-}
-
-function handleTap(e) {
-    if (energy <= 0) return;
-
-    energy -= 1;
-
-    const critChance = 0.03; 
-    let earnedCoins = tapPower;
-    let isCrit = Math.random() < critChance;
-
-    if (isCrit) {
-        earnedCoins *= 3; 
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-            window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-        }
-    } else {
-        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
-            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-        }
-    }
-
-    coins = Number((coins + earnedCoins).toFixed(2));
-    updateUI();
-    saveData();
-    
-    let clientX, clientY;
-    const tapArea = document.getElementById("tap-area");
-
-    if (e.type === "touchstart" || e.type === "touchend") {
-        if (e.changedTouches && e.changedTouches.length > 0) {
-            clientX = e.changedTouches[0].clientX;
-            clientY = e.changedTouches[0].clientY;
-        }
-    } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
-    }
-
-    if ((clientX === undefined || clientY === undefined || (clientX === 0 && clientY === 0)) && tapArea) {
-        const rect = tapArea.getBoundingClientRect();
-        clientX = rect.left + rect.width / 2;
-        clientY = rect.top + rect.height / 2;
-    }
-    
-    createFlyingOne(clientX, clientY, earnedCoins.toFixed(1), isCrit);
-}
-
-function switchScreen(target) {
-    const screens = document.querySelectorAll('.screen');
-    const navItems = document.querySelectorAll('.nav-item');
-    
-    let activeIndex = 0;
-    if (target === 'boosts' || target === 1) activeIndex = 1;
-    if (target === 'profile' || target === 2) activeIndex = 2;
-
-    screens.forEach((screen, index) => {
-        if (index === activeIndex) screen.classList.add('active');
-        else screen.classList.remove('active');
-    });
-
-    navItems.forEach((item, index) => {
-        if (index === activeIndex) item.classList.add('active');
-        else item.classList.remove('active');
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    initApp();
-    
-    const navItems = document.querySelectorAll('.nav-item');
-    if (navItems.length >= 3) {
-        navItems[0].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('game'); });
-        navItems[1].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('boosts'); });
-        navItems[2].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('profile'); });
-    }
-
-    const tapArea = document.getElementById("tap-area");
-    if (tapArea) {
-        tapArea.addEventListener("pointerdown", (e) => {
-            if (e.button === 0 || e.pointerType === "touch") {
-                e.preventDefault();
-                handleTap(e);
-            }
-        });
-    }
-
-    const multitapBtn = document.getElementById("multitap-btn");
-    if (multitapBtn) {
-        let isBuying = false;
-        multitapBtn.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            if (isBuying) return;
-            isBuying = true;
-            buyMultitap(e);
-            setTimeout(() => { isBuying = false; }, 300);
-        });
-    }
-
-    const p1Btn = document.getElementById("passive-1-btn");
-    if (p1Btn) p1Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive1(e); });
-
-    const p2Btn = document.getElementById("passive-2-btn");
-    if (p2Btn) p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
-
-    const refBtn = document.getElementById("ref-btn");
-    if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
-
-    const channelBtn = document.getElementById("channel-btn");
-    if (channelBtn) channelBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); claimChannelReward(); });
-
-    const modal = document.getElementById("leaderboard-modal");
-    const leaderboardBtn = document.getElementById("leaderboard-btn");
-    const closeModal = document.getElementById("close-modal");
-
-    if (leaderboardBtn && modal) {
-        leaderboardBtn.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            modal.style.display = "flex";
-            loadLeaderboard();
-        });
-    }
-
-    if (closeModal && modal) {
-        closeModal.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            modal.style.display = "none";
-        });
-    }
-
-    window.addEventListener("click", (e) => {
-        if (e.target === modal) modal.style.display = "none";
-        const viewProfileModal = document.getElementById("view-profile-modal");
-        if (e.target === viewProfileModal) viewProfileModal.style.display = "none";
-    });
-});
+// Автоматический запуск приложения при загрузке страницы
+window.addEventListener("DOMContentLoaded", initApp);
