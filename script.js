@@ -18,14 +18,13 @@ let passive1Cost = 150;
 let passive2Level = 0;
 let passive2Cost = 2000; 
 
-// Переменные системы заключенных:
-let playerStatus = "free"; // "free" или "prisoner"
-let ownerId = null;        // ID текущего владельца
-let protectionUntil = 0;   // Timestamp окончания защиты
-
 let lastSaveTime = Date.now();
 let referralCount = 0;
 let saveTimeout = null;
+
+// Переменные для системы заключенных и выкупа
+let currentViewedUserId = null; 
+let currentRansomPrice = 0;   
 
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -90,37 +89,29 @@ function calculateCost(power) {
     return Math.floor(50 * Math.pow(3.0, level - 1));
 }
 
-// Формула расчета стоимости выкупа заключенного
-function calculatePrisonerPrice(playerData) {
-    if (!playerData) return 1000;
-    const coinsVal = sanitizeFloat(playerData.coins, 0);
-    const tapVal = sanitizeFloat(playerData.tap_power, 0.2);
-    const passiveVal = sanitizeFloat(playerData.passive_income_ps, 0);
-
-    let price = coinsVal * 0.5 + tapVal * 500 + passiveVal * 200;
-    return Math.max(500, Math.floor(price));
+// Расчет стоимости выкупа заключенного
+function calculatePrisonerPrice(playerObj) {
+    const pCoins = Number(playerObj.coins || 0);
+    const pPassive = Number(playerObj.passive_income_ps || 0);
+    // Базовая формула выкупа: часть монет игрока + надбавка за пассивку
+    let price = Math.floor(pCoins * 0.3 + pPassive * 100 + 200);
+    return Math.max(100, price); // Минимум 100 монет
 }
 
-// Защита от циклов (чтобы не зациклить цепочку владельцев)
-async function checkCircularDependency(targetUserId, newOwnerId) {
-    if (targetUserId === newOwnerId) return true;
-
-    let currentOwner = newOwnerId;
+// Проверка на циклическую зависимость (чтобы владелец не стал заключенным у своего же заключенного)
+async function checkCircularDependency(targetUserId, myUserId) {
+    if (targetUserId === myUserId) return true;
+    let currentId = targetUserId;
     let depth = 0;
-    
-    while (currentOwner && depth < 10) {
-        if (currentOwner === targetUserId) return true;
-
+    while (depth < 10) {
         try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${currentOwner}&select=owner_id`, {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${currentId}&select=owner_id`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
             const data = await res.json();
-            if (data && data.length > 0) {
-                currentOwner = data[0].owner_id;
-            } else {
-                break;
-            }
+            if (!data || data.length === 0 || !data[0].owner_id) break;
+            currentId = data[0].owner_id;
+            if (currentId === myUserId) return true;
         } catch (e) {
             break;
         }
@@ -171,10 +162,7 @@ async function saveToSupabase() {
         passive1_level: passive1Level,
         passive1_cost: passive1Cost,
         passive2_level: passive2Level,
-        passive2_cost: passive2Cost,
-        status: playerStatus,
-        owner_id: ownerId,
-        protection_until: protectionUntil
+        passive2_cost: passive2Cost
     };
 
     try {
@@ -244,10 +232,6 @@ async function processReferral(userId) {
         const refData = await checkRef.json();
 
         if (!refData || refData.length === 0) {
-            // Проверка на циклы перед тем как сделать реферала заключенным
-            const isCircular = await checkCircularDependency(userId, referrerId);
-            if (isCircular) return;
-
             const resPostRef = await fetch(`${SUPABASE_URL}/rest/v1/referrals`, {
                 method: "POST",
                 headers: {
@@ -259,10 +243,6 @@ async function processReferral(userId) {
             });
 
             if (!resPostRef.ok) return;
-
-            // Приглашенный становится заключенным у реферера
-            playerStatus = "prisoner";
-            ownerId = referrerId;
 
             coins += 100; 
 
@@ -424,6 +404,7 @@ async function loadLeaderboard() {
 }
 
 async function openPlayerProfile(targetUserId) {
+    currentViewedUserId = targetUserId;
     const leaderboardModal = document.getElementById("leaderboard-modal");
     if (leaderboardModal) leaderboardModal.style.display = "none";
 
@@ -439,6 +420,11 @@ async function openPlayerProfile(targetUserId) {
     document.getElementById("vp-tap").textContent = "...";
     document.getElementById("vp-passive").textContent = "...";
     document.getElementById("vp-refs").textContent = "...";
+    
+    const prisonerSection = document.getElementById("prisoner-section");
+    const ransomBtn = document.getElementById("ransom-btn");
+    const statusText = document.getElementById("vp-status-text");
+    if (prisonerSection) prisonerSection.style.display = "none";
 
     try {
         const resPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${targetUserId}&select=*`, {
@@ -453,6 +439,28 @@ async function openPlayerProfile(targetUserId) {
             document.getElementById("vp-coins").textContent = Number(p.coins || 0).toFixed(1);
             document.getElementById("vp-tap").textContent = Number(p.tap_power || 0.2).toFixed(1);
             document.getElementById("vp-passive").textContent = Number(p.passive_income_ps || 0).toFixed(1);
+
+            // Статус заключенного в профиле
+            if (prisonerSection) {
+                prisonerSection.style.display = "block";
+                const myUserId = getUserId();
+
+                if (p.status === "prisoner" && p.owner_id) {
+                    if (p.owner_id === myUserId) {
+                        statusText.textContent = "🔒 Этот игрок — твой заключенный!";
+                        ransomBtn.style.display = "none";
+                    } else {
+                        currentRansomPrice = calculatePrisonerPrice(p);
+                        document.getElementById("ransom-price").textContent = currentRansomPrice;
+                        statusText.textContent = `⛓️ Сидит в тюрьме у @${p.owner_id}`;
+                        ransomBtn.style.display = "inline-block";
+                    }
+                } else {
+                    statusText.textContent = "✨ Игрок на свободе";
+                    ransomBtn.style.display = "none";
+                }
+            }
+
         } else {
             document.getElementById("vp-username").textContent = "Не найден";
         }
@@ -466,6 +474,122 @@ async function openPlayerProfile(targetUserId) {
     } catch (e) {
         console.error("Ошибка при открытии профиля игрока:", e);
         document.getElementById("vp-username").textContent = "Ошибка загрузки";
+    }
+}
+
+// Функция выкупа заключенного
+async function buyRansom() {
+    if (!currentViewedUserId) return;
+    const myUserId = getUserId();
+
+    if (coins < currentRansomPrice) {
+        alert("Недостаточно монет для выкупа!");
+        return;
+    }
+
+    try {
+        const resCheck = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${currentViewedUserId}&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const dataCheck = await resCheck.json();
+        
+        if (!dataCheck || dataCheck.length === 0) {
+            alert("Игрок не найден!");
+            return;
+        }
+
+        const prisoner = dataCheck[0];
+        if (prisoner.status !== "prisoner") {
+            alert("Этот игрок уже не в тюрьме!");
+            openPlayerProfile(currentViewedUserId);
+            return;
+        }
+
+        const oldOwnerId = prisoner.owner_id;
+
+        const isCircular = await checkCircularDependency(currentViewedUserId, myUserId);
+        if (isCircular) {
+            alert("Ошибка выкупа: нельзя зациклить цепочку владельцев!");
+            return;
+        }
+
+        coins -= currentRansomPrice;
+
+        const updatePrisoner = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${currentViewedUserId}`, {
+            method: "PATCH",
+            headers: {
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ owner_id: myUserId })
+        });
+
+        if (!updatePrisoner.ok) {
+            alert("Ошибка при выкупе!");
+            coins += currentRansomPrice; 
+            return;
+        }
+
+        if (oldOwnerId) {
+            const resOldOwner = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${oldOwnerId}&select=coins`, {
+                headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+            });
+            const oldOwnerData = await resOldOwner.json();
+            if (oldOwnerData && oldOwnerData.length > 0) {
+                const oldOwnerCoins = sanitizeFloat(oldOwnerData[0].coins, 0);
+                const compensation = Math.floor(currentRansomPrice * 0.5);
+                await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${oldOwnerId}`, {
+                    method: "PATCH",
+                    headers: {
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ coins: oldOwnerCoins + compensation })
+                });
+            }
+        }
+
+        alert("Успешно! Вы выкупили заключенного, теперь он работает на вас! 🐒⛓️");
+        updateUI();
+        saveData();
+        openPlayerProfile(currentViewedUserId);
+
+    } catch (e) {
+        console.error("Ошибка в процессе выкупа:", e);
+        alert("Произошла сетевая ошибка при выкупе.");
+    }
+}
+
+// Сбор налогов с заключенных
+async function collectPrisonersIncome() {
+    const myUserId = getUserId();
+    if (!myUserId) return;
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/players?owner_id=eq.${myUserId}&status=eq.prisoner&select=*`, {
+            headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        const prisoners = await res.json();
+
+        if (prisoners && prisoners.length > 0) {
+            let totalTribute = 0;
+
+            for (const p of prisoners) {
+                const prisonerPassive = Number(p.passive_income_ps || 0);
+                const tribute = prisonerPassive * 0.2; // 20% от пассивки заключенного
+                totalTribute += tribute;
+            }
+
+            if (totalTribute > 0) {
+                coins += totalTribute;
+                updateUI();
+                saveData();
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка при сборе дохода с заключенных:", e);
     }
 }
 
@@ -499,11 +623,6 @@ async function loadData() {
             passive1Cost = sanitizeInt(player.passive1_cost, 150);
             passive2Level = sanitizeInt(player.passive2_level, 0);
             passive2Cost = sanitizeInt(player.passive2_cost, 2000);
-
-            // Загружаем данные по тюрьме
-            playerStatus = player.status || "free";
-            ownerId = player.owner_id || null;
-            protectionUntil = sanitizeInt(player.protection_until, 0);
 
             applyOfflineProgress();
             updateUI();
@@ -604,6 +723,7 @@ function initApp() {
     loadData();
     initBackgroundBananas();
     setInterval(gameTick, 1000);
+    setInterval(collectPrisonersIncome, 10000); // Сбор налогов с заключенных раз в 10 сек
 }
 
 function updateUI() {
@@ -724,7 +844,7 @@ function buyPassive1(e) {
     if (passive1Level < 6 && coins >= passive1Cost) {
         coins -= passive1Cost;
         passive1Level++;
-        passiveIncomePS =Number((passiveIncomePS + 0.5).toFixed(1)); 
+        passiveIncomePS = Number((passiveIncomePS + 0.5).toFixed(1)); 
         passive1Cost = Math.floor(passive1Cost * 2.5); 
         updateUI();
         saveData();
