@@ -5,7 +5,6 @@ if (tg) {
     tg.expand();
 }
 
-// Получаем данные пользователя Telegram или используем тестовые для ПК
 const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user : {
     id: 999999,
     first_name: "ПК Игрок",
@@ -15,9 +14,9 @@ const user = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsa
 const userId = String(user.id);
 const defaultUsername = user.first_name || "Обезьянка";
 
-// Игровые переменные
+// Игровые переменные (возвращаем правильный начальный тап 0.2 или текущий уровень)
 let coins = 0;
-let tapPower = 1;
+let tapPower = 0.2; 
 let multitapLevel = 1;
 let multitapCost = 50;
 let energy = 1000;
@@ -25,42 +24,55 @@ let maxEnergy = 1000;
 let passiveIncome = 0;
 let refsCount = 0;
 
-// Уровни пассивных улучшений
 let p1Level = 0;
 let p1Cost = 100;
-let p2Level = 0;
-let p2Cost = 1000;
-
-// Защита от спама сохранениями
 let saveTimeout = null;
 
 window.addEventListener('DOMContentLoaded', () => {
     initGame();
-    
-    // Запуск пассивного дохода каждую секунду
+    initBackgroundBananas();
+
+    // Пассивный доход (считаем корректно раз в секунду)
     setInterval(() => {
         if (passiveIncome > 0) {
-            coins += passiveIncome / 10; // Дробим для плавности или считаем раз в сек
+            coins += passiveIncome;
             updateUI();
+            debounceSave();
         }
     }, 1000);
 
-    // Восстановление энергии (10 энергии в сек)
+    // Восстановление энергии: 1 единица раз в 2 секунды (или подстрой под себя, чтобы не было слишком быстро)
     setInterval(() => {
         if (energy < maxEnergy) {
-            energy = Math.min(maxEnergy, energy + 10);
+            energy = Math.min(maxEnergy, energy + 2);
             updateEnergyUI();
         }
-    }, 1000);
+    }, 2000);
+
+    // УНИВЕРСАЛЬНЫЙ ОБРАБОТЧИК ТАПОВ ДЛЯ ТЕЛЕФОНОВ И ПК
+    const monkeyContainer = document.getElementById('tap-area') || document.querySelector('.monkey-container');
+    if (monkeyContainer) {
+        const triggerTap = (e) => {
+            // Предотвращаем баги с двойным срабатыванием (эмуляция мыши после тача)
+            if (e.type === 'touchstart') {
+                e.preventDefault();
+            }
+
+            handleTap(e);
+        };
+
+        monkeyContainer.addEventListener('touchstart', triggerTap, { passive: false });
+        monkeyContainer.addEventListener('click', triggerTap);
+    }
 });
 
-// Инициализация игры (загрузка из localStorage как основы + синхронизация)
+// Загрузка данных
 function initGame() {
     try {
         const savedCoins = localStorage.getItem(`monkey_coins_${userId}`);
         if (savedCoins !== null) {
             coins = parseFloat(savedCoins);
-            tapPower = parseFloat(localStorage.getItem(`monkey_tap_${userId}`) || "1");
+            tapPower = parseFloat(localStorage.getItem(`monkey_tap_${userId}`) || "0.2");
             multitapLevel = parseInt(localStorage.getItem(`monkey_mlevel_${userId}`) || "1");
             multitapCost = parseInt(localStorage.getItem(`monkey_mcost_${userId}`) || "50");
             energy = parseInt(localStorage.getItem(`monkey_energy_${userId}`) || "1000");
@@ -77,25 +89,39 @@ function initGame() {
     updateProfileDisplay();
 }
 
-// Функция тапа (вызывается из index.html при клике на обезьянку)
+// Функция тапа (теперь строго использует tapPower)
 function handleTap(e) {
     if (energy <= 0) return;
 
     let earned = tapPower;
-    energy = Math.max(0, energy - 1);
+    energy = Math.max(0, energy - 1); // Тратим 1 энергии за тап
 
     coins += earned;
     updateUI();
     updateEnergyUI();
 
-    // Создаем летящую циферку монет
-    createFloatingText(e, `+${earned}`, earned > 1 ? 'flying-crit' : 'flying-one');
+    // Анимация нажатия на обезьянку
+    const monkeyContainer = document.querySelector('.monkey-container');
+    if (monkeyContainer) {
+        monkeyContainer.classList.add('tapped');
+        setTimeout(() => {
+            monkeyContainer.classList.remove('tapped');
+        }, 80);
+    }
 
-    // Отложенное сохранение, чтобы не нагружать систему
+    // Вибрация в Telegram
+    if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+    }
+
+    // Летящая циферка (округляем для красоты, если дробное)
+    let displayEarned = earned < 1 ? earned.toFixed(1) : Math.floor(earned);
+    createFloatingText(e, `+${displayEarned}`, earned >= 1 ? 'flying-crit' : 'flying-one');
+
     debounceSave();
 }
 
-// Эффект всплывающих монет при клике
+// Эффект всплывающих монет
 function createFloatingText(e, text, className) {
     const container = document.getElementById('background-effects');
     if (!container) return;
@@ -104,18 +130,17 @@ function createFloatingText(e, text, className) {
     el.className = className;
     el.innerText = text;
 
-    // Определяем координаты клика (поддержка мыши и тача)
-    let clientX = e.clientX;
-    let clientY = e.clientY;
+    let clientX = window.innerWidth / 2;
+    let clientY = window.innerHeight / 2;
 
-    if (e.touches && e.touches.length > 0) {
-        clientX = e.touches[0].clientX;
-        clientY = e.touches[0].clientY;
-    }
-
-    if (!clientX || !clientY) {
-        clientX = window.innerWidth / 2 + (Math.random() * 40 - 20);
-        clientY = window.innerHeight / 2 + (Math.random() * 40 - 20);
+    if (e) {
+        if (e.clientX && e.clientY) {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        } else if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
     }
 
     el.style.left = `${clientX - 15}px`;
@@ -132,27 +157,16 @@ function createFloatingText(e, text, className) {
 function updateUI() {
     const coinsDisplay = document.getElementById('coins-display');
     if (coinsDisplay) {
-        coinsDisplay.innerText = Math.floor(coins);
+        coinsDisplay.innerText = coins.toFixed(1); // Поддержка отображения десятых долей монет
     }
 
-    // Обновляем экран прокачки
-    const mLevelEl = document.getElementById('multitap-level');
-    const mPowerEl = document.getElementById('multitap-power');
-    const mCostEl = document.getElementById('multitap-cost');
-    if (mLevelEl) mLevelEl.innerText = multitapLevel;
-    if (mPowerEl) mPowerEl.innerText = tapPower;
-    if (mCostEl) mCostEl.innerText = multitapCost;
-
-    const passiveDisplay = document.getElementById('passive-income-display');
-    if (passiveDisplay) passiveDisplay.innerText = passiveIncome.toFixed(1);
-
-    const refCountEl = document.getElementById('ref-count');
-    if (refCountEl) refCountEl.innerText = `Приглашено: ${refsCount}`;
-
-    const p1LevelEl = document.getElementById('p1-level');
-    const p1CostEl = document.getElementById('p1-cost');
-    if (p1LevelEl) p1LevelEl.innerText = p1Level;
-    if (p1CostEl) p1CostEl.innerText = p1Cost;
+    setElemText('multitap-level', multitapLevel);
+    setElemText('multitap-power', tapPower.toFixed(1));
+    setElemText('multitap-cost', multitapCost);
+    setElemText('passive-income-display', passiveIncome.toFixed(1));
+    setElemText('ref-count', `Приглашено: ${refsCount}`);
+    setElemText('p1-level', p1Level);
+    setElemText('p1-cost', p1Cost);
 
     updateProfileDisplay();
 }
@@ -174,8 +188,8 @@ function updateProfileDisplay() {
     if (pUser) pUser.innerText = localStorage.getItem(`monkey_name_${userId}`) || defaultUsername;
     if (pId) pId.innerText = userId;
 
-    setElemText('prof-coins', Math.floor(coins));
-    setElemText('prof-tap', tapPower);
+    setElemText('prof-coins', coins.toFixed(1));
+    setElemText('prof-tap', tapPower.toFixed(1));
     setElemText('prof-passive', passiveIncome.toFixed(1));
     setElemText('prof-energy', `${Math.floor(energy)} / ${maxEnergy}`);
     setElemText('prof-refs', refsCount);
@@ -186,7 +200,7 @@ function setElemText(id, text) {
     if (el) el.innerText = text;
 }
 
-// Сохранение данных (localStorage)
+// Сохранение в localStorage
 function debounceSave() {
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
@@ -207,11 +221,11 @@ function debounceSave() {
 }
 
 // Покупка мультитапа
-function buyMultitap(e) {
+function buyMultitap() {
     if (coins >= multitapCost) {
         coins -= multitapCost;
         multitapLevel++;
-        tapPower = multitapLevel; // 1 уровень = 1 сила тапа (или своя формула)
+        tapPower += 0.2; // Увеличиваем силу тапа плавно (было +0.2 за уровень)
         multitapCost = Math.floor(multitapCost * 1.7);
         
         updateUI();
@@ -227,7 +241,7 @@ function buyMultitap(e) {
     }
 }
 
-// Покупка пассивного дохода (Куст)
+// Покупка пассивного дохода
 function buyPassive(id) {
     if (id === 1) {
         if (coins >= p1Cost) {
@@ -246,7 +260,39 @@ function buyPassive(id) {
     }
 }
 
-// Никнейм и модальные окна
+// Фоновые бананы
+function initBackgroundBananas() {
+    const container = document.getElementById('background-effects');
+    if (!container) return;
+
+    for (let i = 0; i < 6; i++) {
+        createBanana(container);
+    }
+}
+
+function createBanana(container) {
+    const banana = document.createElement('div');
+    banana.className = 'falling-banana';
+    banana.innerText = '🍌';
+    
+    const randomLeft = Math.random() * 100;
+    const randomSize = Math.floor(Math.random() * 16) + 14;
+    const randomDuration = Math.random() * 6 + 4;
+    const randomDelay = Math.random() * 5;
+
+    banana.style.left = `${randomLeft}%`;
+    banana.style.fontSize = `${randomSize}px`;
+    banana.style.animationDuration = `${randomDuration}s`;
+    banana.style.animationDelay = `${randomDelay}s`;
+
+    container.appendChild(banana);
+
+    banana.addEventListener('animationiteration', () => {
+        banana.style.left = `${Math.random() * 100}%`;
+    });
+}
+
+// Дополнительные функции
 function openRenameModal() {
     const modal = document.getElementById('rename-modal');
     const input = document.getElementById('username-input');
@@ -268,7 +314,6 @@ function saveUsername() {
     document.getElementById('rename-modal').style.display = 'none';
 }
 
-// Реферальная система (приглашение друзей)
 function shareReferralLink() {
     const refLink = `https://t.me/share/url?url=${encodeURIComponent("https://t.me/your_bot_username?start=" + userId)}&text=${encodeURIComponent("🐒 Зарабатывай бананы вместе со мной в Monkey Tapper!")}`;
     if (tg && tg.openTelegramLink) {
@@ -278,7 +323,6 @@ function shareReferralLink() {
     }
 }
 
-// Проверка подписки на канал
 function claimChannelReward() {
     const claimed = localStorage.getItem(`monkey_channel_claimed_${userId}`);
     if (claimed) {
@@ -288,15 +332,13 @@ function claimChannelReward() {
     coins += 250;
     localStorage.setItem(`monkey_channel_claimed_${userId}`, "true");
     updateUI();
-    alert("Успешно! Вам начислено +250 монет 🍌");
+    alert("Успешно! Начислено +250 монет 🍌");
 }
 
-// Заглушка для таблицы лидеров, чтобы не висела "Загрузка..."
 function loadLeaderboard() {
     const list = document.getElementById('leaderboard-list');
     if (!list) return;
 
-    // Имитируем топ игроков для стабильной работы
     const currentName = localStorage.getItem(`monkey_name_${userId}`) || defaultUsername;
     
     list.innerHTML = `
@@ -314,7 +356,7 @@ function loadLeaderboard() {
         </div>
         <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 8px; margin-top: 5px;">
             <span>📍 <b>${currentName} (Вы)</b></span>
-            <span style="color: #ffd700; font-weight: bold;">${Math.floor(coins)} 🍌</span>
+            <span style="color: #ffd700; font-weight: bold;">${coins.toFixed(1)} 🍌</span>
         </div>
     `;
 }
