@@ -75,13 +75,14 @@ body, html {
     top: 0;
     left: 0;
     width: 100%;
-    height: calc(100% - 65px); /* Оставляем место под нижнее меню */
+    height: calc(100% - 65px);
     padding: 16px;
     padding-bottom: 20px;
     overflow-y: auto;
     box-sizing: border-box;
     gap: 12px;
     z-index: 2;
+    pointer-events: auto;
 }
 
 .screen.active {
@@ -126,6 +127,7 @@ body, html {
     font-weight: 600;
     cursor: pointer;
     transition: background 0.2s;
+    pointer-events: auto;
 }
 
 .leaderboard-btn:active {
@@ -150,6 +152,7 @@ body, html {
     cursor: pointer;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, rgba(0,0,0,0) 70%);
+    pointer-events: auto;
 }
 
 .monkey-img {
@@ -158,10 +161,11 @@ body, html {
     object-fit: contain;
     transition: transform 0.08s ease;
     filter: drop-shadow(0 8px 12px rgba(0,0,0,0.5));
+    pointer-events: none;
 }
 
-.monkey-container:active .monkey-img {
-    transform: scale(0.92);
+.monkey-container.tapped .monkey-img {
+    transform: scale(0.90);
 }
 
 /* Карточки бонусов на главном экране */
@@ -219,6 +223,7 @@ body, html {
     cursor: pointer;
     white-space: nowrap;
     transition: opacity 0.2s;
+    pointer-events: auto;
 }
 
 .action-btn:active, .upgrade-btn:active {
@@ -287,7 +292,7 @@ body, html {
 }
 
 /* ==========================================
-   НИЖНЯЯ НАВИГАЦИЯ
+   НИЖНЯЯ НАВИГАЦИЯ (ИСПРАВЛЕНО ДЛЯ ПК)
    ========================================== */
 .bottom-nav {
     display: flex;
@@ -347,6 +352,7 @@ body, html {
     align-items: center;
     justify-content: center;
     padding: 16px;
+    pointer-events: auto;
 }
 
 .modal-content {
@@ -380,6 +386,7 @@ body, html {
     color: #aaa;
     font-size: 22px;
     cursor: pointer;
+    pointer-events: auto;
 }
 
 .leaderboard-list {
