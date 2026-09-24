@@ -110,7 +110,10 @@ async function saveToSupabase() {
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         if (!username || username === "Игрок" || username.startsWith("@peshiy")) {
             let tgName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
-            username = tgName.startsWith("@") ? tgName : "@" + tgName;
+            // Если игрок еще не менял ник вручную, подтягиваем из телеграма
+            if (!window._customUsernameSet) {
+                username = tgName.startsWith("@") ? tgName : "@" + tgName;
+            }
         }
     } else if (!username.startsWith("@")) {
         username = "@" + username;
@@ -472,9 +475,13 @@ async function saveUsername() {
         alert("Ник слишком короткий!");
         return;
     }
+    
+    window._customUsernameSet = true;
     username = newName.startsWith("@") ? newName : "@" + newName;
+    
     const modal = document.getElementById("rename-modal");
     if (modal) modal.style.display = "none";
+    
     updateProfileUI();
     await saveToSupabase();
     alert("Ник успешно изменен!");
@@ -803,6 +810,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (p2Btn) p2Btn.addEventListener("pointerdown", (e) => { e.preventDefault(); buyPassive2(e); });
 
     const refBtn = document.getElementById("ref-btn");
+    if (refBtn) refBtn.getElementById = shareReferralLink; // fallback
     if (refBtn) refBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); shareReferralLink(); });
 
     const channelBtn = document.getElementById("channel-btn");
