@@ -10,6 +10,7 @@ let energy = 1000;
 const maxEnergy = 1000;
 let tapPower = 0.2; 
 let multitapCost = 50; 
+let username = "Игрок";
 
 let passiveIncomePS = 0;
 let passive1Level = 0;
@@ -24,11 +25,8 @@ let saveTimeout = null;
 function getUserId() {
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     
-    // 1. Пытаемся взять реальный ID из Telegram
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
-        const id = tg.initDataUnsafe.user.id.toString();
-        console.log("👤 Определен Telegram ID:", id);
-        return id;
+        return tg.initDataUnsafe.user.id.toString();
     }
     
     if (tg && tg.initData) {
@@ -37,25 +35,15 @@ function getUserId() {
             const userStr = urlParams.get('user');
             if (userStr) {
                 const userObj = JSON.parse(userStr);
-                if (userObj && userObj.id) {
-                    const id = userObj.id.toString();
-                    console.log("👤 Определен Telegram ID из initData:", id);
-                    return id;
-                }
+                if (userObj && userObj.id) return userObj.id.toString();
             }
-        } catch (e) {
-            console.error("Ошибка парсинга initData:", e);
-        }
+        } catch (e) {}
     }
 
-    // 2. Если зашли из браузера — ищем сохраненный ID в localStorage
     let localDevId = localStorage.getItem("monkey_persistent_user_id");
     if (!localDevId) {
         localDevId = "browser_" + Math.random().toString(36).substring(2, 10);
         localStorage.setItem("monkey_persistent_user_id", localDevId);
-        console.log("⚠️ Запуск вне Telegram. Создан постоянный локальный ID:", localDevId);
-    } else {
-        console.log("💻 Используется сохраненный локальный ID:", localDevId);
     }
     return localDevId;
 }
@@ -107,15 +95,15 @@ function applyOfflineProgress() {
     lastSaveTime = now;
 }
 
-// НАДЕЖНОЕ СОХРАНЕНИЕ ЧЕРЕЗ ПРОВЕРКУ (УМНЫЙ UPSERT)
 async function saveToSupabase() {
     const userId = getUserId();
     lastSaveTime = Date.now();
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    let username = "Игрок";
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+        if (!username || username === "Игрок") {
+            username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+        }
     }
 
     const bodyData = {
@@ -166,12 +154,10 @@ async function saveToSupabase() {
 
         if (!response.ok) {
             const errText = await response.text();
-            console.error("❌ Ошибка Supabase при сохранении:", response.status, errText);
-        } else {
-            console.log(`💾 Успешно сохранено! Монет: ${coins.toFixed(1)}, Сила тапа: ${tapPower}`);
+            console.error("❌ Ошибка сохранения:", response.status, errText);
         }
     } catch (e) {
-        console.error("🌐 Сетевая ошибка сохранения в облако:", e);
+        console.error("🌐 Сетевая ошибка сохранения:", e);
     }
 }
 
@@ -183,9 +169,7 @@ function saveData() {
 }
 
 document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-        saveToSupabase();
-    }
+    if (document.visibilityState === "hidden") saveToSupabase();
 });
 
 window.addEventListener("beforeunload", () => {
@@ -215,10 +199,8 @@ async function processReferral(userId) {
 
             if (!resPostRef.ok) return;
 
-            // Бонус рефералу (кто перешел) — добавляем локально, сохранится в loadData
             coins += 100; 
 
-            // Находим реферера (основу) в базе данных и накидываем ему +250 монет
             const getRefPlayer = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${referrerId}&select=*`, {
                 headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
             });
@@ -235,7 +217,6 @@ async function processReferral(userId) {
                     },
                     body: JSON.stringify({ coins: oldCoins + 250 })
                 });
-                console.log(`🎁 Реферал засчитан! Основе (${referrerId}) начислено +250 монет.`);
             }
         }
     } catch (e) {
@@ -250,8 +231,12 @@ async function loadReferralCount(userId) {
         });
         const data = await response.json();
         referralCount = data.length || 0;
+        
         const refCountEl = document.getElementById("ref-count");
         if (refCountEl) refCountEl.textContent = "Приглашено: " + referralCount;
+        
+        const profRefs = document.getElementById("prof-refs");
+        if (profRefs) profRefs.textContent = referralCount;
     } catch (e) {
         console.error("Ошибка загрузки рефералов:", e);
     }
@@ -374,10 +359,7 @@ async function loadLeaderboard() {
 
 async function loadData() {
     const userId = getUserId();
-    console.log("📥 Запрос загрузки данных для ID:", userId);
-
     try {
-        // Сначала отрабатываем реферал (если этот аккаунт перешел по ссылке)
         await processReferral(userId);
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/players?user_id=eq.${userId}&select=*`, {
@@ -392,6 +374,7 @@ async function loadData() {
 
         if (data && data.length > 0) {
             const player = data[0];
+            username = player.username || "Игрок";
             coins = sanitizeFloat(player.coins, coins);
             tapPower = sanitizeFloat(player.tap_power, 0.2);
             energy = sanitizeInt(player.energy, maxEnergy);
@@ -405,9 +388,11 @@ async function loadData() {
 
             applyOfflineProgress();
             updateUI();
-            console.log("✅ Прогресс успешно загружен из Supabase! Монет:", coins, "Тап:", tapPower);
         } else {
-            console.log("⚠️ Игрок не найден в базе, создаем новую запись...");
+            const tg = window.Telegram ? window.Telegram.WebApp : null;
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "Игрок";
+            }
             await saveToSupabase();
             updateUI();
         }
@@ -415,8 +400,29 @@ async function loadData() {
         loadReferralCount(userId);
         checkChannelStatus(userId);
     } catch (e) {
-        console.error("❌ Ошибка загрузки из облака:", e);
+        console.error("Ошибка загрузки данных:", e);
     }
+}
+
+function openRenameModal() {
+    const modal = document.getElementById("rename-modal");
+    if (modal) modal.style.display = "flex";
+}
+
+async function saveUsername() {
+    const input = document.getElementById("username-input");
+    if (!input) return;
+    const newName = input.value.trim();
+    if (newName.length < 2) {
+        alert("Ник слишком короткий!");
+        return;
+    }
+    username = newName;
+    const modal = document.getElementById("rename-modal");
+    if (modal) modal.style.display = "none";
+    updateProfileUI();
+    await saveToSupabase();
+    alert("Ник успешно изменен!");
 }
 
 function shareReferralLink() {
@@ -449,15 +455,11 @@ function initBackgroundBananas() {
         const banana = document.createElement("div");
         banana.classList.add("falling-banana");
         banana.textContent = "🍌";
-
         banana.style.left = Math.random() * 100 + "%";
-
         const duration = Math.random() * 5 + 5;
         banana.style.animationDuration = duration + "s";
-
         const size = Math.random() * 14 + 18;
         banana.style.fontSize = size + "px";
-
         bgContainer.appendChild(banana);
 
         setTimeout(() => {
@@ -560,6 +562,25 @@ function updateUI() {
             p2Btn.disabled = true;
         }
     }
+
+    // Обновляем экран профиля
+    updateProfileUI();
+}
+
+function updateProfileUI() {
+    const profUsername = document.getElementById("profile-username");
+    const profUserid = document.getElementById("profile-userid");
+    const profCoins = document.getElementById("prof-coins");
+    const profTap = document.getElementById("prof-tap");
+    const profPassive = document.getElementById("prof-passive");
+    const profEnergy = document.getElementById("prof-energy");
+
+    if (profUsername) profUsername.textContent = username;
+    if (profUserid) profUserid.textContent = getUserId();
+    if (profCoins) profCoins.textContent = coins.toFixed(1);
+    if (profTap) profTap.textContent = tapPower.toFixed(1);
+    if (profPassive) profPassive.textContent = passiveIncomePS.toFixed(1);
+    if (profEnergy) profEnergy.textContent = `${Math.floor(energy)} / ${maxEnergy}`;
 }
 
 function buyMultitap(e) {
@@ -658,7 +679,6 @@ function handleTap(e) {
         }
     } else {
         clientX = e.clientX;
-        clientY = e.clientX ? e.clientX : 0;
         clientY = e.clientY;
     }
 
@@ -675,7 +695,9 @@ function switchScreen(target) {
     const screens = document.querySelectorAll('.screen');
     const navItems = document.querySelectorAll('.nav-item');
     
-    let activeIndex = (target === 'boosts' || target === 1) ? 1 : 0;
+    let activeIndex = 0;
+    if (target === 'boosts' || target === 1) activeIndex = 1;
+    if (target === 'profile' || target === 2) activeIndex = 2;
 
     screens.forEach((screen, index) => {
         if (index === activeIndex) screen.classList.add('active');
@@ -688,15 +710,14 @@ function switchScreen(target) {
     });
 }
 
-document.Println = console.log;
-
 document.addEventListener("DOMContentLoaded", () => {
     initApp();
     
     const navItems = document.querySelectorAll('.nav-item');
-    if (navItems.length >= 2) {
+    if (navItems.length >= 3) {
         navItems[0].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('game'); });
         navItems[1].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('boosts'); });
+        navItems[2].addEventListener('pointerdown', (e) => { e.preventDefault(); switchScreen('profile'); });
     }
 
     const tapArea = document.getElementById("tap-area");
