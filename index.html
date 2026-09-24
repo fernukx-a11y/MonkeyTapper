@@ -5,33 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
     <!-- Подключаем стили -->
-    <link rel="stylesheet" href="style.css?v=124">
+    <link rel="stylesheet" href="style.css?v=125">
     <!-- Подключаем Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        /* Жесткое управление видимостью экранов */
-        .screen {
-            display: none !important;
-        }
-        .screen.active {
-            display: flex !important;
-            flex-direction: column !important;
-        }
-        
-        /* Надежная анимация тапа для телефона и ПК */
-        .monkey-container {
-            cursor: pointer;
-            user-select: none;
-            -webkit-user-select: none;
-            transition: transform 0.05s ease-in-out;
-        }
-        .monkey-container.tapped {
-            transform: scale(0.88) !important;
-        }
-        .monkey-img {
-            pointer-events: none;
-        }
-    </style>
 </head>
 <body>
 
@@ -236,14 +212,11 @@
         </div>
     </div>
 
-    <!-- Защищенное управление вкладками, тапами и анимацией -->
+    <!-- Управление вкладками и надежный кликер -->
     <script>
-        // Главная функция переключения вкладок с защитой от сброса
         function switchTab(screenId, btnElement) {
             const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => {
-                s.classList.remove('active');
-            });
+            screens.forEach(s => s.classList.remove('active'));
 
             const targetScreen = document.getElementById(screenId);
             if (targetScreen) {
@@ -252,18 +225,27 @@
 
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach(n => n.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
+            
+            if (btnElement) {
+                const item = btnElement.closest('.nav-item') || btnElement;
+                item.classList.add('active');
+            }
         }
 
-        // Обработка тапов, анимации сжатия и вибрации
         window.addEventListener('DOMContentLoaded', () => {
             const tapArea = document.getElementById('tap-area');
             
             if (tapArea) {
-                // Нажатие пальцем (touchstart)
-                tapArea.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
+                const triggerTap = (e) => {
+                    // Предотвращаем дефолтные зумы/скроллы на мобилках
+                    if (e.type === 'touchstart') {
+                        e.preventDefault();
+                    }
+
                     tapArea.classList.add('tapped');
+                    setTimeout(() => {
+                        tapArea.classList.remove('tapped');
+                    }, 80);
 
                     // Вибрация Telegram
                     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -271,34 +253,19 @@
                         tg.HapticFeedback.impactOccurred('medium');
                     }
 
-                    // Вызываем стандартную функцию клика из script.js, если она есть
+                    // Вызываем функцию начисления монет из script.js
                     if (typeof window.handleTap === 'function') {
                         window.handleTap(e);
                     }
-                }, { passive: false });
+                };
 
-                // Отпускание пальца (touchend)
-                tapArea.addEventListener('touchend', () => {
-                    setTimeout(() => {
-                        tapArea.classList.remove('tapped');
-                    }, 50);
-                });
-
-                // Поддержка кликов мышей для ПК
-                tapArea.addEventListener('click', (e) => {
-                    tapArea.classList.add('tapped');
-                    setTimeout(() => tapArea.classList.remove('tapped'), 100);
-
-                    const tg = window.Telegram ? window.Telegram.WebApp : null;
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('medium');
-                    }
-                });
+                tapArea.addEventListener('touchstart', triggerTap, { passive: false });
+                tapArea.addEventListener('click', triggerTap);
             }
         });
     </script>
 
     <!-- Подключаем основной скрипт игры -->
-    <script src="script.js?v=124"></script>
+    <script src="script.js?v=125"></script>
 </body>
 </html>
