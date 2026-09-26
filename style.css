@@ -1,1200 +1,190 @@
+```css
 /* ==========================================
-   RESET
-   ========================================== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-}
-
-
-html,
-body {
-
-    width: 100%;
-    height: 100%;
-
-    overflow: hidden;
-
-    background: #1a1a1a;
-
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        Helvetica,
-        Arial,
-        sans-serif;
-
-    color: #fff;
-}
-
-
-/* ==========================================
-   GAME CONTAINER
-   ========================================== */
-
-.game-container {
-
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-    height: 100%;
-
-    max-width: 480px;
-
-    margin: 0 auto;
-
-    position: relative;
-
-    overflow: hidden;
-
-    background:
-        linear-gradient(
-            135deg,
-            #2c1e1a 0%,
-            #1a1412 100%
-        );
-}
-
-
-/* ==========================================
-   BACKGROUND
-   ========================================== */
-
-#background-effects {
-
-    position: fixed;
-
-    top: 0;
-    left: 0;
-
-    width: 100vw;
-    height: 100vh;
-
-    pointer-events: none;
-
-    overflow: hidden;
-
-    z-index: 1;
-}
-
-
-.falling-banana {
-
-    position: fixed;
-
-    top: -50px;
-
-    opacity: 0.25;
-
-    pointer-events: none;
-
-    will-change: transform;
-
-    animation:
-        fallDown
-        linear
-        infinite;
-}
-
-
-@keyframes fallDown {
-
-    0% {
-
-        transform:
-            translateY(-50px)
-            rotate(0deg);
-
-    }
-
-    100% {
-
-        transform:
-            translateY(105vh)
-            rotate(360deg);
-
-    }
-}
-
-
-/* ==========================================
-   SCREENS
-   ========================================== */
-
-.screen {
-
-    display: none;
-
-    flex-direction: column;
-
-    position: absolute;
-
-    top: 0;
-    left: 0;
-
-    width: 100%;
-
-    height:
-        calc(100% - 65px);
-
-    padding: 16px;
-
-    padding-bottom: 20px;
-
-    overflow-y: auto;
-
-    gap: 12px;
-
-    z-index: 2;
-
-    pointer-events: auto;
-
-    scrollbar-width: none;
-}
-
-
-.screen::-webkit-scrollbar {
-    display: none;
-}
-
-
-.screen.active {
-    display: flex;
-}
-
-
-/* ==========================================
-   HEADER
-   ========================================== */
-
-.header {
-
-    display: flex;
-
-    justify-content:
-        space-between;
-
-    align-items: center;
-
-    padding: 4px 0;
-
-    flex-shrink: 0;
-}
-
-
-.coins-container {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-}
-
-
-.coin-icon {
-    font-size: 26px;
-}
-
-
-#coins-display {
-
-    font-size: 28px;
-
-    font-weight: 800;
-
-    color: #ffd700;
-
-    text-shadow:
-        0 2px 4px
-        rgba(0, 0, 0, 0.3);
-}
-
-
-/* ==========================================
-   LEADERBOARD BUTTON
-   ========================================== */
-
-.leaderboard-btn {
-
-    background:
-        rgba(255,255,255,0.08);
-
-    border:
-        1px solid
-        rgba(255,255,255,0.15);
-
-    color: #fff;
-
-    padding: 8px 14px;
-
-    border-radius: 12px;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s;
-
-    pointer-events: auto;
-}
-
-
-.leaderboard-btn:active {
-
-    background:
-        rgba(255,255,255,0.2);
-
-}
-
-
-/* ==========================================
-   TAP AREA
-   ========================================== */
-
-.tap-content {
-
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    flex-grow: 1;
-
-    margin: 5px 0;
-}
-
-
-.monkey-container {
-
-    width: 200px;
-    height: 200px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    position: relative;
-
-    cursor: pointer;
-
-    border-radius: 50%;
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,215,0,0.12) 0%,
-            rgba(0,0,0,0) 70%
-        );
-
-    pointer-events: auto;
-
-    touch-action: manipulation;
-}
-
-
-.monkey-img {
-
-    width: 150px;
-    height: 150px;
-
-    object-fit: contain;
-
-    transition:
-        transform 0.08s ease;
-
-    filter:
-        drop-shadow(
-            0 8px 12px
-            rgba(0,0,0,0.5)
-        );
-
-    pointer-events: none;
-}
-
-
-.monkey-container.tapped
-.monkey-img {
-
-    transform:
-        scale(0.90);
-}
-
-
-/* ==========================================
-   BONUS CARDS
-   ========================================== */
-
-.main-screen-bonuses {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-
-    flex-shrink: 0;
-}
-
-
-.upgrade-card {
-
-    display: flex;
-
-    align-items: center;
-
-    background:
-        rgba(255,255,255,0.05);
-
-    border:
-        1px solid
-        rgba(255,255,255,0.08);
-
-    border-radius: 14px;
-
-    padding: 10px 14px;
-
-    gap: 12px;
-}
-
-
-.upgrade-card.locked {
-
-    opacity: 0.55;
-
-}
-
-
-.upgrade-info {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    flex-grow: 1;
-
-}
-
-
-.upgrade-icon {
-
-    font-size: 28px;
-
-}
-
-
-.upgrade-title {
-
-    font-size: 14px;
-
-    font-weight: 600;
-
-    color: #fff;
-}
-
-
-.upgrade-desc {
-
-    font-size: 11px;
-
-    color: #aaa;
-}
-
-
-/* ==========================================
-   BUTTONS
-   ========================================== */
-
-.action-btn,
-.upgrade-btn {
-
-    background:
-        linear-gradient(
-            135deg,
-            #ff8c00,
-            #ff5722
-        );
-
-    color: #fff;
-
-    border: none;
-
-    padding: 7px 12px;
-
-    border-radius: 10px;
-
-    font-weight: 700;
-
-    font-size: 12px;
-
-    cursor: pointer;
-
-    white-space: nowrap;
-
-    transition:
-        opacity 0.2s,
-        transform 0.1s;
-
-    pointer-events: auto;
-}
-
-
-.action-btn:active,
-.upgrade-btn:active {
-
-    opacity: 0.8;
-
-    transform:
-        scale(0.96);
-}
-
-
-.upgrade-btn:disabled {
-
-    opacity: 0.45;
-
-    cursor: not-allowed;
-
-    transform: none;
-}
-
-
-/* ==========================================
-   ENERGY
-   ========================================== */
-
-.energy-container {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 4px;
-
-    flex-shrink: 0;
-
-    padding-bottom: 4px;
-}
-
-
-.energy-info {
-
-    display: flex;
-
-    justify-content:
-        space-between;
-
-    font-size: 11px;
-
-    color: #aaa;
-
-    font-weight: 600;
-}
-
-
-.energy-bar-background {
-
-    width: 100%;
-
-    height: 7px;
-
-    background:
-        rgba(255,255,255,0.1);
-
-    border-radius: 4px;
-
-    overflow: hidden;
-}
-
-
-.energy-bar-fill {
-
-    width: 100%;
-
-    height: 100%;
-
-    background:
-        linear-gradient(
-            90deg,
-            #ff8c00,
-            #ffd700
-        );
-
-    border-radius: 4px;
-
-    transition:
-        width 0.15s ease-out;
-}
-
-
-/* ==========================================
-   BOOSTS
-   ========================================== */
-
-.boosts-header {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 4px;
-
-    margin-bottom: 4px;
-
-    flex-shrink: 0;
-}
-
-
-.boosts-header h2 {
-
-    font-size: 18px;
-
-    color: #fff;
-}
-
-
-.passive-header-info {
-
-    font-size: 12px;
-
-    color: #ffd700;
-
-    font-weight: 600;
-}
-
-
-.boosts-list {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-}
-
-
-/* ==========================================
-   PROFILE
+   НОВЫЕ ЭЛЕМЕНТЫ
    ========================================== */
 
 .profile-card {
-
     flex-direction: column;
-
     align-items: stretch;
-
     gap: 12px;
-
     padding: 15px;
 }
 
-
 .profile-top {
-
     width: 100%;
-
     display: flex;
-
-    justify-content:
-        space-between;
-
+    justify-content: space-between;
     align-items: center;
-
     gap: 10px;
 }
 
-
 .profile-label {
-
     font-size: 12px;
-
     opacity: 0.7;
-
     margin-bottom: 3px;
 }
 
-
 .profile-name {
-
     font-size: 18px;
-
     font-weight: bold;
-
     word-break: break-word;
 }
 
-
 .rename-btn {
-
-    background: #4caf50;
-
+    background: #4CAF50;
     border: none;
-
     color: white;
-
     padding: 6px 12px;
-
     border-radius: 6px;
-
     cursor: pointer;
-
     font-weight: 600;
-
     white-space: nowrap;
 }
 
-
 .profile-id {
-
     width: 100%;
-
     font-size: 13px;
-
     opacity: 0.8;
-
     word-break: break-all;
 }
 
-
 .profile-card hr {
-
     width: 100%;
-
     border: 0;
-
-    border-top:
-        1px solid
-        rgba(255,255,255,0.1);
-
+    border-top: 1px solid rgba(255,255,255,0.1);
     margin: 5px 0;
 }
 
-
 .profile-stats {
-
     width: 100%;
-
     display: flex;
-
     flex-direction: column;
-
     gap: 8px;
-
     font-size: 13px;
 }
 
 
-/* ==========================================
-   BOTTOM NAV
-   ========================================== */
-
-.bottom-nav {
-
-    display: flex;
-
-    height: 65px;
-
-    background: #14100e;
-
-    border-top:
-        1px solid
-        rgba(255,255,255,0.08);
-
-    position: absolute;
-
-    bottom: 0;
-    left: 0;
-
-    width: 100%;
-
-    z-index: 10000;
-
-    pointer-events: auto;
-}
-
-
-.nav-item {
-
-    flex: 1;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: none;
-
-    border: none;
-
-    color: #777;
-
-    gap: 2px;
-
-    cursor: pointer;
-
-    transition:
-        color 0.2s;
-
-    pointer-events: auto;
-}
-
-
-.nav-icon {
-
-    font-size: 18px;
-
-    pointer-events: none;
-}
-
-
-.nav-text {
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-    pointer-events: none;
-}
-
-
-.nav-item.active {
-
-    color: #ffd700;
-}
-
-
-/* ==========================================
-   MODALS
-   ========================================== */
-
-.modal {
-
-    position: fixed;
-
-    top: 0;
-    left: 0;
-
-    width: 100%;
-    height: 100%;
-
-    background:
-        rgba(0,0,0,0.75);
-
-    z-index: 20000;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 16px;
-
-    pointer-events: auto;
-}
-
-
-.modal-content {
-
-    background: #241a17;
-
-    width: 100%;
-
-    max-width: 380px;
-
-    border-radius: 18px;
-
-    border:
-        1px solid
-        rgba(255,255,255,0.1);
-
-    display: flex;
-
-    flex-direction: column;
-
-    max-height: 75vh;
-
-    overflow: hidden;
-}
-
-
-.modal-header {
-
-    display: flex;
-
-    justify-content:
-        space-between;
-
-    align-items: center;
-
-    padding: 14px 18px;
-
-    border-bottom:
-        1px solid
-        rgba(255,255,255,0.05);
-}
-
-
-.modal-header h3 {
-
-    font-size: 16px;
-
-    color: #fff;
-}
-
-
-.close-btn {
-
-    background: none;
-
-    border: none;
-
-    color: #aaa;
-
-    font-size: 22px;
-
-    cursor: pointer;
-}
-
-
-/* ==========================================
-   LEADERBOARD
-   ========================================== */
-
-.leaderboard-list {
-
-    padding: 12px 18px;
-
-    overflow-y: auto;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 6px;
-}
-
+/* Рейтинг */
 
 .leaderboard-row {
-
     display: flex;
-
-    justify-content:
-        space-between;
-
+    justify-content: space-between;
     align-items: center;
-
     padding: 10px;
-
-    border-bottom:
-        1px solid
-        rgba(255,255,255,0.05);
-
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     font-size: 13px;
-
     gap: 10px;
 }
 
-
 .leaderboard-row span:last-child {
-
     color: #ffd700;
-
     font-weight: bold;
-
     white-space: nowrap;
 }
 
-
 .leaderboard-row.current-player {
-
-    background:
-        rgba(255,215,0,0.1);
-
+    background: rgba(255,215,0,0.1);
     border-radius: 8px;
-
     margin-top: 5px;
 }
 
-
-.loading-text {
-
+.leaderboard-empty {
     text-align: center;
-
     color: #888;
-
-    font-size: 13px;
-
-    padding: 15px;
+    font-size: 12px;
+    line-height: 1.5;
+    padding: 15px 10px;
 }
 
 
-/* ==========================================
-   PLAYER PROFILE MODAL
-   ========================================== */
-
-.profile-view-modal {
-
-    padding: 20px;
-
-    text-align: left;
-
-    position: relative;
-}
-
-
-.profile-view-modal h3 {
-
-    margin-top: 0;
-
-    margin-bottom: 15px;
-
-    color: white;
-
-    text-align: center;
-}
-
+/* Профиль игрока */
 
 .profile-modal-close {
-
     position: absolute;
-
     top: 12px;
     right: 15px;
-
     background: none;
-
     border: none;
-
     color: white;
-
     font-size: 20px;
-
     cursor: pointer;
 }
 
+.player-profile-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: white;
+    text-align: center;
+}
 
 .player-profile-info {
-
     font-size: 15px;
-
     line-height: 1.8;
 }
 
 
-/* ==========================================
-   RENAME MODAL
-   ========================================== */
+/* Смена ника */
 
 .rename-modal-content {
-
     padding: 20px;
-
     text-align: center;
 }
-
 
 .rename-modal-content h3 {
-
     margin-top: 0;
-
     color: white;
 }
 
-
 #username-input {
-
     padding: 10px;
-
     width: 90%;
-
     margin: 15px 0;
-
     border-radius: 6px;
-
     border: none;
-
     outline: none;
-
     background: #2a2a2a;
-
     color: white;
-
     font-size: 16px;
-
     text-align: center;
 }
 
-
 .rename-actions {
-
     display: flex;
-
     gap: 10px;
-
     justify-content: center;
 }
 
-
 .save-name-btn,
 .cancel-name-btn {
-
     padding: 8px 16px;
-
     color: white;
-
     border: none;
-
     border-radius: 6px;
-
     cursor: pointer;
-
     font-weight: bold;
 }
 
-
 .save-name-btn {
-
-    background: #4caf50;
+    background: #4CAF50;
 }
 
-
 .cancel-name-btn {
-
     background: #555;
 }
 
 
-/* ==========================================
-   TAP ANIMATION
-   ========================================== */
+/* Заблокированная прокачка */
 
-.flying-one,
-.flying-crit {
-
-    position: absolute;
-
-    font-weight: 900;
-
-    pointer-events: none;
-
-    animation:
-        floatUp
-        0.7s
-        ease-out
-        forwards;
-
-    z-index: 30000;
+.upgrade-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
 }
 
 
-.flying-one {
+/* Чтобы тап точно работал */
 
-    font-size: 18px;
-
-    color: #ffd700;
-
-    text-shadow:
-        0 2px 4px
-        rgba(0,0,0,0.5);
+.monkey-container {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
-
-
-.flying-crit {
-
-    font-size: 24px;
-
-    color: #ff3333;
-
-    text-shadow:
-        0 2px 8px
-        rgba(255,0,0,0.6);
-}
-
-
-@keyframes floatUp {
-
-    0% {
-
-        opacity: 1;
-
-        transform:
-            translateY(0)
-            scale(0.8);
-
-    }
-
-    100% {
-
-        opacity: 0;
-
-        transform:
-            translateY(-70px)
-            scale(1.2);
-
-    }
-}
-
-
-/* ==========================================
-   MOBILE
-   ========================================== */
-
-@media (max-width: 360px) {
-
-    .screen {
-
-        padding-left: 12px;
-        padding-right: 12px;
-
-    }
-
-
-    .monkey-container {
-
-        width: 180px;
-        height: 180px;
-
-    }
-
-
-    .monkey-img {
-
-        width: 135px;
-        height: 135px;
-
-    }
-
-
-    #coins-display {
-
-        font-size: 24px;
-
-    }
-
-
-    .upgrade-card {
-
-        padding:
-            9px 10px;
-
-    }
-
-}
+```
