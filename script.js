@@ -1,4 +1,3 @@
-```javascript
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
@@ -52,10 +51,11 @@ let playerName =
 
 
 // =========================
-// SAVE
+// SAVE GAME
 // =========================
 
 function saveGame() {
+
     localStorage.setItem("coins", coins);
     localStorage.setItem("energy", energy);
 
@@ -77,56 +77,71 @@ function saveGame() {
 
 
 // =========================
-// UI
+// UPDATE UI
 // =========================
 
 function updateAllUI() {
 
-    if ($("coins"))
+    if ($("coins")) {
         $("coins").textContent = Math.floor(coins);
+    }
 
-    if ($("energy"))
+    if ($("energy")) {
         $("energy").textContent = Math.floor(energy);
+    }
 
-    if ($("tap-power"))
+    if ($("tap-power")) {
         $("tap-power").textContent = tapPower;
+    }
 
-    if ($("passive"))
+    if ($("passive")) {
         $("passive").textContent = passiveIncome;
+    }
 
-    if ($("tap-level"))
+    if ($("tap-level")) {
         $("tap-level").textContent = tapLevel;
+    }
 
-    if ($("tap-cost"))
+    if ($("tap-cost")) {
         $("tap-cost").textContent = tapCost;
+    }
 
-    if ($("bush-level"))
+    if ($("bush-level")) {
         $("bush-level").textContent = bushLevel;
+    }
 
-    if ($("bush-cost"))
+    if ($("bush-cost")) {
         $("bush-cost").textContent = bushCost;
+    }
 
-    if ($("plantation-level"))
+    if ($("plantation-level")) {
         $("plantation-level").textContent = plantationLevel;
+    }
 
-    if ($("plantation-cost"))
+    if ($("plantation-cost")) {
         $("plantation-cost").textContent = plantationCost;
+    }
 
-    if ($("refs"))
+    if ($("refs")) {
         $("refs").textContent = refs;
+    }
 
-    if ($("username"))
+    if ($("username")) {
         $("username").textContent = playerName;
+    }
 
-    if ($("profile-name"))
+    if ($("profile-name")) {
         $("profile-name").textContent = playerName;
+    }
 
-    if ($("profile-coins"))
+    if ($("profile-coins")) {
         $("profile-coins").textContent = Math.floor(coins);
+    }
 
-    if ($("profile-passive"))
+    if ($("profile-passive")) {
         $("profile-passive").textContent =
             passiveIncome + "/сек";
+    }
 }
 
 
@@ -138,11 +153,15 @@ function setupTap() {
 
     const button = $("monkey-button");
 
-    if (!button) return;
+    if (!button) {
+        return;
+    }
 
-    button.addEventListener("click", () => {
+    button.addEventListener("click", function () {
 
-        if (energy <= 0) return;
+        if (energy <= 0) {
+            return;
+        }
 
         coins += tapPower;
         energy--;
@@ -153,18 +172,24 @@ function setupTap() {
         updateAllUI();
         saveGame();
 
-        if (tg?.HapticFeedback) {
+        if (tg && tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred("light");
         }
     });
 }
 
 
+// =========================
+// MONKEY ANIMATION
+// =========================
+
 function animateMonkey() {
 
     const button = $("monkey-button");
 
-    if (!button) return;
+    if (!button) {
+        return;
+    }
 
     button.classList.remove("tapped");
 
@@ -172,7 +197,7 @@ function animateMonkey() {
 
     button.classList.add("tapped");
 
-    setTimeout(() => {
+    setTimeout(function () {
         button.classList.remove("tapped");
     }, 100);
 }
@@ -186,7 +211,9 @@ function createFloatingCoin(amount) {
 
     const app = $("app");
 
-    if (!app) return;
+    if (!app) {
+        return;
+    }
 
     const coin = document.createElement("div");
 
@@ -215,7 +242,7 @@ function createFloatingCoin(amount) {
 
     app.appendChild(coin);
 
-    setTimeout(() => {
+    setTimeout(function () {
         coin.remove();
     }, 800);
 }
@@ -227,7 +254,9 @@ function createFloatingCoin(amount) {
 
 function buyTapUpgrade() {
 
-    if (coins < tapCost) return;
+    if (coins < tapCost) {
+        return;
+    }
 
     coins -= tapCost;
 
@@ -243,7 +272,9 @@ function buyTapUpgrade() {
 
 function buyBush() {
 
-    if (coins < bushCost) return;
+    if (coins < bushCost) {
+        return;
+    }
 
     coins -= bushCost;
 
@@ -259,7 +290,9 @@ function buyBush() {
 
 function buyPlantation() {
 
-    if (coins < plantationCost) return;
+    if (coins < plantationCost) {
+        return;
+    }
 
     coins -= plantationCost;
 
@@ -283,16 +316,16 @@ function setupNavigation() {
     const buttons =
         document.querySelectorAll(".nav-button");
 
-    buttons.forEach(button => {
+    buttons.forEach(function (button) {
 
-        button.addEventListener("click", () => {
+        button.addEventListener("click", function () {
 
             const screenId =
                 button.dataset.screen;
 
             document
                 .querySelectorAll(".screen")
-                .forEach(screen => {
+                .forEach(function (screen) {
                     screen.classList.remove("active");
                 });
 
@@ -302,7 +335,7 @@ function setupNavigation() {
                 screen.classList.add("active");
             }
 
-            buttons.forEach(btn => {
+            buttons.forEach(function (btn) {
                 btn.classList.remove("active");
             });
 
@@ -318,111 +351,185 @@ function setupNavigation() {
 
 function setupButtons() {
 
-    $("buy-tap")?.addEventListener(
-        "click",
-        buyTapUpgrade
-    );
-
-    $("buy-bush")?.addEventListener(
-        "click",
-        buyBush
-    );
-
-    $("buy-plantation")?.addEventListener(
-        "click",
-        buyPlantation
-    );
+    // Сила тапа
+    if ($("buy-tap")) {
+        $("buy-tap").addEventListener(
+            "click",
+            buyTapUpgrade
+        );
+    }
 
 
-    // ЛИДЕРЫ — открываются только из профиля
-    $("leaderboard-button")?.addEventListener(
-        "click",
-        () => {
-            $("leaderboard-modal")
-                ?.classList.add("active");
-        }
-    );
+    // Куст
+    if ($("buy-bush")) {
+        $("buy-bush").addEventListener(
+            "click",
+            buyBush
+        );
+    }
 
 
-    $("close-leaderboard")?.addEventListener(
-        "click",
-        () => {
-            $("leaderboard-modal")
-                ?.classList.remove("active");
-        }
-    );
+    // Плантация
+    if ($("buy-plantation")) {
+        $("buy-plantation").addEventListener(
+            "click",
+            buyPlantation
+        );
+    }
 
 
-    // ИЗМЕНИТЬ ИМЯ — открывается только после нажатия
-    $("rename-button")?.addEventListener(
-        "click",
-        () => {
+    // =========================
+    // ЛИДЕРБОРД
+    // =========================
 
-            const input = $("name-input");
+    if ($("leaderboard-button")) {
 
-            if (input) {
-                input.value = playerName;
+        $("leaderboard-button").addEventListener(
+            "click",
+            function () {
+
+                const modal = $("leaderboard-modal");
+
+                if (modal) {
+                    modal.classList.add("active");
+                }
             }
-
-            $("rename-modal")
-                ?.classList.add("active");
-        }
-    );
+        );
+    }
 
 
-    $("rename-cancel")?.addEventListener(
-        "click",
-        () => {
-            $("rename-modal")
-                ?.classList.remove("active");
-        }
-    );
+    if ($("close-leaderboard")) {
 
+        $("close-leaderboard").addEventListener(
+            "click",
+            function () {
 
-    $("rename-save")?.addEventListener(
-        "click",
-        () => {
+                const modal = $("leaderboard-modal");
 
-            const input = $("name-input");
-
-            if (!input) return;
-
-            const name =
-                input.value.trim();
-
-            if (!name) return;
-
-            playerName = name;
-
-            saveGame();
-            updateAllUI();
-
-            $("rename-modal")
-                ?.classList.remove("active");
-        }
-    );
-
-
-    $("ref-button")?.addEventListener(
-        "click",
-        shareReferral
-    );
-
-
-    $("channel-button")?.addEventListener(
-        "click",
-        () => {
-
-            const channel =
-                "https://t.me/MonkeyTapper";
-
-            if (tg?.openTelegramLink) {
-                tg.openTelegramLink(channel);
-            } else {
-                window.open(channel, "_blank");
+                if (modal) {
+                    modal.classList.remove("active");
+                }
             }
-        }
-    );
+        );
+    }
+
+
+    // =========================
+    // ИЗМЕНИТЬ ИМЯ
+    // =========================
+
+    if ($("rename-button")) {
+
+        $("rename-button").addEventListener(
+            "click",
+            function () {
+
+                const input = $("name-input");
+
+                if (input) {
+                    input.value = playerName;
+                }
+
+                const modal = $("rename-modal");
+
+                if (modal) {
+                    modal.classList.add("active");
+                }
+            }
+        );
+    }
+
+
+    if ($("rename-cancel")) {
+
+        $("rename-cancel").addEventListener(
+            "click",
+            function () {
+
+                const modal = $("rename-modal");
+
+                if (modal) {
+                    modal.classList.remove("active");
+                }
+            }
+        );
+    }
+
+
+    if ($("rename-save")) {
+
+        $("rename-save").addEventListener(
+            "click",
+            function () {
+
+                const input = $("name-input");
+
+                if (!input) {
+                    return;
+                }
+
+                const name =
+                    input.value.trim();
+
+                if (!name) {
+                    return;
+                }
+
+                playerName = name;
+
+                saveGame();
+                updateAllUI();
+
+                const modal = $("rename-modal");
+
+                if (modal) {
+                    modal.classList.remove("active");
+                }
+            }
+        );
+    }
+
+
+    // =========================
+    // ПРИГЛАСИТЬ ДРУГА
+    // =========================
+
+    if ($("ref-button")) {
+
+        $("ref-button").addEventListener(
+            "click",
+            shareReferral
+        );
+    }
+
+
+    // =========================
+    // НАШ КАНАЛ
+    // =========================
+
+    if ($("channel-button")) {
+
+        $("channel-button").addEventListener(
+            "click",
+            function () {
+
+                const channel =
+                    "https://t.me/MonkeyTapper";
+
+                if (tg && tg.openTelegramLink) {
+
+                    tg.openTelegramLink(channel);
+
+                } else {
+
+                    window.open(
+                        channel,
+                        "_blank"
+                    );
+                }
+            }
+        );
+    }
 }
 
 
@@ -436,15 +543,29 @@ function shareReferral() {
         "MonkeyTapperTGbot";
 
     const link =
-        `https://t.me/${botUsername}?start=${userId}`;
+        "https://t.me/" +
+        botUsername +
+        "?start=" +
+        userId;
 
     const share =
-        `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("🐒 Заходи в Monkey Tapper!")}`;
+        "https://t.me/share/url?url=" +
+        encodeURIComponent(link) +
+        "&text=" +
+        encodeURIComponent(
+            "🐒 Заходи в Monkey Tapper!"
+        );
 
-    if (tg?.openTelegramLink) {
+    if (tg && tg.openTelegramLink) {
+
         tg.openTelegramLink(share);
+
     } else {
-        window.open(share, "_blank");
+
+        window.open(
+            share,
+            "_blank"
+        );
     }
 }
 
@@ -453,7 +574,7 @@ function shareReferral() {
 // PASSIVE INCOME
 // =========================
 
-setInterval(() => {
+setInterval(function () {
 
     if (passiveIncome > 0) {
 
@@ -470,7 +591,7 @@ setInterval(() => {
 // ENERGY
 // =========================
 
-setInterval(() => {
+setInterval(function () {
 
     if (energy < 100) {
 
@@ -484,40 +605,84 @@ setInterval(() => {
 
 
 // =========================
+// CLOSE MODALS
+// =========================
+
+function closeAllModals() {
+
+    const leaderboard =
+        $("leaderboard-modal");
+
+    const rename =
+        $("rename-modal");
+
+    if (leaderboard) {
+        leaderboard.classList.remove("active");
+    }
+
+    if (rename) {
+        rename.classList.remove("active");
+    }
+}
+
+
+// =========================
 // START
 // =========================
 
 function init() {
 
-    // НИ ОДНО ОКНО НЕ ОТКРЫВАЕТСЯ ПРИ ЗАПУСКЕ
-    $("leaderboard-modal")?.classList.remove("active");
-    $("rename-modal")?.classList.remove("active");
+    // Закрываем все окна при запуске
+    closeAllModals();
 
-    // Всегда начинаем с главного экрана
+
+    // Всегда начинаем с игры
     document
         .querySelectorAll(".screen")
-        .forEach(screen => {
+        .forEach(function (screen) {
             screen.classList.remove("active");
         });
 
-    $("game-screen")?.classList.add("active");
 
+    const gameScreen =
+        $("game-screen");
+
+    if (gameScreen) {
+        gameScreen.classList.add("active");
+    }
+
+
+    // Активная кнопка "Игра"
     document
         .querySelectorAll(".nav-button")
-        .forEach(button => {
+        .forEach(function (button) {
             button.classList.remove("active");
         });
 
-    document
-        .querySelector('[data-screen="game-screen"]')
-        ?.classList.add("active");
+
+    const gameButton =
+        document.querySelector(
+            '[data-screen="game-screen"]'
+        );
+
+    if (gameButton) {
+        gameButton.classList.add("active");
+    }
+
 
     updateAllUI();
 
     setupTap();
     setupButtons();
     setupNavigation();
+
+    // Ещё раз закрываем модалки после инициализации
+    closeAllModals();
 }
 
+
+// =========================
+// RUN
+// =========================
+
 init();
-```
