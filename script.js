@@ -43,25 +43,20 @@ const storagePrefix =
 ===================================================== */
 
 let coins = 0;
-
 let energy = 1000;
 
 const MAX_ENERGY = 1000;
 
 let tapPower = 0.2;
-
 let tapLevel = 1;
-
 let tapCost = 50;
 
 let passiveIncome = 0;
 
 let bushLevel = 0;
-
 let bushCost = 100;
 
 let plantationLevel = 0;
-
 let plantationCost = 1000;
 
 let refs = 0;
@@ -163,7 +158,6 @@ function loadGame() {
             0
         );
 
-
     energy =
         Math.max(
             0,
@@ -173,14 +167,12 @@ function loadGame() {
             )
         );
 
-
     calculateStats();
-
 }
 
 
 /* =====================================================
-   РАСЧЁТ СТАТИСТИК
+   СТАТИСТИКИ
 ===================================================== */
 
 function calculateStats() {
@@ -193,7 +185,6 @@ function calculateStats() {
             ) * 10
         ) / 10;
 
-
     passiveIncome =
         Math.round(
             (
@@ -201,7 +192,6 @@ function calculateStats() {
                 plantationLevel * 2
             ) * 10
         ) / 10;
-
 }
 
 
@@ -218,29 +208,18 @@ function setupTap() {
         return;
     }
 
-
     tapButton.addEventListener(
         "pointerdown",
         event => {
 
             event.preventDefault();
 
-            tap(
-                event
-            );
+            tap(event);
 
-        },
-        {
-            passive: false
         }
     );
-
 }
 
-
-/* =====================================================
-   САМ ТАП
-===================================================== */
 
 function tap(event) {
 
@@ -249,12 +228,9 @@ function tap(event) {
         hapticError();
 
         return;
-
     }
 
-
     energy -= 1;
-
 
     coins =
         Math.round(
@@ -264,11 +240,9 @@ function tap(event) {
             ) * 10
         ) / 10;
 
-
     updateAllUI();
 
     saveGame();
-
 
     animateMonkey();
 
@@ -277,14 +251,12 @@ function tap(event) {
         `+${tapPower.toFixed(1)}`
     );
 
-
     hapticTap();
-
 }
 
 
 /* =====================================================
-   АНИМАЦИЯ ОБЕЗЬЯНЫ
+   АНИМАЦИЯ
 ===================================================== */
 
 function animateMonkey() {
@@ -296,19 +268,15 @@ function animateMonkey() {
         return;
     }
 
-
     monkey.classList.remove(
         "tap-effect"
     );
 
-
     void monkey.offsetWidth;
-
 
     monkey.classList.add(
         "tap-effect"
     );
-
 
     setTimeout(
         () => {
@@ -320,12 +288,11 @@ function animateMonkey() {
         },
         130
     );
-
 }
 
 
 /* =====================================================
-   ЛЕТЯЩАЯ МОНЕТКА
+   ЛЕТЯЩИЕ МОНЕТЫ
 ===================================================== */
 
 function createFloatingCoin(
@@ -342,32 +309,25 @@ function createFloatingCoin(
         return;
     }
 
-
     const element =
         document.createElement(
             "div"
         );
 
-
     element.className =
         "floating-coin";
-
 
     element.textContent =
         text;
 
-
     const rect =
         app.getBoundingClientRect();
-
 
     let x =
         rect.width / 2;
 
-
     let y =
         rect.height / 2;
-
 
     if (
         event &&
@@ -381,32 +341,24 @@ function createFloatingCoin(
         y =
             event.clientY -
             rect.top;
-
     }
-
 
     element.style.left =
         `${x - 15}px`;
 
-
     element.style.top =
         `${y - 20}px`;
-
 
     app.appendChild(
         element
     );
 
-
     setTimeout(
         () => {
-
             element.remove();
-
         },
         750
     );
-
 }
 
 
@@ -421,7 +373,6 @@ function setupNavigation() {
             ".nav-button"
         );
 
-
     buttons.forEach(
         button => {
 
@@ -432,11 +383,9 @@ function setupNavigation() {
                     const screenId =
                         button.dataset.screen;
 
-
                     showScreen(
                         screenId
                     );
-
 
                     buttons.forEach(
                         item => {
@@ -448,7 +397,6 @@ function setupNavigation() {
                         }
                     );
 
-
                     button.classList.add(
                         "active"
                     );
@@ -458,7 +406,6 @@ function setupNavigation() {
 
         }
     );
-
 }
 
 
@@ -478,10 +425,8 @@ function showScreen(
             }
         );
 
-
     const screen =
         $(screenId);
-
 
     if (screen) {
 
@@ -490,7 +435,6 @@ function showScreen(
         );
 
     }
-
 }
 
 
@@ -505,60 +449,65 @@ function setupButtons() {
         buyTapUpgrade
     );
 
-
     $("bush-upgrade")?.addEventListener(
         "click",
         buyBush
     );
 
+    $("bush-upgrade-2")?.addEventListener(
+        "click",
+        buyBush
+    );
 
     $("plantation-upgrade")?.addEventListener(
         "click",
         buyPlantation
     );
 
+    $("plantation-upgrade-2")?.addEventListener(
+        "click",
+        buyPlantation
+    );
 
     $("leaderboard-open")?.addEventListener(
         "click",
         openLeaderboard
     );
 
-
     $("leaderboard-close")?.addEventListener(
         "click",
         closeLeaderboard
     );
-
 
     $("rename-button")?.addEventListener(
         "click",
         openRename
     );
 
-
     $("rename-save")?.addEventListener(
         "click",
         saveName
     );
-
 
     $("rename-cancel")?.addEventListener(
         "click",
         closeRename
     );
 
+    $("rename-cancel-2")?.addEventListener(
+        "click",
+        closeRename
+    );
 
     $("ref-button")?.addEventListener(
         "click",
         shareReferral
     );
 
-
     $("channel-button")?.addEventListener(
         "click",
         claimChannel
     );
-
 
     $("leaderboard-modal")?.addEventListener(
         "click",
@@ -576,7 +525,6 @@ function setupButtons() {
         }
     );
 
-
     $("rename-modal")?.addEventListener(
         "click",
         event => {
@@ -592,12 +540,11 @@ function setupButtons() {
 
         }
     );
-
 }
 
 
 /* =====================================================
-   МУЛЬТИТАП
+   СИЛА ТАПА
 ===================================================== */
 
 function buyTapUpgrade() {
@@ -607,9 +554,7 @@ function buyTapUpgrade() {
         hapticError();
 
         return;
-
     }
-
 
     coins =
         Math.round(
@@ -619,15 +564,12 @@ function buyTapUpgrade() {
             ) * 10
         ) / 10;
 
-
     tapLevel++;
-
 
     tapCost =
         Math.floor(
             tapCost * 1.7
         );
-
 
     calculateStats();
 
@@ -636,7 +578,6 @@ function buyTapUpgrade() {
     saveGame();
 
     hapticSuccess();
-
 }
 
 
@@ -651,9 +592,7 @@ function buyBush() {
         hapticError();
 
         return;
-
     }
-
 
     coins =
         Math.round(
@@ -663,15 +602,12 @@ function buyBush() {
             ) * 10
         ) / 10;
 
-
     bushLevel++;
-
 
     bushCost =
         Math.floor(
             bushCost * 1.8
         );
-
 
     calculateStats();
 
@@ -680,7 +616,6 @@ function buyBush() {
     saveGame();
 
     hapticSuccess();
-
 }
 
 
@@ -695,18 +630,14 @@ function buyPlantation() {
         hapticError();
 
         return;
-
     }
-
 
     if (coins < plantationCost) {
 
         hapticError();
 
         return;
-
     }
-
 
     coins =
         Math.round(
@@ -716,15 +647,12 @@ function buyPlantation() {
             ) * 10
         ) / 10;
 
-
     plantationLevel++;
-
 
     plantationCost =
         Math.floor(
             plantationCost * 2
         );
-
 
     calculateStats();
 
@@ -733,7 +661,6 @@ function buyPlantation() {
     saveGame();
 
     hapticSuccess();
-
 }
 
 
@@ -749,11 +676,8 @@ function startPassiveIncome() {
             if (
                 passiveIncome <= 0
             ) {
-
                 return;
-
             }
-
 
             coins =
                 Math.round(
@@ -763,7 +687,6 @@ function startPassiveIncome() {
                     ) * 10
                 ) / 10;
 
-
             updateAllUI();
 
             saveGame();
@@ -771,7 +694,6 @@ function startPassiveIncome() {
         },
         1000
     );
-
 }
 
 
@@ -787,18 +709,14 @@ function startEnergyRegeneration() {
             if (
                 energy >= MAX_ENERGY
             ) {
-
                 return;
-
             }
-
 
             energy =
                 Math.min(
                     MAX_ENERGY,
                     energy + 1
                 );
-
 
             updateAllUI();
 
@@ -807,7 +725,6 @@ function startEnergyRegeneration() {
         },
         1000
     );
-
 }
 
 
@@ -819,22 +736,18 @@ function updateAllUI() {
 
     calculateStats();
 
-
     setText(
         "coins",
         coins.toFixed(1)
     );
-
 
     setText(
         "energy",
         Math.floor(energy)
     );
 
-
     const energyFill =
         $("energy-fill");
-
 
     if (energyFill) {
 
@@ -843,59 +756,59 @@ function updateAllUI() {
 
     }
 
-
     setText(
-        "refs",
-        `Приглашено: ${refs}`
+        "profile-refs",
+        refs
     );
-
-
-    setText(
-        "passive",
-        passiveIncome.toFixed(1)
-    );
-
 
     setText(
         "tap-level",
         tapLevel
     );
 
-
     setText(
         "tap-power",
         tapPower.toFixed(1)
     );
-
 
     setText(
         "tap-cost",
         tapCost
     );
 
-
     setText(
         "bush-level",
         bushLevel
     );
-
 
     setText(
         "bush-cost",
         bushCost
     );
 
+    setText(
+        "plantation-level",
+        plantationLevel
+    );
 
     setText(
         "plantation-cost",
         plantationCost
     );
 
+    setText(
+        "plantation-cost-2",
+        plantationCost
+    );
+
+    setText(
+        "bush-cost-2",
+        bushCost
+    );
 
     updatePlantationUI();
 
     updateProfile();
-
 }
 
 
@@ -908,37 +821,37 @@ function updatePlantationUI() {
     const card =
         $("plantation-card");
 
+    const card2 =
+        $("plantation-upgrade-card");
+
     const button =
         $("plantation-upgrade");
 
-
-    if (!card || !button) {
-        return;
-    }
-
+    const button2 =
+        $("plantation-upgrade-2");
 
     if (bushLevel >= 1) {
 
-        card.classList.remove(
+        card?.classList.remove(
             "locked"
         );
 
+        card2?.classList.remove(
+            "locked"
+        );
 
-        button.disabled =
-            false;
+        if (button) {
+            button.disabled = false;
+        }
 
+        if (button2) {
+            button2.disabled = false;
+        }
 
         setText(
             "plantation-icon",
             "🌴"
         );
-
-
-        setText(
-            "plantation-title",
-            "Большая плантация"
-        );
-
 
         setText(
             "plantation-description",
@@ -949,26 +862,26 @@ function updatePlantationUI() {
 
     else {
 
-        card.classList.add(
+        card?.classList.add(
             "locked"
         );
 
+        card2?.classList.add(
+            "locked"
+        );
 
-        button.disabled =
-            true;
+        if (button) {
+            button.disabled = true;
+        }
 
+        if (button2) {
+            button2.disabled = true;
+        }
 
         setText(
             "plantation-icon",
             "🔒"
         );
-
-
-        setText(
-            "plantation-title",
-            "Большая плантация"
-        );
-
 
         setText(
             "plantation-description",
@@ -976,7 +889,6 @@ function updatePlantationUI() {
         );
 
     }
-
 }
 
 
@@ -991,55 +903,46 @@ function updateProfile() {
             storagePrefix + "name"
         );
 
-
     const name =
         savedName ||
         telegramUser.first_name ||
         telegramUser.username ||
         "Игрок";
 
-
     setText(
         "profile-name",
         name
     );
 
-
     setText(
         "profile-id",
-        userId
+        `ID: ${userId}`
     );
-
 
     setText(
         "profile-coins",
         coins.toFixed(1)
     );
 
-
     setText(
         "profile-tap",
         tapPower.toFixed(1)
     );
-
 
     setText(
         "profile-passive",
         passiveIncome.toFixed(1)
     );
 
-
     setText(
         "profile-energy",
         `${Math.floor(energy)} / ${MAX_ENERGY}`
     );
 
-
     setText(
         "profile-refs",
         refs
     );
-
 }
 
 
@@ -1053,7 +956,6 @@ function saveGame() {
         saveTimer
     );
 
-
     saveTimer =
         setTimeout(
             () => {
@@ -1065,48 +967,40 @@ function saveGame() {
                         coins
                     );
 
-
                     localStorage.setItem(
                         storagePrefix + "energy",
                         energy
                     );
-
 
                     localStorage.setItem(
                         storagePrefix + "tapLevel",
                         tapLevel
                     );
 
-
                     localStorage.setItem(
                         storagePrefix + "tapCost",
                         tapCost
                     );
-
 
                     localStorage.setItem(
                         storagePrefix + "bushLevel",
                         bushLevel
                     );
 
-
                     localStorage.setItem(
                         storagePrefix + "bushCost",
                         bushCost
                     );
-
 
                     localStorage.setItem(
                         storagePrefix + "plantationLevel",
                         plantationLevel
                     );
 
-
                     localStorage.setItem(
                         storagePrefix + "plantationCost",
                         plantationCost
                     );
-
 
                     localStorage.setItem(
                         storagePrefix + "refs",
@@ -1127,7 +1021,6 @@ function saveGame() {
             },
             250
         );
-
 }
 
 
@@ -1143,26 +1036,21 @@ function openRename() {
     const input =
         $("rename-input");
 
-
     if (!modal || !input) {
         return;
     }
 
-
     input.value =
         $("profile-name").textContent;
-
 
     modal.classList.remove(
         "hidden"
     );
 
-
     setTimeout(
         () => input.focus(),
         50
     );
-
 }
 
 
@@ -1171,7 +1059,6 @@ function closeRename() {
     $("rename-modal")?.classList.add(
         "hidden"
     );
-
 }
 
 
@@ -1180,37 +1067,29 @@ function saveName() {
     const input =
         $("rename-input");
 
-
     if (!input) {
         return;
     }
 
-
     const name =
         input.value.trim();
-
 
     if (
         name.length < 1
     ) {
-
         return;
-
     }
-
 
     localStorage.setItem(
         storagePrefix + "name",
         name
     );
 
-
     updateProfile();
 
     updateLeaderboard();
 
     closeRename();
-
 }
 
 
@@ -1222,11 +1101,9 @@ function openLeaderboard() {
 
     updateLeaderboard();
 
-
     $("leaderboard-modal")?.classList.remove(
         "hidden"
     );
-
 }
 
 
@@ -1235,7 +1112,6 @@ function closeLeaderboard() {
     $("leaderboard-modal")?.classList.add(
         "hidden"
     );
-
 }
 
 
@@ -1249,18 +1125,15 @@ function updateLeaderboard() {
         telegramUser.username ||
         "Игрок";
 
-
     setText(
         "leaderboard-name",
         name
     );
 
-
     setText(
         "leaderboard-coins",
         coins.toFixed(1)
     );
-
 }
 
 
@@ -1273,10 +1146,8 @@ function shareReferral() {
     const botUsername =
         "MonkeyTapperTGbot";
 
-
     const link =
         `https://t.me/${botUsername}?start=${userId}`;
-
 
     const share =
         `https://t.me/share/url?url=${
@@ -1286,7 +1157,6 @@ function shareReferral() {
                 "🐒 Заходи в Monkey Tapper!"
             )
         }`;
-
 
     if (
         tg &&
@@ -1307,12 +1177,11 @@ function shareReferral() {
         );
 
     }
-
 }
 
 
 /* =====================================================
-   НАГРАДА ЗА КАНАЛ
+   КАНАЛ
 ===================================================== */
 
 function claimChannel() {
@@ -1320,7 +1189,6 @@ function claimChannel() {
     const key =
         storagePrefix +
         "channelClaimed";
-
 
     if (
         localStorage.getItem(key)
@@ -1331,9 +1199,7 @@ function claimChannel() {
         );
 
         return;
-
     }
-
 
     coins =
         Math.round(
@@ -1343,12 +1209,10 @@ function claimChannel() {
             ) * 10
         ) / 10;
 
-
     localStorage.setItem(
         key,
         "true"
     );
-
 
     updateAllUI();
 
@@ -1356,11 +1220,9 @@ function claimChannel() {
 
     hapticSuccess();
 
-
     alert(
         "+250 🍌"
     );
-
 }
 
 
@@ -1380,7 +1242,6 @@ function hapticTap() {
         );
 
     }
-
 }
 
 
@@ -1396,7 +1257,6 @@ function hapticSuccess() {
         );
 
     }
-
 }
 
 
@@ -1412,7 +1272,6 @@ function hapticError() {
         );
 
     }
-
 }
 
 
@@ -1428,14 +1287,12 @@ function setText(
     const element =
         $(id);
 
-
     if (element) {
 
         element.textContent =
             String(value);
 
     }
-
 }
 
 
@@ -1449,20 +1306,16 @@ function numberFromStorage(
             storagePrefix + key
         );
 
-
     if (value === null) {
 
         return fallback;
 
     }
 
-
     const number =
         Number(value);
-
 
     return Number.isFinite(number)
         ? number
         : fallback;
-
 }
