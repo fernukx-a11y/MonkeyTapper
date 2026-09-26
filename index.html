@@ -1,579 +1,274 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <title>Monkey Tapper</title>
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <link rel="stylesheet" href="style.css?v=202">
 </head>
 
 <body>
 
-<div class="app">
+<div id="app" class="app">
 
-    <!-- ================= ИГРА ================= -->
-
+    <!-- ИГРА -->
     <section id="game-screen" class="screen active">
 
         <div class="top-bar">
-
             <div class="balance">
-                <span>🍌</span>
-                <span id="coins">0.0</span>
+                <span class="coin-icon">🪙</span>
+                <span id="coins">0</span>
             </div>
 
+            <div class="energy">
+                ⚡ <span id="energy">100</span>
+            </div>
         </div>
-
 
         <div class="game-content">
 
-            <button
-                id="tap-button"
-                class="monkey-button"
-            >
-                <span class="monkey-image">🐒</span>
+            <button id="monkey-button" class="monkey-button">
+                <img
+                    src="monkey.png"
+                    alt="Monkey"
+                    class="monkey-image"
+                >
             </button>
 
         </div>
 
-
-        <div class="energy">
-
-            <div class="energy-header">
-                <span>⚡ Энергия</span>
-                <span>
-                    <span id="energy">1000</span>/1000
-                </span>
+        <div class="stats">
+            <div class="stat">
+                <span>За тап</span>
+                <b>+<span id="tap-power">1</span></b>
             </div>
 
-            <div class="energy-track">
-                <div
-                    id="energy-fill"
-                    class="energy-fill"
-                ></div>
+            <div class="stat">
+                <span>Пассивный доход</span>
+                <b>+<span id="passive">0</span>/сек</b>
             </div>
-
         </div>
-
-
-        <div class="bonuses">
-
-            <div class="bonus-card">
-
-                <div class="bonus-left">
-
-                    <div class="bonus-icon">
-                        🌴
-                    </div>
-
-                    <div>
-
-                        <div class="bonus-title">
-                            Куст
-                        </div>
-
-                        <div class="bonus-description">
-                            +0.5 🍌/сек
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <button id="bush-upgrade">
-                    <span id="bush-cost">100</span> 🍌
-                </button>
-
-            </div>
-
-
-            <div
-                id="plantation-card"
-                class="upgrade locked"
-            >
-
-                <div class="upgrade-info">
-
-                    <div
-                        id="plantation-icon"
-                        class="upgrade-icon"
-                    >
-                        🔒
-                    </div>
-
-                    <div>
-
-                        <div
-                            id="plantation-title"
-                            class="upgrade-title"
-                        >
-                            Большая плантация
-                        </div>
-
-                        <div
-                            id="plantation-description"
-                            class="upgrade-description"
-                        >
-                            Требуется 1 уровень куста
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <button
-                    id="plantation-upgrade"
-                    disabled
-                >
-                    <span id="plantation-cost">
-                        1000
-                    </span> 🍌
-                </button>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= ПРОКАЧКА ================= -->
-
-    <section id="boosts-screen" class="screen">
-
-        <div class="page-header">
-
-            <h1>
-                Усиления
-            </h1>
-
-            <div>
-                Улучшай свою обезьяну и получай больше бананов.
-            </div>
-
-        </div>
-
 
         <div class="upgrades">
 
-            <div class="upgrade">
+            <button id="buy-tap" class="upgrade">
+                <div class="upgrade-icon">👆</div>
 
                 <div class="upgrade-info">
-
-                    <div class="upgrade-icon">
-                        👆
-                    </div>
-
-                    <div>
-
-                        <div class="upgrade-title">
-                            Сила тапа
-                        </div>
-
-                        <div class="upgrade-description">
-                            +0.2 🍌 за каждый тап
-                        </div>
-
-                    </div>
-
+                    <strong>Сила тапа</strong>
+                    <span>Уровень <b id="tap-level">1</b></span>
                 </div>
 
-                <button id="tap-upgrade">
-                    <span id="tap-cost">50</span> 🍌
-                </button>
+                <div class="upgrade-cost">
+                    🪙 <span id="tap-cost">50</span>
+                </div>
+            </button>
 
-            </div>
-
-
-            <div class="upgrade">
+            <button id="buy-bush" class="upgrade">
+                <div class="upgrade-icon">🌿</div>
 
                 <div class="upgrade-info">
-
-                    <div class="upgrade-icon">
-                        🌴
-                    </div>
-
-                    <div>
-
-                        <div class="upgrade-title">
-                            Кусты
-                        </div>
-
-                        <div class="upgrade-description">
-                            Уровень:
-                            <span id="bush-level">0</span>
-                            · +0.5 🍌/сек
-                        </div>
-
-                    </div>
-
+                    <strong>Куст</strong>
+                    <span>Уровень <b id="bush-level">0</b></span>
                 </div>
 
-                <button id="bush-upgrade-2">
-                    <span id="bush-cost-2">100</span> 🍌
-                </button>
+                <div class="upgrade-cost">
+                    🪙 <span id="bush-cost">250</span>
+                </div>
+            </button>
 
-            </div>
-
-
-            <div
-                id="plantation-upgrade-card"
-                class="upgrade locked"
-            >
+            <button id="buy-plantation" class="upgrade">
+                <div class="upgrade-icon">🌴</div>
 
                 <div class="upgrade-info">
-
-                    <div class="upgrade-icon">
-                        🌳
-                    </div>
-
-                    <div>
-
-                        <div class="upgrade-title">
-                            Большая плантация
-                        </div>
-
-                        <div class="upgrade-description">
-                            Уровень:
-                            <span id="plantation-level">
-                                0
-                            </span>
-                            · +2 🍌/сек
-                        </div>
-
-                    </div>
-
+                    <strong>Плантация</strong>
+                    <span>Уровень <b id="plantation-level">0</b></span>
                 </div>
 
-                <button
-                    id="plantation-upgrade-2"
-                    disabled
-                >
-                    <span id="plantation-cost-2">
-                        1000
-                    </span> 🍌
-                </button>
-
-            </div>
+                <div class="upgrade-cost">
+                    🪙 <span id="plantation-cost">1000</span>
+                </div>
+            </button>
 
         </div>
 
     </section>
 
 
-    <!-- ================= ПРОФИЛЬ ================= -->
+    <!-- БУСТЫ -->
+    <section id="boosts-screen" class="screen">
 
-    <section id="profile-screen" class="screen">
-
-        <div class="page-header">
-
-            <h1>
-                Профиль
-            </h1>
-
+        <div class="page-title">
+            <h1>Бусты</h1>
+            <p>Усиль свою гориллу</p>
         </div>
 
+        <div class="boost-card">
+            <div class="boost-icon">⚡</div>
+
+            <div>
+                <strong>Энергия</strong>
+                <span>Восстанавливается автоматически</span>
+            </div>
+        </div>
+
+        <div class="boost-card">
+            <div class="boost-icon">🔥</div>
+
+            <div>
+                <strong>Скоро</strong>
+                <span>Новые бусты появятся позже</span>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- ПРОФИЛЬ -->
+    <section id="profile-screen" class="screen">
+
+        <div class="page-title">
+            <h1>Профиль</h1>
+            <p id="username">Игрок</p>
+        </div>
 
         <div class="profile-card">
 
-            <div class="profile-name-row">
-
-                <div>
-
-                    <div class="small-label">
-                        Имя
-                    </div>
-
-                    <div
-                        id="profile-name"
-                        class="profile-name"
-                    >
-                        Игрок
-                    </div>
-
-                </div>
-
-                <button id="rename-button">
-                    Изменить
-                </button>
-
+            <div class="profile-avatar">
+                🐒
             </div>
 
-
-            <div
-                id="profile-id"
-                class="profile-id"
-            >
-                ID: —
+            <div class="profile-name" id="profile-name">
+                Игрок
             </div>
 
+            <button id="rename-button" class="profile-button">
+                Изменить имя
+            </button>
 
-            <div class="profile-line">
-                🍌 Монеты:
-                <b id="profile-coins">0.0</b>
+        </div>
+
+        <div class="profile-stats">
+
+            <div class="profile-stat">
+                <span>🪙 Монеты</span>
+                <b id="profile-coins">0</b>
             </div>
 
-            <div class="profile-line">
-                👆 За тап:
-                <b id="profile-tap">0.2</b>
+            <div class="profile-stat">
+                <span>👥 Рефералы</span>
+                <b id="refs">0</b>
             </div>
 
-            <div class="profile-line">
-                🌴 Пассивный доход:
-                <b id="profile-passive">0.0</b>/сек
-            </div>
-
-            <div class="profile-line">
-                ⚡ Энергия:
-                <b id="profile-energy">
-                    1000 / 1000
-                </b>
-            </div>
-
-            <div class="profile-line">
-                👥 Рефералы:
-                <b id="profile-refs">0</b>
+            <div class="profile-stat">
+                <span>💰 Доход</span>
+                <b id="profile-passive">0/сек</b>
             </div>
 
         </div>
 
+        <button id="ref-button" class="big-button">
+            👥 Пригласить друга
+        </button>
 
-        <div class="bonuses">
+        <button id="channel-button" class="big-button">
+            📢 Наш канал
+        </button>
 
-            <div class="bonus-card">
-
-                <div class="bonus-left">
-
-                    <div class="bonus-icon">
-                        👥
-                    </div>
-
-                    <div>
-
-                        <div class="bonus-title">
-                            Пригласи друга
-                        </div>
-
-                        <div class="bonus-description">
-                            Отправь другу свою реферальную ссылку
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <button id="ref-button">
-                    Пригласить
-                </button>
-
-            </div>
-
-
-            <div class="bonus-card">
-
-                <div class="bonus-left">
-
-                    <div class="bonus-icon">
-                        📢
-                    </div>
-
-                    <div>
-
-                        <div class="bonus-title">
-                            Наш канал
-                        </div>
-
-                        <div class="bonus-description">
-                            Подпишись и получи награду
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <button id="channel-button">
-                    +250 🍌
-                </button>
-
-            </div>
-
-
-            <div class="bonus-card">
-
-                <div class="bonus-left">
-
-                    <div class="bonus-icon">
-                        🏆
-                    </div>
-
-                    <div>
-
-                        <div class="bonus-title">
-                            Рейтинг
-                        </div>
-
-                        <div class="bonus-description">
-                            Посмотри свой результат
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <button id="leaderboard-open">
-                    Открыть
-                </button>
-
-            </div>
-
-        </div>
+        <button id="leaderboard-button" class="big-button">
+            🏆 Таблица лидеров
+        </button>
 
     </section>
 
 
-    <!-- ================= НИЖНЕЕ МЕНЮ ================= -->
-
+    <!-- НИЖНЯЯ НАВИГАЦИЯ -->
     <nav class="bottom-nav">
 
-        <button
-            class="nav-button active"
-            data-screen="game-screen"
-        >
+        <button class="nav-button active" data-screen="game-screen">
             <span>🐒</span>
             <small>Игра</small>
         </button>
 
-
-        <button
-            class="nav-button"
-            data-screen="boosts-screen"
-        >
+        <button class="nav-button" data-screen="boosts-screen">
             <span>⚡</span>
             <small>Бусты</small>
         </button>
 
-
-        <button
-            class="nav-button"
-            data-screen="profile-screen"
-        >
+        <button class="nav-button" data-screen="profile-screen">
             <span>👤</span>
             <small>Профиль</small>
         </button>
 
     </nav>
 
-</div>
 
+    <!-- ТАБЛИЦА ЛИДЕРОВ -->
+    <div id="leaderboard-modal" class="modal">
 
-<!-- ================= РЕЙТИНГ ================= -->
+        <div class="modal-box">
 
-<div
-    id="leaderboard-modal"
-    class="modal hidden"
->
-
-    <div class="modal-box">
-
-        <div class="modal-header">
-
-            <h2>
-                🏆 Рейтинг
-            </h2>
-
-            <button id="leaderboard-close">
-                ×
+            <button id="close-leaderboard" class="close-button">
+                ✕
             </button>
 
+            <h2>🏆 Лидеры</h2>
+
+            <div id="leaderboard-list" class="leaderboard-list">
+                <div class="leader">
+                    <span>1. Игрок</span>
+                    <b>0 🪙</b>
+                </div>
+
+                <div class="leader">
+                    <span>2. Игрок</span>
+                    <b>0 🪙</b>
+                </div>
+
+                <div class="leader">
+                    <span>3. Игрок</span>
+                    <b>0 🪙</b>
+                </div>
+            </div>
+
         </div>
-
-
-        <div class="your-score">
-
-            <span>
-                Ты
-            </span>
-
-            <b id="leaderboard-name">
-                Игрок
-            </b>
-
-            <b>
-                <span id="leaderboard-coins">
-                    0.0
-                </span>
-                🍌
-            </b>
-
-        </div>
-
-
-        <p class="no-ranking">
-            Пока здесь отображается только твой результат.
-            Настоящий общий рейтинг подключим через сервер.
-        </p>
 
     </div>
 
-</div>
 
+    <!-- ПЕРЕИМЕНОВАНИЕ -->
+    <div id="rename-modal" class="modal">
 
-<!-- ================= ПЕРЕИМЕНОВАНИЕ ================= -->
+        <div class="modal-box">
 
-<div
-    id="rename-modal"
-    class="modal hidden"
->
-
-    <div class="modal-box rename-box">
-
-        <div class="modal-header">
-
-            <h2>
-                Изменить имя
-            </h2>
-
-            <button id="rename-cancel">
-                ×
+            <button id="rename-cancel" class="close-button">
+                ✕
             </button>
 
-        </div>
+            <h2>Изменить имя</h2>
 
+            <input
+                id="name-input"
+                type="text"
+                maxlength="20"
+                placeholder="Новое имя"
+            >
 
-        <input
-            id="rename-input"
-            type="text"
-            maxlength="20"
-            placeholder="Новое имя"
-        >
-
-
-        <div class="rename-buttons">
-
-            <button id="rename-save">
+            <button id="rename-save" class="big-button">
                 Сохранить
             </button>
 
-            <button id="rename-cancel-2">
-                Отмена
-            </button>
-
         </div>
 
     </div>
 
 </div>
-
 
 <script src="script.js?v=202"></script>
 
 </body>
 </html>
+```
