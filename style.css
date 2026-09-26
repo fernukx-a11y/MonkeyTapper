@@ -1,28 +1,31 @@
+```css
 * {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
-    margin: 0;
-    padding: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background: #111;
-    color: white;
     font-family: Arial, sans-serif;
+    background: #080b08;
+    color: white;
 }
 
 body {
-    user-select: none;
-    -webkit-user-select: none;
+    display: flex;
+    justify-content: center;
 }
 
 button {
+    border: none;
+    outline: none;
     font-family: inherit;
-    border: 0;
+    color: inherit;
 }
 
 .app {
@@ -32,6 +35,7 @@ button {
     max-width: 500px;
     margin: 0 auto;
     overflow: hidden;
+
     background:
         radial-gradient(
             circle at 50% 35%,
@@ -41,55 +45,41 @@ button {
         );
 }
 
-
-/* ================= ЭКРАНЫ ================= */
-
 .screen {
     position: absolute;
     inset: 0;
-    bottom: 72px;
-    display: none;
+    padding: 20px 18px 100px;
     overflow-y: auto;
-    padding: 14px;
-    padding-bottom: 20px;
+    display: none;
 }
 
 .screen.active {
     display: block;
 }
 
-
-/* ================= ВЕРХ ================= */
-
 .top-bar {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    height: 55px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.balance,
+.energy {
+    padding: 9px 13px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(10px);
+    font-weight: 700;
 }
 
 .balance {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 23px;
-    font-weight: bold;
+    font-size: 20px;
 }
 
-.balance span {
-    font-size: 25px;
+.energy {
+    font-size: 16px;
 }
-
-.top-button {
-    padding: 10px 14px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.1);
-    color: white;
-    font-weight: bold;
-}
-
-
-/* ================= ИГРА ================= */
 
 .game-content {
     height: 360px;
@@ -101,20 +91,25 @@ button {
 .monkey-button {
     width: 230px;
     height: 230px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border-radius: 50%;
     cursor: pointer;
     touch-action: manipulation;
+
+    background: transparent;
+
     transition:
-        transform 0.08s ease,
-        filter 0.08s ease;
+        transform .08s ease,
+        filter .08s ease;
 }
 
 .monkey-button:active,
 .monkey-button.tapped {
-    transform: scale(0.92);
+    transform: scale(.92);
     filter: brightness(1.2);
 }
 
@@ -122,245 +117,232 @@ button {
     width: 100%;
     height: 100%;
     object-fit: contain;
+
     pointer-events: none;
+    user-select: none;
     -webkit-user-drag: none;
 }
 
-
-/* ================= БОНУСЫ ================= */
-
-.bonuses {
-    display: flex;
-    flex-direction: column;
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
+    margin-bottom: 14px;
 }
 
-.bonus-card {
-    min-height: 65px;
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.08);
+.stat {
+    padding: 12px;
+    border-radius: 15px;
+    background: rgba(255,255,255,.07);
+    text-align: center;
 }
 
-.bonus-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.bonus-icon {
-    font-size: 28px;
-}
-
-.bonus-title {
-    font-weight: bold;
-}
-
-.bonus-description {
-    margin-top: 3px;
-    color: rgba(255,255,255,0.6);
+.stat span {
+    display: block;
+    color: #aeb7aa;
     font-size: 12px;
+    margin-bottom: 4px;
 }
 
-.bonus-card button,
-.upgrade button,
-.rename-buttons button {
-    padding: 9px 12px;
-    border-radius: 9px;
-    background: #4caf50;
-    color: white;
-    font-weight: bold;
-}
-
-
-/* ================= ЭНЕРГИЯ ================= */
-
-.energy {
-    margin-top: 15px;
-}
-
-.energy-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    font-size: 13px;
-}
-
-.energy-track {
-    height: 9px;
-    overflow: hidden;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.1);
-}
-
-.energy-fill {
-    width: 100%;
-    height: 100%;
-    border-radius: inherit;
-    background: #56c85b;
-    transition: width 0.15s linear;
-}
-
-
-/* ================= ПРОКАЧКА ================= */
-
-.page-header {
-    padding: 10px 2px 18px;
-}
-
-.page-header h1 {
-    margin: 0 0 6px;
-    font-size: 24px;
-}
-
-.page-header div {
-    color: rgba(255,255,255,0.65);
-    font-size: 13px;
+.stat b {
+    font-size: 17px;
 }
 
 .upgrades {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .upgrade {
-    min-height: 80px;
-    padding: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.08);
-}
+    width: 100%;
+    min-height: 70px;
 
-.upgrade-info {
     display: flex;
     align-items: center;
     gap: 12px;
+
+    padding: 10px 13px;
+    border-radius: 17px;
+
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.05);
+
+    cursor: pointer;
+    text-align: left;
+
+    transition: .15s;
+}
+
+.upgrade:active {
+    transform: scale(.98);
 }
 
 .upgrade-icon {
-    width: 42px;
-    height: 42px;
+    width: 45px;
+    height: 45px;
+
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.08);
-    font-size: 23px;
+
+    border-radius: 13px;
+    background: rgba(255,255,255,.08);
+    font-size: 25px;
 }
 
-.upgrade-title {
-    font-weight: bold;
+.upgrade-info {
+    flex: 1;
 }
 
-.upgrade-description {
-    margin-top: 5px;
-    color: rgba(255,255,255,0.6);
+.upgrade-info strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.upgrade-info span {
+    color: #9fa89b;
     font-size: 12px;
 }
 
-.upgrade button {
-    min-width: 75px;
-    background: #d99d22;
+.upgrade-cost {
+    font-weight: 700;
+    white-space: nowrap;
 }
 
-.upgrade.locked {
-    opacity: 0.5;
+.page-title {
+    padding-top: 20px;
+    margin-bottom: 25px;
 }
 
-.upgrade button:disabled {
-    opacity: 0.5;
+.page-title h1 {
+    font-size: 30px;
+    margin-bottom: 5px;
 }
 
-
-/* ================= ПРОФИЛЬ ================= */
-
-.profile-card {
-    padding: 16px;
-    border-radius: 16px;
-    background: rgba(255,255,255,0.08);
+.page-title p {
+    color: #929b90;
 }
 
-.profile-name-row {
+.boost-card,
+.profile-card,
+.profile-stat {
+    background: rgba(255,255,255,.07);
+    border-radius: 18px;
+}
+
+.boost-card {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    gap: 15px;
+    padding: 16px;
+    margin-bottom: 12px;
 }
 
-.small-label {
-    color: rgba(255,255,255,0.55);
-    font-size: 12px;
+.boost-icon {
+    font-size: 30px;
+}
+
+.boost-card strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.boost-card span {
+    color: #929b90;
+    font-size: 13px;
+}
+
+.profile-card {
+    padding: 25px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.profile-avatar {
+    font-size: 60px;
+    margin-bottom: 10px;
 }
 
 .profile-name {
-    margin-top: 3px;
-    font-size: 20px;
-    font-weight: bold;
-    word-break: break-word;
+    font-size: 21px;
+    font-weight: 700;
+    margin-bottom: 15px;
 }
 
-.profile-name-row button {
-    padding: 8px 10px;
-    border-radius: 9px;
-    background: #4caf50;
-    color: white;
+.profile-button,
+.big-button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+
+    background: rgba(255,255,255,.1);
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
 }
 
-.profile-id {
-    margin: 16px 0;
-    color: rgba(255,255,255,0.5);
-    font-size: 12px;
-    word-break: break-all;
+.big-button {
+    margin-top: 10px;
 }
 
-.profile-line {
-    padding: 9px 0;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 14px;
+.profile-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
+.profile-stat {
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+}
 
-/* ================= НИЖНЕЕ МЕНЮ ================= */
+.profile-stat span {
+    color: #aeb7aa;
+}
 
 .bottom-nav {
     position: absolute;
-    z-index: 100;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 72px;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+
+    height: 68px;
+
     display: flex;
-    align-items: stretch;
-    justify-content: stretch;
-    padding-bottom: env(safe-area-inset-bottom);
-    background: rgba(15,15,15,0.97);
-    border-top: 1px solid rgba(255,255,255,0.08);
+    justify-content: space-around;
+    align-items: center;
+
+    border-radius: 20px;
+
+    background: rgba(12,16,12,.92);
+    border: 1px solid rgba(255,255,255,.07);
+
+    backdrop-filter: blur(15px);
 }
 
 .nav-button {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 72px;
+    width: 30%;
+    height: 58px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
+
     background: transparent;
-    color: rgba(255,255,255,0.45);
+    color: #777f75;
+
     cursor: pointer;
 }
 
 .nav-button span {
-    font-size: 23px;
+    font-size: 22px;
 }
 
 .nav-button small {
@@ -371,123 +353,104 @@ button {
     color: white;
 }
 
-
-/* ================= МОДАЛКИ ================= */
-
 .modal {
-    position: fixed;
-    z-index: 1000;
+    position: absolute;
     inset: 0;
-    display: flex;
+
+    display: none;
     align-items: center;
     justify-content: center;
+
     padding: 20px;
-    background: rgba(0,0,0,0.78);
+
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(8px);
+
+    z-index: 100;
 }
 
-.modal.hidden {
-    display: none;
+.modal.active {
+    display: flex;
 }
 
 .modal-box {
+    position: relative;
     width: 100%;
-    max-width: 360px;
-    padding: 18px;
-    border-radius: 18px;
-    background: #1d1d1d;
-    color: white;
+    max-width: 400px;
+
+    padding: 25px;
+
+    border-radius: 22px;
+
+    background: #172016;
+    border: 1px solid rgba(255,255,255,.08);
 }
 
-.modal-header {
+.modal-box h2 {
+    margin-bottom: 20px;
+}
+
+.close-button {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+
+    width: 35px;
+    height: 35px;
+
+    border-radius: 50%;
+
+    background: rgba(255,255,255,.08);
+
+    cursor: pointer;
+}
+
+.leaderboard-list {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.leader {
+    display: flex;
     justify-content: space-between;
-}
 
-.modal-header h2 {
-    margin: 0;
-    font-size: 20px;
-}
-
-.modal-header button {
-    background: transparent;
-    color: white;
-    font-size: 28px;
-}
-
-
-/* ================= РЕЙТИНГ ================= */
-
-.your-score {
-    margin-top: 15px;
     padding: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    border-radius: 10px;
-    background: rgba(255,200,0,0.12);
+
+    border-radius: 12px;
+    background: rgba(255,255,255,.06);
 }
 
-.your-score > b {
-    color: #ffd54a;
-}
-
-.no-ranking {
-    margin-bottom: 0;
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-
-/* ================= ПЕРЕИМЕНОВАНИЕ ================= */
-
-.rename-box h2 {
-    margin-top: 0;
-}
-
-#rename-input {
+input {
     width: 100%;
-    padding: 12px;
-    border: 0;
+    padding: 14px;
+
+    margin-bottom: 10px;
+
+    border: none;
     outline: none;
-    border-radius: 10px;
-    background: #2b2b2b;
+    border-radius: 13px;
+
+    background: rgba(255,255,255,.08);
     color: white;
+
     font-size: 16px;
 }
 
-.rename-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-}
-
-.rename-buttons button {
-    flex: 1;
-}
-
-#rename-cancel {
-    background: #555;
-}
-
-
-/* ================= ЛЕТЯЩИЕ МОНЕТЫ ================= */
-
 .floating-coin {
     position: absolute;
-    z-index: 500;
-    pointer-events: none;
-    color: #ffd54a;
+
+    color: #ffd84d;
     font-size: 20px;
-    font-weight: bold;
-    text-shadow: 0 2px 5px #000;
-    animation: coin-fly 0.7s ease-out forwards;
+    font-weight: 800;
+
+    pointer-events: none;
+
+    animation: coinFloat .8s ease-out forwards;
+    z-index: 20;
 }
 
-@keyframes coin-fly {
+@keyframes coinFloat {
     0% {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -495,57 +458,7 @@ button {
 
     100% {
         opacity: 0;
-        transform: translateY(-65px) scale(1.15);
+        transform: translateY(-80px) scale(1.25);
     }
 }
-
-
-/* ================= ТАП ================= */
-
-.tap-effect {
-    animation: tap-effect 0.12s ease-out;
-}
-
-@keyframes tap-effect {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(0.9);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-
-/* ================= МОБИЛЬНЫЕ ================= */
-
-@media (max-height: 650px) {
-
-    .game-content {
-        height: 280px;
-    }
-
-    .monkey-button {
-        width: 190px;
-        height: 190px;
-    }
-
-}
-
-@media (max-width: 360px) {
-
-    .screen {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    .monkey-button {
-        width: 190px;
-        height: 190px;
-    }
-
-}
+```
