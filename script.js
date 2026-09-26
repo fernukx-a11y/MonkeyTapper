@@ -1,3 +1,4 @@
+```javascript
 // ======================================================
 // TELEGRAM
 // ======================================================
@@ -15,7 +16,7 @@ if (tg) {
 
 
 // ======================================================
-// ПОЛЬЗОВАТЕЛЬ
+// USER
 // ======================================================
 
 const user =
@@ -29,7 +30,10 @@ const user =
             username: "player"
         };
 
-const userId = String(user.id);
+
+const userId =
+    String(user.id);
+
 
 const defaultUsername =
     user.first_name ||
@@ -38,7 +42,7 @@ const defaultUsername =
 
 
 // ======================================================
-// ИГРОВЫЕ ПЕРЕМЕННЫЕ
+// GAME
 // ======================================================
 
 let coins = 0;
@@ -46,9 +50,11 @@ let coins = 0;
 let tapPower = 0.2;
 
 let multitapLevel = 1;
+
 let multitapCost = 50;
 
 let energy = 1000;
+
 const maxEnergy = 1000;
 
 let passiveIncome = 0;
@@ -56,108 +62,81 @@ let passiveIncome = 0;
 let refsCount = 0;
 
 let p1Level = 0;
+
 let p1Cost = 100;
 
 let p2Level = 0;
+
 let p2Cost = 1000;
 
 let saveTimeout = null;
 
 
 // ======================================================
-// ЗАПУСК
+// START
 // ======================================================
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener(
+    "DOMContentLoaded",
+    () => {
 
-    initGame();
+        initGame();
 
-    initBackgroundBananas();
-
-    initTapSystem();
-
-
-    // Пассивный доход
-
-    setInterval(() => {
-
-        if (passiveIncome > 0) {
-
-            coins =
-                Math.round(
-                    (coins + passiveIncome) * 10
-                ) / 10;
-
-            updateUI();
-
-            debounceSave();
-        }
-
-    }, 1000);
+        initBackgroundBananas();
 
 
-    // Восстановление энергии
+        // Пассивный доход
 
-    setInterval(() => {
+        setInterval(
+            () => {
 
-        if (energy < maxEnergy) {
+                if (passiveIncome > 0) {
 
-            energy =
-                Math.min(
-                    maxEnergy,
-                    energy + 1
-                );
+                    coins =
+                        Math.round(
+                            (coins + passiveIncome) * 10
+                        ) / 10;
 
-            updateEnergyUI();
+                    updateUI();
 
-            debounceSave();
-        }
+                    debounceSave();
 
-    }, 1000);
+                }
 
-});
-
-
-// ======================================================
-// ЕДИНАЯ СИСТЕМА ТАПА
-// ======================================================
-
-function initTapSystem() {
-
-    const tapArea =
-        document.getElementById("tap-area");
-
-    if (!tapArea) return;
+            },
+            1000
+        );
 
 
-    tapArea.addEventListener(
-        "pointerdown",
-        handleTapPointer,
-        {
-            passive: false
-        }
-    );
+        // Энергия
 
+        setInterval(
+            () => {
 
-    // Запрещаем контекстное меню
+                if (energy < maxEnergy) {
 
-    tapArea.addEventListener(
-        "contextmenu",
-        event => event.preventDefault()
-    );
-}
+                    energy =
+                        Math.min(
+                            maxEnergy,
+                            energy + 1
+                        );
 
+                    updateEnergyUI();
 
-function handleTapPointer(event) {
+                    debounceSave();
 
-    event.preventDefault();
+                }
 
-    handleTap(event);
-}
+            },
+            1000
+        );
+
+    }
+);
 
 
 // ======================================================
-// ЗАГРУЗКА ИГРЫ
+// LOAD
 // ======================================================
 
 function initGame() {
@@ -175,12 +154,14 @@ function initGame() {
             coins =
                 parseFloat(savedCoins) || 0;
 
+
             multitapLevel =
                 parseInt(
                     localStorage.getItem(
                         `monkey_mlevel_${userId}`
                     ) || "1"
                 );
+
 
             multitapCost =
                 parseInt(
@@ -248,7 +229,7 @@ function initGame() {
         }
 
 
-        // Сила тапа всегда зависит от уровня
+        // Сила тапа
 
         tapPower =
             Math.round(
@@ -260,15 +241,19 @@ function initGame() {
 
 
         energy =
-            Math.min(
-                maxEnergy,
-                Math.max(0, energy)
+            Math.max(
+                0,
+                Math.min(
+                    maxEnergy,
+                    energy
+                )
             );
+
 
     } catch (error) {
 
         console.error(
-            "Ошибка загрузки игры:",
+            "Ошибка загрузки:",
             error
         );
 
@@ -279,34 +264,30 @@ function initGame() {
 
     updateEnergyUI();
 
-    updateProfileDisplay();
-
     updatePassive2();
+
 }
 
 
 // ======================================================
-// ТАП
+// TAP
 // ======================================================
 
 function handleTap(event) {
 
     if (energy <= 0) {
 
-        if (tg && tg.HapticFeedback) {
-
-            tg.HapticFeedback.notificationOccurred(
-                "error"
-            );
-
-        }
+        errorHaptic();
 
         return;
+
     }
 
 
     const earned =
-        Math.round(tapPower * 10) / 10;
+        Math.round(
+            tapPower * 10
+        ) / 10;
 
 
     energy =
@@ -334,22 +315,34 @@ function handleTap(event) {
             ".monkey-container"
         );
 
+
     if (monkey) {
 
-        monkey.classList.add("tapped");
+        monkey.classList.add(
+            "tapped"
+        );
 
-        setTimeout(() => {
 
-            monkey.classList.remove("tapped");
+        setTimeout(
+            () => {
 
-        }, 80);
+                monkey.classList.remove(
+                    "tapped"
+                );
+
+            },
+            80
+        );
 
     }
 
 
     // Вибрация
 
-    if (tg && tg.HapticFeedback) {
+    if (
+        tg &&
+        tg.HapticFeedback
+    ) {
 
         tg.HapticFeedback.impactOccurred(
             "medium"
@@ -358,12 +351,21 @@ function handleTap(event) {
     }
 
 
-    // Всплывающий текст
+    // +монеты
 
-    const displayEarned =
-        earned < 1
-            ? earned.toFixed(1)
-            : earned.toString();
+    let displayEarned;
+
+    if (earned < 1) {
+
+        displayEarned =
+            earned.toFixed(1);
+
+    } else {
+
+        displayEarned =
+            earned.toString();
+
+    }
 
 
     createFloatingText(
@@ -374,11 +376,12 @@ function handleTap(event) {
 
 
     debounceSave();
+
 }
 
 
 // ======================================================
-// ВСПЛЫВАЮЩИЙ ТЕКСТ
+// FLOATING TEXT
 // ======================================================
 
 function createFloatingText(
@@ -392,19 +395,31 @@ function createFloatingText(
             ".game-container"
         );
 
+
     if (!container) return;
 
 
     const element =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
-    element.className = className;
 
-    element.innerText = text;
+    element.className =
+        className;
+
+
+    element.innerText =
+        text;
+
+
+    element.style.zIndex =
+        "99999";
 
 
     let clientX =
         window.innerWidth / 2;
+
 
     let clientY =
         window.innerHeight / 2;
@@ -417,8 +432,24 @@ function createFloatingText(
             typeof event.clientY === "number"
         ) {
 
-            clientX = event.clientX;
-            clientY = event.clientY;
+            clientX =
+                event.clientX;
+
+            clientY =
+                event.clientY;
+
+        }
+
+        else if (
+            event.touches &&
+            event.touches.length > 0
+        ) {
+
+            clientX =
+                event.touches[0].clientX;
+
+            clientY =
+                event.touches[0].clientY;
 
         }
 
@@ -432,24 +463,29 @@ function createFloatingText(
     element.style.position =
         "absolute";
 
+
     element.style.left =
         `${clientX - rect.left - 15}px`;
+
 
     element.style.top =
         `${clientY - rect.top - 20}px`;
 
-    element.style.zIndex =
-        "99999";
+
+    container.appendChild(
+        element
+    );
 
 
-    container.appendChild(element);
+    setTimeout(
+        () => {
 
+            element.remove();
 
-    setTimeout(() => {
+        },
+        700
+    );
 
-        element.remove();
-
-    }, 700);
 }
 
 
@@ -513,45 +549,48 @@ function updateUI() {
     );
 
 
-    updateEnergyUI();
-
     updateProfileDisplay();
 
+    updateEnergyUI();
+
     updatePassive2();
+
 }
 
 
 // ======================================================
-// ЭНЕРГИЯ
+// ENERGY
 // ======================================================
 
 function updateEnergyUI() {
 
-    const energyDisplay =
+    const display =
         document.getElementById(
             "energy-display"
         );
 
-    const energyBar =
+
+    const bar =
         document.getElementById(
             "energy-bar-fill"
         );
 
 
-    if (energyDisplay) {
+    if (display) {
 
-        energyDisplay.innerText =
+        display.innerText =
             Math.floor(energy);
 
     }
 
 
-    if (energyBar) {
+    if (bar) {
 
         const percent =
             (energy / maxEnergy) * 100;
 
-        energyBar.style.width =
+
+        bar.style.width =
             `${percent}%`;
 
     }
@@ -560,7 +599,7 @@ function updateEnergyUI() {
 
 
 // ======================================================
-// ПРОФИЛЬ
+// PROFILE
 // ======================================================
 
 function updateProfileDisplay() {
@@ -611,11 +650,12 @@ function updateProfileDisplay() {
         "prof-refs",
         refsCount
     );
+
 }
 
 
 // ======================================================
-// РАЗБЛОКИРОВКА PASSIVE 2
+// PASSIVE 2
 // ======================================================
 
 function updatePassive2() {
@@ -625,20 +665,24 @@ function updatePassive2() {
             "card-passive-2"
         );
 
+
     const button =
         document.getElementById(
             "passive-2-btn"
         );
+
 
     const icon =
         document.getElementById(
             "p2-icon"
         );
 
+
     const title =
         document.getElementById(
             "p2-title"
         );
+
 
     const description =
         document.getElementById(
@@ -646,29 +690,32 @@ function updatePassive2() {
         );
 
 
-    if (!card || !button) return;
+    if (!card || !button) {
+        return;
+    }
 
 
-    const unlocked =
-        p1Level >= 1;
-
-
-    if (unlocked) {
+    if (p1Level >= 1) {
 
         card.classList.remove(
             "locked"
         );
 
-        button.disabled = false;
+
+        button.disabled =
+            false;
+
 
         if (icon) {
             icon.innerText = "🌴";
         }
 
+
         if (title) {
             title.innerText =
-                "Большая банановая плантация";
+                "Большая плантация";
         }
+
 
         if (description) {
 
@@ -677,122 +724,138 @@ function updatePassive2() {
 
         }
 
-    } else {
+    }
+
+    else {
 
         card.classList.add(
             "locked"
         );
 
-        button.disabled = true;
+
+        button.disabled =
+            true;
+
 
         if (icon) {
             icon.innerText = "🔒";
         }
+
 
         if (title) {
             title.innerText =
                 "Заблокировано";
         }
 
+
         if (description) {
 
             description.innerText =
-                "Требуется купить хотя бы 1 банановый куст";
+                "+2.0 🍌/сек (Треб: 1 куст)";
 
         }
 
     }
+
 }
 
 
 // ======================================================
-// СОХРАНЕНИЕ
+// SAVE
 // ======================================================
 
 function debounceSave() {
 
-    clearTimeout(saveTimeout);
+    clearTimeout(
+        saveTimeout
+    );
 
 
     saveTimeout =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            try {
+                try {
 
-                localStorage.setItem(
-                    `monkey_coins_${userId}`,
-                    coins
-                );
-
-
-                localStorage.setItem(
-                    `monkey_mlevel_${userId}`,
-                    multitapLevel
-                );
+                    localStorage.setItem(
+                        `monkey_coins_${userId}`,
+                        coins
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_mcost_${userId}`,
-                    multitapCost
-                );
+                    localStorage.setItem(
+                        `monkey_mlevel_${userId}`,
+                        multitapLevel
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_energy_${userId}`,
-                    energy
-                );
+                    localStorage.setItem(
+                        `monkey_mcost_${userId}`,
+                        multitapCost
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_passive_${userId}`,
-                    passiveIncome
-                );
+                    localStorage.setItem(
+                        `monkey_energy_${userId}`,
+                        energy
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_refs_${userId}`,
-                    refsCount
-                );
+                    localStorage.setItem(
+                        `monkey_passive_${userId}`,
+                        passiveIncome
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_p1_${userId}`,
-                    p1Level
-                );
+                    localStorage.setItem(
+                        `monkey_refs_${userId}`,
+                        refsCount
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_p1cost_${userId}`,
-                    p1Cost
-                );
+                    localStorage.setItem(
+                        `monkey_p1_${userId}`,
+                        p1Level
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_p2_${userId}`,
-                    p2Level
-                );
+                    localStorage.setItem(
+                        `monkey_p1cost_${userId}`,
+                        p1Cost
+                    );
 
 
-                localStorage.setItem(
-                    `monkey_p2cost_${userId}`,
-                    p2Cost
-                );
+                    localStorage.setItem(
+                        `monkey_p2_${userId}`,
+                        p2Level
+                    );
 
-            } catch (error) {
 
-                console.error(
-                    "Ошибка сохранения:",
-                    error
-                );
+                    localStorage.setItem(
+                        `monkey_p2cost_${userId}`,
+                        p2Cost
+                    );
 
-            }
+                }
 
-        }, 500);
+                catch (error) {
+
+                    console.error(
+                        "Ошибка сохранения:",
+                        error
+                    );
+
+                }
+
+            },
+            500
+        );
+
 }
 
 
 // ======================================================
-// МУЛЬТИТАП
+// MULTITAP
 // ======================================================
 
 function buyMultitap() {
@@ -802,6 +865,7 @@ function buyMultitap() {
         errorHaptic();
 
         return;
+
     }
 
 
@@ -834,16 +898,17 @@ function buyMultitap() {
     debounceSave();
 
     successHaptic();
+
 }
 
 
 // ======================================================
-// ПАССИВНЫЕ УЛУЧШЕНИЯ
+// PASSIVE
 // ======================================================
 
 function buyPassive(id) {
 
-    // Банановый куст
+    // Куст
 
     if (id === 1) {
 
@@ -852,6 +917,7 @@ function buyPassive(id) {
             errorHaptic();
 
             return;
+
         }
 
 
@@ -883,6 +949,7 @@ function buyPassive(id) {
         successHaptic();
 
         return;
+
     }
 
 
@@ -895,6 +962,7 @@ function buyPassive(id) {
             errorHaptic();
 
             return;
+
         }
 
 
@@ -903,6 +971,7 @@ function buyPassive(id) {
             errorHaptic();
 
             return;
+
         }
 
 
@@ -932,7 +1001,9 @@ function buyPassive(id) {
         debounceSave();
 
         successHaptic();
+
     }
+
 }
 
 
@@ -942,30 +1013,38 @@ function buyPassive(id) {
 
 function successHaptic() {
 
-    if (tg && tg.HapticFeedback) {
+    if (
+        tg &&
+        tg.HapticFeedback
+    ) {
 
         tg.HapticFeedback.notificationOccurred(
             "success"
         );
 
     }
+
 }
 
 
 function errorHaptic() {
 
-    if (tg && tg.HapticFeedback) {
+    if (
+        tg &&
+        tg.HapticFeedback
+    ) {
 
         tg.HapticFeedback.notificationOccurred(
             "error"
         );
 
     }
+
 }
 
 
 // ======================================================
-// ФОНОВЫЕ БАНАНЫ
+// BACKGROUND BANANAS
 // ======================================================
 
 function initBackgroundBananas() {
@@ -975,24 +1054,36 @@ function initBackgroundBananas() {
             "background-effects"
         );
 
+
     if (!container) return;
 
 
-    for (let i = 0; i < 6; i++) {
+    for (
+        let i = 0;
+        i < 6;
+        i++
+    ) {
 
-        createBanana(container);
+        createBanana(
+            container
+        );
 
     }
+
 }
 
 
 function createBanana(container) {
 
     const banana =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
+
 
     banana.className =
         "falling-banana";
+
 
     banana.innerText =
         "🍌";
@@ -1016,7 +1107,9 @@ function createBanana(container) {
         `${Math.random() * 5}s`;
 
 
-    container.appendChild(banana);
+    container.appendChild(
+        banana
+    );
 
 
     banana.addEventListener(
@@ -1028,38 +1121,41 @@ function createBanana(container) {
 
         }
     );
+
 }
 
 
 // ======================================================
-// ВКЛАДКИ
+// TABS
 // ======================================================
 
 function switchTab(
     screenId,
-    button
+    btnElement
 ) {
 
     document
         .querySelectorAll(".screen")
-        .forEach(screen => {
+        .forEach(
+            screen => {
 
-            screen.classList.remove(
-                "active"
-            );
+                screen.classList.remove(
+                    "active"
+                );
 
-        });
+            }
+        );
 
 
-    const screen =
+    const target =
         document.getElementById(
             screenId
         );
 
 
-    if (screen) {
+    if (target) {
 
-        screen.classList.add(
+        target.classList.add(
             "active"
         );
 
@@ -1068,27 +1164,30 @@ function switchTab(
 
     document
         .querySelectorAll(".nav-item")
-        .forEach(item => {
+        .forEach(
+            item => {
 
-            item.classList.remove(
-                "active"
-            );
+                item.classList.remove(
+                    "active"
+                );
 
-        });
+            }
+        );
 
 
-    if (button) {
+    if (btnElement) {
 
-        button.classList.add(
+        btnElement.classList.add(
             "active"
         );
 
     }
+
 }
 
 
 // ======================================================
-// ПЕРЕИМЕНОВАНИЕ
+// RENAME
 // ======================================================
 
 function openRenameModal() {
@@ -1098,13 +1197,16 @@ function openRenameModal() {
             "rename-modal"
         );
 
+
     const input =
         document.getElementById(
             "username-input"
         );
 
 
-    if (!modal || !input) return;
+    if (!modal || !input) {
+        return;
+    }
 
 
     input.value =
@@ -1117,11 +1219,8 @@ function openRenameModal() {
         "flex";
 
 
-    setTimeout(() => {
+    input.focus();
 
-        input.focus();
-
-    }, 100);
 }
 
 
@@ -1132,12 +1231,14 @@ function closeRenameModal() {
             "rename-modal"
         );
 
+
     if (modal) {
 
         modal.style.display =
             "none";
 
     }
+
 }
 
 
@@ -1149,17 +1250,16 @@ function saveUsername() {
         );
 
 
-    if (!input) return;
+    if (!input) {
+        return;
+    }
 
 
     const newName =
         input.value.trim();
 
 
-    if (
-        newName.length === 0
-    ) {
-
+    if (!newName) {
         return;
     }
 
@@ -1174,18 +1274,14 @@ function saveUsername() {
 
     closeRenameModal();
 
-    successHaptic();
 }
 
 
 // ======================================================
-// РЕФЕРАЛЬНАЯ ССЫЛКА
+// REFERRAL
 // ======================================================
 
 function shareReferralLink() {
-
-    // TODO:
-    // Замени на username своего Telegram-бота
 
     const botUsername =
         "your_bot_username";
@@ -1215,7 +1311,9 @@ function shareReferralLink() {
             refLink
         );
 
-    } else {
+    }
+
+    else {
 
         window.open(
             refLink,
@@ -1223,18 +1321,23 @@ function shareReferralLink() {
         );
 
     }
+
 }
 
 
 // ======================================================
-// НАГРАДА ЗА КАНАЛ
+// CHANNEL REWARD
 // ======================================================
 
 function claimChannelReward() {
 
+    const key =
+        `monkey_channel_claimed_${userId}`;
+
+
     const claimed =
         localStorage.getItem(
-            `monkey_channel_claimed_${userId}`
+            key
         );
 
 
@@ -1245,15 +1348,8 @@ function claimChannelReward() {
         );
 
         return;
+
     }
-
-
-    /*
-     * ВАЖНО:
-     * Сейчас здесь нет настоящей проверки подписки.
-     * Для настоящей проверки понадобится Telegram Bot API
-     * + backend.
-     */
 
 
     coins =
@@ -1263,7 +1359,7 @@ function claimChannelReward() {
 
 
     localStorage.setItem(
-        `monkey_channel_claimed_${userId}`,
+        key,
         "true"
     );
 
@@ -1278,11 +1374,12 @@ function claimChannelReward() {
     alert(
         "Успешно! Начислено +250 монет 🍌"
     );
+
 }
 
 
 // ======================================================
-// РЕЙТИНГ
+// LEADERBOARD
 // ======================================================
 
 function openLeaderboard() {
@@ -1293,14 +1390,17 @@ function openLeaderboard() {
         );
 
 
-    if (modal) {
-
-        modal.style.display =
-            "flex";
-
-        loadLeaderboard();
-
+    if (!modal) {
+        return;
     }
+
+
+    modal.style.display =
+        "flex";
+
+
+    loadLeaderboard();
+
 }
 
 
@@ -1318,6 +1418,7 @@ function closeLeaderboard() {
             "none";
 
     }
+
 }
 
 
@@ -1329,7 +1430,9 @@ function loadLeaderboard() {
         );
 
 
-    if (!list) return;
+    if (!list) {
+        return;
+    }
 
 
     const currentName =
@@ -1339,51 +1442,21 @@ function loadLeaderboard() {
         defaultUsername;
 
 
+    /*
+     * Настоящего общего рейтинга пока нет.
+     *
+     * Поэтому НЕ показываем выдуманных игроков.
+     * Показываем только текущего пользователя.
+     */
+
+
     list.innerHTML = `
 
-        <div class="leaderboard-row">
+        <div
+            class="leaderboard-row current-player">
 
             <span>
-                1. 👑 Банановый Король
-            </span>
-
-            <span>
-                150,400 🍌
-            </span>
-
-        </div>
-
-
-        <div class="leaderboard-row">
-
-            <span>
-                2. 🐒 Чипполино
-            </span>
-
-            <span>
-                98,200 🍌
-            </span>
-
-        </div>
-
-
-        <div class="leaderboard-row">
-
-            <span>
-                3. 🦍 Горилла Трейдер
-            </span>
-
-            <span>
-                75,000 🍌
-            </span>
-
-        </div>
-
-
-        <div class="leaderboard-row current-player">
-
-            <span>
-                📍 <b>${escapeHTML(currentName)} (Вы)</b>
+                📍 <b>${escapeHTML(currentName)}</b>
             </span>
 
             <span>
@@ -1392,30 +1465,20 @@ function loadLeaderboard() {
 
         </div>
 
+        <div class="leaderboard-empty">
+
+            Общий рейтинг появится после
+            подключения сервера.
+
+        </div>
+
     `;
+
 }
 
 
 // ======================================================
-// ЗАЩИТА ОТ HTML В НИКЕ
-// ======================================================
-
-function escapeHTML(text) {
-
-    const div =
-        document.createElement(
-            "div"
-        );
-
-    div.textContent =
-        text;
-
-    return div.innerHTML;
-}
-
-
-// ======================================================
-// ЗАКРЫТИЕ ПРОФИЛЯ
+// PLAYER PROFILE
 // ======================================================
 
 function closePlayerProfile() {
@@ -1425,17 +1488,40 @@ function closePlayerProfile() {
             "view-profile-modal"
         );
 
+
     if (modal) {
 
         modal.style.display =
             "none";
 
     }
+
 }
 
 
 // ======================================================
-// КЛИК ПО МОДАЛКАМ ВНЕ КОНТЕНТА
+// HTML SECURITY
+// ======================================================
+
+function escapeHTML(text) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        text;
+
+
+    return div.innerHTML;
+
+}
+
+
+// ======================================================
+// MODAL CLICK OUTSIDE
 // ======================================================
 
 window.addEventListener(
@@ -1447,12 +1533,14 @@ window.addEventListener(
                 "leaderboard-modal"
             );
 
+
         const rename =
             document.getElementById(
                 "rename-modal"
             );
 
-        const player =
+
+        const profile =
             document.getElementById(
                 "view-profile-modal"
             );
@@ -1477,7 +1565,7 @@ window.addEventListener(
 
 
         if (
-            event.target === player
+            event.target === profile
         ) {
 
             closePlayerProfile();
@@ -1486,3 +1574,27 @@ window.addEventListener(
 
     }
 );
+
+
+// ======================================================
+// УДОБСТВО: ESC ЗАКРЫВАЕТ ОКНО
+// ======================================================
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        if (event.key !== "Escape") {
+            return;
+        }
+
+
+        closeLeaderboard();
+
+        closeRenameModal();
+
+        closePlayerProfile();
+
+    }
+);
+```
