@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
 
-    <link rel="stylesheet" href="style.css?v=126">
+    <link rel="stylesheet" href="style.css?v=127">
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
@@ -14,10 +15,9 @@
 
 <div class="game-container">
 
-    <!-- Фоновые эффекты -->
     <div id="background-effects"></div>
 
-    <!-- ==================== ГЛАВНЫЙ ЭКРАН ==================== -->
+    <!-- ==================== ИГРА ==================== -->
 
     <div id="screen-game" class="screen active">
 
@@ -37,17 +37,21 @@
 
         </div>
 
+
         <div class="tap-content">
 
             <div id="tap-area" class="monkey-container">
+
                 <img
                     src="monkey.png"
                     alt="Monkey"
                     class="monkey-img"
                     draggable="false">
+
             </div>
 
         </div>
+
 
         <!-- Бонусы -->
 
@@ -61,6 +65,7 @@
 
                     <div>
                         <div class="upgrade-title">Друзья</div>
+
                         <div
                             class="upgrade-desc"
                             id="ref-count">
@@ -75,7 +80,7 @@
                     class="upgrade-btn action-btn"
                     onclick="shareReferralLink()">
 
-                    <span>Пригласить</span>
+                    Пригласить
 
                 </button>
 
@@ -89,10 +94,15 @@
                     <span class="upgrade-icon">📢</span>
 
                     <div>
-                        <div class="upgrade-title">Наш канал</div>
+
+                        <div class="upgrade-title">
+                            Наш канал
+                        </div>
+
                         <div class="upgrade-desc">
                             +250 за подписку
                         </div>
+
                     </div>
 
                 </div>
@@ -102,7 +112,7 @@
                     class="upgrade-btn action-btn"
                     onclick="claimChannelReward()">
 
-                    <span>Проверить</span>
+                    Проверить
 
                 </button>
 
@@ -120,7 +130,8 @@
                 <span>⚡ Энергия</span>
 
                 <span>
-                    <span id="energy-display">1000</span> / 1000
+                    <span id="energy-display">1000</span>
+                    / 1000
                 </span>
 
             </div>
@@ -148,9 +159,11 @@
             <h2>🚀 Прокачка</h2>
 
             <div class="passive-header-info">
+
                 Пассивный доход:
                 <span id="passive-income-display">0.0</span>
                 🍌/сек
+
             </div>
 
         </div>
@@ -173,11 +186,13 @@
                         </div>
 
                         <div class="upgrade-desc">
+
                             Уровень:
                             <span id="multitap-level">1</span>
 
                             (+<span id="multitap-power">0.2</span>
                             к тапу)
+
                         </div>
 
                     </div>
@@ -189,7 +204,8 @@
                     class="upgrade-btn"
                     onclick="buyMultitap()">
 
-                    💰 <span id="multitap-cost">50</span>
+                    💰
+                    <span id="multitap-cost">50</span>
 
                 </button>
 
@@ -230,7 +246,8 @@
                     class="upgrade-btn"
                     onclick="buyPassive(1)">
 
-                    💰 <span id="p1-cost">100</span>
+                    💰
+                    <span id="p1-cost">100</span>
 
                 </button>
 
@@ -264,7 +281,7 @@
                             id="p2-desc">
 
                             +2.0 🍌/сек
-                            (Требование: 1 куст)
+                            (Треб: 1 куст)
 
                         </div>
 
@@ -275,9 +292,11 @@
                 <button
                     id="passive-2-btn"
                     class="upgrade-btn"
-                    onclick="buyPassive(2)">
+                    onclick="buyPassive(2)"
+                    disabled>
 
-                    💰 <span id="p2-cost">1000</span>
+                    💰
+                    <span id="p2-cost">1000</span>
 
                 </button>
 
@@ -297,9 +316,10 @@
         </div>
 
 
-        <div class="boosts-list profile-list">
+        <div class="boosts-list">
 
-            <div class="upgrade-card profile-card">
+            <div
+                class="upgrade-card profile-card">
 
                 <div class="profile-top">
 
@@ -320,7 +340,9 @@
                     <button
                         class="rename-btn"
                         onclick="openRenameModal()">
+
                         ✏️ Изменить
+
                     </button>
 
                 </div>
@@ -378,12 +400,12 @@
     </div>
 
 
-    <!-- ==================== НИЖНЯЯ НАВИГАЦИЯ ==================== -->
+    <!-- ==================== NAV ==================== -->
 
     <div class="bottom-nav">
 
         <button
-            class="nav-item active nav-btn"
+            class="nav-item active"
             onclick="switchTab('screen-game', this)">
 
             <span class="nav-icon">🪙</span>
@@ -391,9 +413,8 @@
 
         </button>
 
-
         <button
-            class="nav-item nav-btn"
+            class="nav-item"
             onclick="switchTab('screen-boosts', this)">
 
             <span class="nav-icon">🚀</span>
@@ -401,9 +422,8 @@
 
         </button>
 
-
         <button
-            class="nav-item nav-btn"
+            class="nav-item"
             onclick="switchTab('screen-profile', this)">
 
             <span class="nav-icon">👤</span>
@@ -427,7 +447,7 @@
 
         <div class="modal-header">
 
-            <h3>🏆 Топ-10 Игроков</h3>
+            <h3>🏆 Рейтинг</h3>
 
             <button
                 class="close-btn"
@@ -459,7 +479,7 @@
     class="modal"
     style="display:none;">
 
-    <div class="modal-content profile-view-modal">
+    <div class="modal-content">
 
         <button
             class="profile-modal-close"
@@ -467,7 +487,7 @@
             &times;
         </button>
 
-        <h3>
+        <h3 class="player-profile-title">
             Профиль игрока 🐒
         </h3>
 
@@ -475,9 +495,7 @@
 
             <p>
                 <b>Имя:</b>
-                <span id="vp-username">
-                    Загрузка...
-                </span>
+                <span id="vp-username">...</span>
             </p>
 
             <p>
@@ -516,9 +534,7 @@
 
     <div class="modal-content rename-modal-content">
 
-        <h3>
-            Сменить никнейм
-        </h3>
+        <h3>Сменить никнейм</h3>
 
         <input
             type="text"
@@ -530,14 +546,14 @@
         <div class="rename-actions">
 
             <button
-                onclick="saveUsername()"
-                class="save-name-btn">
+                class="save-name-btn"
+                onclick="saveUsername()">
                 Сохранить
             </button>
 
             <button
-                onclick="closeRenameModal()"
-                class="cancel-name-btn">
+                class="cancel-name-btn"
+                onclick="closeRenameModal()">
                 Отмена
             </button>
 
@@ -548,9 +564,78 @@
 </div>
 
 
-<!-- Основной скрипт -->
+<!-- ==================== TAP ==================== -->
 
-<script src="script.js?v=126"></script>
+<script>
+
+let tapLocked = false;
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    const tapArea =
+        document.getElementById("tap-area");
+
+    if (!tapArea) return;
+
+
+    function triggerTap(event) {
+
+        event.preventDefault();
+
+        /*
+         * На телефоне touchstart вызывает тап.
+         * Последующий click от этого же касания
+         * игнорируем.
+         */
+
+        if (event.type === "click" && tapLocked) {
+
+            tapLocked = false;
+
+            return;
+
+        }
+
+
+        if (event.type === "touchstart") {
+
+            tapLocked = true;
+
+        }
+
+
+        if (
+            typeof window.handleTap === "function"
+        ) {
+
+            window.handleTap(event);
+
+        }
+
+    }
+
+
+    tapArea.addEventListener(
+        "touchstart",
+        triggerTap,
+        {
+            passive: false
+        }
+    );
+
+
+    tapArea.addEventListener(
+        "click",
+        triggerTap
+    );
+
+});
+
+</script>
+
+
+<script src="script.js?v=127"></script>
 
 </body>
 </html>
+```
