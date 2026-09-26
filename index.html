@@ -1,119 +1,103 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Monkey Tapper</title>
 
-    <link rel="stylesheet" href="style.css?v=127">
+    <link rel="stylesheet" href="style.css?v=200">
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body>
 
-<div class="game-container">
+<div class="app">
 
-    <div id="background-effects"></div>
+    <!-- ================= ИГРА ================= -->
 
-    <!-- ==================== ИГРА ==================== -->
+    <section id="game-screen" class="screen active">
 
-    <div id="screen-game" class="screen active">
+        <header class="top-bar">
 
-        <div class="header">
-
-            <div class="coins-container">
-                <span class="coin-icon">💰</span>
-                <span id="coins-display">0.0</span>
+            <div class="balance">
+                <span>🍌</span>
+                <strong id="coins">0.0</strong>
             </div>
 
-            <button
-                id="leaderboard-btn"
-                class="leaderboard-btn"
-                onclick="openLeaderboard()">
-                🏆 Рейтинг
+            <button id="leaderboard-open" class="top-button">
+                🏆 Топ
             </button>
 
-        </div>
+        </header>
 
 
-        <div class="tap-content">
+        <main class="game-content">
 
-            <div id="tap-area" class="monkey-container">
+            <div
+                id="tap-button"
+                class="monkey-button"
+                role="button"
+                aria-label="Тап">
 
                 <img
                     src="monkey.png"
                     alt="Monkey"
-                    class="monkey-img"
-                    draggable="false">
+                    draggable="false"
+                    class="monkey-image">
 
             </div>
 
-        </div>
+        </main>
 
 
-        <!-- Бонусы -->
+        <div class="bonuses">
 
-        <div class="main-screen-bonuses">
+            <div class="bonus-card">
 
-            <div class="upgrade-card compact-card">
-
-                <div class="upgrade-info">
-
-                    <span class="upgrade-icon">👥</span>
+                <div class="bonus-left">
+                    <div class="bonus-icon">👥</div>
 
                     <div>
-                        <div class="upgrade-title">Друзья</div>
+                        <div class="bonus-title">
+                            Друзья
+                        </div>
 
                         <div
-                            class="upgrade-desc"
-                            id="ref-count">
+                            class="bonus-description"
+                            id="refs">
                             Приглашено: 0
                         </div>
                     </div>
-
                 </div>
 
-                <button
-                    id="ref-btn"
-                    class="upgrade-btn action-btn"
-                    onclick="shareReferralLink()">
-
+                <button id="ref-button">
                     Пригласить
-
                 </button>
 
             </div>
 
 
-            <div class="upgrade-card compact-card">
+            <div class="bonus-card">
 
-                <div class="upgrade-info">
-
-                    <span class="upgrade-icon">📢</span>
+                <div class="bonus-left">
+                    <div class="bonus-icon">📢</div>
 
                     <div>
-
-                        <div class="upgrade-title">
+                        <div class="bonus-title">
                             Наш канал
                         </div>
 
-                        <div class="upgrade-desc">
-                            +250 за подписку
+                        <div class="bonus-description">
+                            +250 🍌
                         </div>
-
                     </div>
-
                 </div>
 
-                <button
-                    id="channel-btn"
-                    class="upgrade-btn action-btn"
-                    onclick="claimChannelReward()">
-
-                    Проверить
-
+                <button id="channel-button">
+                    Получить
                 </button>
 
             </div>
@@ -121,63 +105,55 @@
         </div>
 
 
-        <!-- Энергия -->
+        <div class="energy">
 
-        <div class="energy-container">
-
-            <div class="energy-info">
+            <div class="energy-header">
 
                 <span>⚡ Энергия</span>
 
                 <span>
-                    <span id="energy-display">1000</span>
-                    / 1000
+                    <span id="energy">1000</span> / 1000
                 </span>
 
             </div>
 
-            <div class="energy-bar-background">
-
+            <div class="energy-track">
                 <div
-                    id="energy-bar-fill"
-                    class="energy-bar-fill">
+                    id="energy-fill"
+                    class="energy-fill">
                 </div>
-
             </div>
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- ==================== ПРОКАЧКА ==================== -->
+    <!-- ================= ПРОКАЧКА ================= -->
 
-    <div id="screen-boosts" class="screen">
+    <section id="boosts-screen" class="screen">
 
-        <div class="boosts-header">
+        <div class="page-header">
 
-            <h2>🚀 Прокачка</h2>
+            <h1>🚀 Прокачка</h1>
 
-            <div class="passive-header-info">
-
-                Пассивный доход:
-                <span id="passive-income-display">0.0</span>
-                🍌/сек
-
+            <div>
+                Пассив:
+                <b id="passive">0.0</b> 🍌/сек
             </div>
 
         </div>
 
 
-        <div class="boosts-list">
+        <div class="upgrades">
 
-            <!-- Мультитап -->
-
-            <div class="upgrade-card">
+            <div class="upgrade">
 
                 <div class="upgrade-info">
 
-                    <span class="upgrade-icon">👆</span>
+                    <div class="upgrade-icon">
+                        👆
+                    </div>
 
                     <div>
 
@@ -185,13 +161,13 @@
                             Мультитап
                         </div>
 
-                        <div class="upgrade-desc">
+                        <div class="upgrade-description">
 
                             Уровень:
-                            <span id="multitap-level">1</span>
+                            <span id="tap-level">1</span>
 
-                            (+<span id="multitap-power">0.2</span>
-                            к тапу)
+                            · Сила:
+                            <span id="tap-power">0.2</span>
 
                         </div>
 
@@ -199,28 +175,23 @@
 
                 </div>
 
-                <button
-                    id="multitap-btn"
-                    class="upgrade-btn"
-                    onclick="buyMultitap()">
 
-                    💰
-                    <span id="multitap-cost">50</span>
+                <button id="tap-upgrade">
+
+                    🍌 <span id="tap-cost">50</span>
 
                 </button>
 
             </div>
 
 
-            <!-- Пассив 1 -->
-
-            <div
-                class="upgrade-card"
-                id="card-passive-1">
+            <div class="upgrade">
 
                 <div class="upgrade-info">
 
-                    <span class="upgrade-icon">🌿</span>
+                    <div class="upgrade-icon">
+                        🌿
+                    </div>
 
                     <div>
 
@@ -228,12 +199,12 @@
                             Банановый куст
                         </div>
 
-                        <div class="upgrade-desc">
+                        <div class="upgrade-description">
 
                             Уровень:
-                            <span id="p1-level">0</span>
+                            <span id="bush-level">0</span>
 
-                            (+0.5 🍌/сек)
+                            · +0.5 🍌/сек
 
                         </div>
 
@@ -241,62 +212,52 @@
 
                 </div>
 
-                <button
-                    id="passive-1-btn"
-                    class="upgrade-btn"
-                    onclick="buyPassive(1)">
 
-                    💰
-                    <span id="p1-cost">100</span>
+                <button id="bush-upgrade">
+
+                    🍌 <span id="bush-cost">100</span>
 
                 </button>
 
             </div>
 
 
-            <!-- Пассив 2 -->
-
             <div
-                class="upgrade-card locked"
-                id="card-passive-2">
+                id="plantation-card"
+                class="upgrade locked">
 
                 <div class="upgrade-info">
 
-                    <span
-                        class="upgrade-icon"
-                        id="p2-icon">
+                    <div
+                        id="plantation-icon"
+                        class="upgrade-icon">
                         🔒
-                    </span>
+                    </div>
 
                     <div>
 
                         <div
-                            class="upgrade-title"
-                            id="p2-title">
-                            Заблокировано
+                            id="plantation-title"
+                            class="upgrade-title">
+                            Большая плантация
                         </div>
 
                         <div
-                            class="upgrade-desc"
-                            id="p2-desc">
-
-                            +2.0 🍌/сек
-                            (Треб: 1 куст)
-
+                            id="plantation-description"
+                            class="upgrade-description">
+                            Требуется 1 уровень куста
                         </div>
 
                     </div>
 
                 </div>
 
+
                 <button
-                    id="passive-2-btn"
-                    class="upgrade-btn"
-                    onclick="buyPassive(2)"
+                    id="plantation-upgrade"
                     disabled>
 
-                    💰
-                    <span id="p2-cost">1000</span>
+                    🍌 <span id="plantation-cost">1000</span>
 
                 </button>
 
@@ -304,165 +265,162 @@
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- ==================== ПРОФИЛЬ ==================== -->
+    <!-- ================= ПРОФИЛЬ ================= -->
 
-    <div id="screen-profile" class="screen">
+    <section id="profile-screen" class="screen">
 
-        <div class="boosts-header">
-            <h2>👤 Профиль</h2>
+        <div class="page-header">
+
+            <h1>👤 Профиль</h1>
+
         </div>
 
 
-        <div class="boosts-list">
+        <div class="profile-card">
 
-            <div
-                class="upgrade-card profile-card">
+            <div class="profile-name-row">
 
-                <div class="profile-top">
+                <div>
 
-                    <div>
-
-                        <div class="profile-label">
-                            Никнейм игрока:
-                        </div>
-
-                        <div
-                            class="profile-name"
-                            id="profile-username">
-                            Загрузка...
-                        </div>
-
+                    <div class="small-label">
+                        Никнейм
                     </div>
 
-                    <button
-                        class="rename-btn"
-                        onclick="openRenameModal()">
-
-                        ✏️ Изменить
-
-                    </button>
-
-                </div>
-
-
-                <div class="profile-id">
-
-                    ID:
-                    <span id="profile-userid">
-                        ...
-                    </span>
-
-                </div>
-
-
-                <hr>
-
-
-                <div class="profile-stats">
-
-                    <div>
-                        💰 Монет на балансе:
-                        <strong id="prof-coins">0.0</strong>
-                    </div>
-
-                    <div>
-                        👆 Сила тапа:
-                        <strong id="prof-tap">0.2</strong>
-                    </div>
-
-                    <div>
-                        ⚡ Пассивный доход:
-                        <strong id="prof-passive">0.0</strong>
-                        🍌/сек
-                    </div>
-
-                    <div>
-                        🔋 Энергия:
-                        <strong id="prof-energy">
-                            1000 / 1000
-                        </strong>
-                    </div>
-
-                    <div>
-                        👥 Приглашено друзей:
-                        <strong id="prof-refs">0</strong>
+                    <div
+                        id="profile-name"
+                        class="profile-name">
+                        Игрок
                     </div>
 
                 </div>
 
+
+                <button id="rename-button">
+                    ✏️
+                </button>
+
+            </div>
+
+
+            <div class="profile-id">
+
+                ID:
+                <span id="profile-id">—</span>
+
+            </div>
+
+
+            <div class="profile-line">
+                🍌 Монеты:
+                <b id="profile-coins">0.0</b>
+            </div>
+
+            <div class="profile-line">
+                👆 Сила тапа:
+                <b id="profile-tap">0.2</b>
+            </div>
+
+            <div class="profile-line">
+                ⚡ Пассив:
+                <b id="profile-passive">0.0</b> 🍌/сек
+            </div>
+
+            <div class="profile-line">
+                🔋 Энергия:
+                <b id="profile-energy">1000 / 1000</b>
+            </div>
+
+            <div class="profile-line">
+                👥 Друзья:
+                <b id="profile-refs">0</b>
             </div>
 
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- ==================== NAV ==================== -->
+    <!-- ================= НИЖНЕЕ МЕНЮ ================= -->
 
-    <div class="bottom-nav">
+    <nav class="bottom-nav">
 
         <button
-            class="nav-item active"
-            onclick="switchTab('screen-game', this)">
+            class="nav-button active"
+            data-screen="game-screen">
 
-            <span class="nav-icon">🪙</span>
-            <span class="nav-text">Клик</span>
+            <span>🍌</span>
+            <small>Клик</small>
 
         </button>
 
-        <button
-            class="nav-item"
-            onclick="switchTab('screen-boosts', this)">
 
-            <span class="nav-icon">🚀</span>
-            <span class="nav-text">Прокачка</span>
+        <button
+            class="nav-button"
+            data-screen="boosts-screen">
+
+            <span>🚀</span>
+            <small>Прокачка</small>
 
         </button>
 
-        <button
-            class="nav-item"
-            onclick="switchTab('screen-profile', this)">
 
-            <span class="nav-icon">👤</span>
-            <span class="nav-text">Профиль</span>
+        <button
+            class="nav-button"
+            data-screen="profile-screen">
+
+            <span>👤</span>
+            <small>Профиль</small>
 
         </button>
 
-    </div>
+    </nav>
 
 </div>
 
 
-<!-- ==================== РЕЙТИНГ ==================== -->
+<!-- ================= РЕЙТИНГ ================= -->
 
 <div
     id="leaderboard-modal"
-    class="modal"
-    style="display:none;">
+    class="modal hidden">
 
-    <div class="modal-content">
+    <div class="modal-box">
 
         <div class="modal-header">
 
-            <h3>🏆 Рейтинг</h3>
+            <h2>🏆 Рейтинг</h2>
 
-            <button
-                class="close-btn"
-                onclick="closeLeaderboard()">
-                &times;
+            <button id="leaderboard-close">
+                ×
             </button>
 
         </div>
 
-        <div
-            id="leaderboard-list"
-            class="leaderboard-list">
 
-            <p class="loading-text">
-                Загрузка рейтинга...
+        <div id="leaderboard">
+
+            <div class="your-score">
+
+                <span>
+                    📍 <b id="leaderboard-name">
+                        Игрок
+                    </b>
+                </span>
+
+                <b>
+                    <span id="leaderboard-coins">0.0</span>
+                    🍌
+                </b>
+
+            </div>
+
+
+            <p class="no-ranking">
+                Общий рейтинг появится после
+                подключения сервера.
             </p>
 
         </div>
@@ -472,88 +430,29 @@
 </div>
 
 
-<!-- ==================== ПРОФИЛЬ ИГРОКА ==================== -->
-
-<div
-    id="view-profile-modal"
-    class="modal"
-    style="display:none;">
-
-    <div class="modal-content">
-
-        <button
-            class="profile-modal-close"
-            onclick="closePlayerProfile()">
-            &times;
-        </button>
-
-        <h3 class="player-profile-title">
-            Профиль игрока 🐒
-        </h3>
-
-        <div class="player-profile-info">
-
-            <p>
-                <b>Имя:</b>
-                <span id="vp-username">...</span>
-            </p>
-
-            <p>
-                <b>💰 Монеты:</b>
-                <span id="vp-coins">...</span>
-            </p>
-
-            <p>
-                <b>⚡ Сила тапа:</b>
-                <span id="vp-tap">...</span>
-            </p>
-
-            <p>
-                <b>📈 Пассивный доход:</b>
-                <span id="vp-passive">...</span>/сек
-            </p>
-
-            <p>
-                <b>👥 Приглашено друзей:</b>
-                <span id="vp-refs">...</span>
-            </p>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- ==================== СМЕНА НИКА ==================== -->
+<!-- ================= СМЕНА НИКА ================= -->
 
 <div
     id="rename-modal"
-    class="modal"
-    style="display:none;">
+    class="modal hidden">
 
-    <div class="modal-content rename-modal-content">
+    <div class="modal-box rename-box">
 
-        <h3>Сменить никнейм</h3>
+        <h2>Сменить ник</h2>
 
         <input
+            id="rename-input"
             type="text"
-            id="username-input"
-            placeholder="Введи новый ник"
             maxlength="15"
-            autocomplete="off">
+            placeholder="Новый ник">
 
-        <div class="rename-actions">
+        <div class="rename-buttons">
 
-            <button
-                class="save-name-btn"
-                onclick="saveUsername()">
+            <button id="rename-save">
                 Сохранить
             </button>
 
-            <button
-                class="cancel-name-btn"
-                onclick="closeRenameModal()">
+            <button id="rename-cancel">
                 Отмена
             </button>
 
@@ -564,78 +463,7 @@
 </div>
 
 
-<!-- ==================== TAP ==================== -->
-
-<script>
-
-let tapLocked = false;
-
-window.addEventListener("DOMContentLoaded", () => {
-
-    const tapArea =
-        document.getElementById("tap-area");
-
-    if (!tapArea) return;
-
-
-    function triggerTap(event) {
-
-        event.preventDefault();
-
-        /*
-         * На телефоне touchstart вызывает тап.
-         * Последующий click от этого же касания
-         * игнорируем.
-         */
-
-        if (event.type === "click" && tapLocked) {
-
-            tapLocked = false;
-
-            return;
-
-        }
-
-
-        if (event.type === "touchstart") {
-
-            tapLocked = true;
-
-        }
-
-
-        if (
-            typeof window.handleTap === "function"
-        ) {
-
-            window.handleTap(event);
-
-        }
-
-    }
-
-
-    tapArea.addEventListener(
-        "touchstart",
-        triggerTap,
-        {
-            passive: false
-        }
-    );
-
-
-    tapArea.addEventListener(
-        "click",
-        triggerTap
-    );
-
-});
-
-</script>
-
-
-<script src="script.js?v=127"></script>
+<script src="script.js?v=200"></script>
 
 </body>
 </html>
-```
