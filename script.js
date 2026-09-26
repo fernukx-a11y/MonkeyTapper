@@ -219,18 +219,6 @@ function setupTap() {
     }
 
 
-    /*
-       Один единственный обработчик.
-
-       pointerdown работает:
-       - мышью
-       - пальцем
-       - стилусом
-
-       Поэтому нам не нужны одновременно
-       touchstart / click / pointerdown.
-    */
-
     tapButton.addEventListener(
         "pointerdown",
         event => {
@@ -313,10 +301,6 @@ function animateMonkey() {
         "tap-effect"
     );
 
-
-    /*
-       Перезапускаем CSS-анимацию.
-    */
 
     void monkey.offsetWidth;
 
@@ -927,8 +911,6 @@ function updatePlantationUI() {
     const button =
         $("plantation-upgrade");
 
-    const description =
-        $("plantation-description");
 
     if (!card || !button) {
         return;
@@ -1289,21 +1271,7 @@ function updateLeaderboard() {
 function shareReferral() {
 
     const botUsername =
-        "YOUR_BOT_USERNAME";
-
-
-    if (
-        botUsername ===
-        "YOUR_BOT_USERNAME"
-    ) {
-
-        alert(
-            "Сначала укажи username своего Telegram-бота в script.js."
-        );
-
-        return;
-
-    }
+        "MonkeyTapperTGbot";
 
 
     const link =
