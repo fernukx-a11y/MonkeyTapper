@@ -4,268 +4,553 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Monkey Tapper</title>
-    <!-- Подключаем стили -->
-    <link rel="stylesheet" href="style.css?v=125">
-    <!-- Подключаем Telegram Web App SDK -->
+
+    <link rel="stylesheet" href="style.css?v=126">
+
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
+
 <body>
 
-    <div class="game-container">
-        
-        <!-- Контейнер для фоновых падающих бананов -->
-        <div id="background-effects"></div>
-        
-        <!-- Главный экран (Кликер) -->
-        <div id="screen-game" class="screen active">
-            <div class="header">
-                <div class="coins-container">
-                    <span class="coin-icon">💰</span>
-                    <span id="coins-display">0</span>
-                </div>
-                <button id="leaderboard-btn" class="leaderboard-btn" onclick="document.getElementById('leaderboard-modal').style.display='flex'; loadLeaderboard();">🏆 Рейтинг</button>
+<div class="game-container">
+
+    <!-- Фоновые эффекты -->
+    <div id="background-effects"></div>
+
+    <!-- ==================== ГЛАВНЫЙ ЭКРАН ==================== -->
+
+    <div id="screen-game" class="screen active">
+
+        <div class="header">
+
+            <div class="coins-container">
+                <span class="coin-icon">💰</span>
+                <span id="coins-display">0.0</span>
             </div>
 
-            <div class="tap-content">
-                <div id="tap-area" class="monkey-container">
-                    <img src="monkey.png" alt="Monkey" class="monkey-img" draggable="false">
-                </div>
-            </div>
-
-            <div class="main-screen-bonuses">
-                <div class="upgrade-card compact-card">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">👥</span>
-                        <div>
-                            <div class="upgrade-title">Друзья</div>
-                            <div class="upgrade-desc" id="ref-count">Приглашено: 0</div>
-                        </div>
-                    </div>
-                    <button id="ref-btn" class="upgrade-btn action-btn" onclick="shareReferralLink()">
-                        <span>Пригласить</span>
-                    </button>
-                </div>
-
-                <div class="upgrade-card compact-card">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">📢</span>
-                        <div>
-                            <div class="upgrade-title">Наш канал</div>
-                            <div class="upgrade-desc">+250 за подписку</div>
-                        </div>
-                    </div>
-                    <button id="channel-btn" class="upgrade-btn action-btn" onclick="claimChannelReward()">
-                        <span>Проверить</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="energy-container">
-                <div class="energy-info">
-                    <span>⚡ Энергия</span>
-                    <span><span id="energy-display">1000</span> / 1000</span>
-                </div>
-                <div class="energy-bar-background">
-                    <div id="energy-bar-fill" class="energy-bar-fill"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экран прокачки -->
-        <div id="screen-boosts" class="screen">
-            <div class="boosts-header">
-                <h2>🚀 Прокачка</h2>
-                <div class="passive-header-info">
-                    Пассивный доход: <span id="passive-income-display">0</span> 🍌/сек
-                </div>
-            </div>
-            
-            <div class="boosts-list">
-                <div class="upgrade-card">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">👆</span>
-                        <div>
-                            <div class="upgrade-title">Мультитап</div>
-                            <div class="upgrade-desc">Уровень: <span id="multitap-level">1</span> (+<span id="multitap-power">1</span> к тапу)</div>
-                        </div>
-                    </div>
-                    <button id="multitap-btn" class="upgrade-btn" onclick="buyMultitap(event)">
-                        <span>💰 <span id="multitap-cost">50</span></span>
-                    </button>
-                </div>
-
-                <div class="upgrade-card" id="card-passive-1">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">🌿</span>
-                        <div>
-                            <div class="upgrade-title">Банановый куст</div>
-                            <div class="upgrade-desc">Уровень: <span id="p1-level">0</span> (+0.5 🍌/сек)</div>
-                        </div>
-                    </div>
-                    <button id="passive-1-btn" class="upgrade-btn" onclick="buyPassive(1)">
-                        <span>💰 <span id="p1-cost">100</span></span>
-                    </button>
-                </div>
-
-                <div class="upgrade-card locked" id="card-passive-2">
-                    <div class="upgrade-info">
-                        <span class="upgrade-icon">🔒</span>
-                        <div>
-                            <div class="upgrade-title">Заблокировано</div>
-                            <div class="upgrade-desc">+2.0 🍌/сек (Треб: куст или 500 монет)</div>
-                        </div>
-                    </div>
-                    <button id="passive-2-btn" class="upgrade-btn" onclick="buyPassive(2)">
-                        <span>💰 <span id="p2-cost">1000</span></span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Экран профиля -->
-        <div id="screen-profile" class="screen">
-            <div class="boosts-header">
-                <h2>👤 Профиль</h2>
-            </div>
-            
-            <div class="boosts-list" style="color: white; padding: 10px;">
-                <div class="upgrade-card" style="flex-direction: column; align-items: flex-start; gap: 12px; padding: 15px;">
-                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-size: 12px; opacity: 0.7;">Никнейм игрока:</div>
-                            <div style="font-size: 18px; font-weight: bold;" id="profile-username">Загрузка...</div>
-                        </div>
-                        <button onclick="openRenameModal()" style="background: #4CAF50; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer;">✏️ Изменить</button>
-                    </div>
-                    
-                    <div style="width: 100%; font-size: 13px; opacity: 0.8; word-break: break-all;">
-                        ID: <span id="profile-userid">...</span>
-                    </div>
-                    
-                    <hr style="width: 100%; border: 0.5px solid rgba(255,255,255,0.1); margin: 5px 0;">
-
-                    <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
-                        <div>💰 Монет на балансе: <strong id="prof-coins">0</strong></div>
-                        <div>👆 Сила тапа: <strong id="prof-tap">0.2</strong></div>
-                        <div>⚡ Пассивный доход: <strong id="prof-passive">0</strong> 🍌/сек</div>
-                        <div>🔋 Энергия: <strong id="prof-energy">1000 / 1000</strong></div>
-                        <div>👥 Приглашено друзей: <strong id="prof-refs">0</strong></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Нижняя навигация -->
-        <div class="bottom-nav">
-            <button class="nav-item active nav-btn" onclick="switchTab('screen-game', this)">
-                <span class="nav-icon">🪙</span>
-                <span class="nav-text">Клик</span>
+            <button
+                id="leaderboard-btn"
+                class="leaderboard-btn"
+                onclick="openLeaderboard()">
+                🏆 Рейтинг
             </button>
-            <button class="nav-item nav-btn" onclick="switchTab('screen-boosts', this)">
-                <span class="nav-icon">🚀</span>
-                <span class="nav-text">Прокачка</span>
+
+        </div>
+
+        <div class="tap-content">
+
+            <div id="tap-area" class="monkey-container">
+                <img
+                    src="monkey.png"
+                    alt="Monkey"
+                    class="monkey-img"
+                    draggable="false">
+            </div>
+
+        </div>
+
+        <!-- Бонусы -->
+
+        <div class="main-screen-bonuses">
+
+            <div class="upgrade-card compact-card">
+
+                <div class="upgrade-info">
+
+                    <span class="upgrade-icon">👥</span>
+
+                    <div>
+                        <div class="upgrade-title">Друзья</div>
+                        <div
+                            class="upgrade-desc"
+                            id="ref-count">
+                            Приглашено: 0
+                        </div>
+                    </div>
+
+                </div>
+
+                <button
+                    id="ref-btn"
+                    class="upgrade-btn action-btn"
+                    onclick="shareReferralLink()">
+
+                    <span>Пригласить</span>
+
+                </button>
+
+            </div>
+
+
+            <div class="upgrade-card compact-card">
+
+                <div class="upgrade-info">
+
+                    <span class="upgrade-icon">📢</span>
+
+                    <div>
+                        <div class="upgrade-title">Наш канал</div>
+                        <div class="upgrade-desc">
+                            +250 за подписку
+                        </div>
+                    </div>
+
+                </div>
+
+                <button
+                    id="channel-btn"
+                    class="upgrade-btn action-btn"
+                    onclick="claimChannelReward()">
+
+                    <span>Проверить</span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Энергия -->
+
+        <div class="energy-container">
+
+            <div class="energy-info">
+
+                <span>⚡ Энергия</span>
+
+                <span>
+                    <span id="energy-display">1000</span> / 1000
+                </span>
+
+            </div>
+
+            <div class="energy-bar-background">
+
+                <div
+                    id="energy-bar-fill"
+                    class="energy-bar-fill">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================== ПРОКАЧКА ==================== -->
+
+    <div id="screen-boosts" class="screen">
+
+        <div class="boosts-header">
+
+            <h2>🚀 Прокачка</h2>
+
+            <div class="passive-header-info">
+                Пассивный доход:
+                <span id="passive-income-display">0.0</span>
+                🍌/сек
+            </div>
+
+        </div>
+
+
+        <div class="boosts-list">
+
+            <!-- Мультитап -->
+
+            <div class="upgrade-card">
+
+                <div class="upgrade-info">
+
+                    <span class="upgrade-icon">👆</span>
+
+                    <div>
+
+                        <div class="upgrade-title">
+                            Мультитап
+                        </div>
+
+                        <div class="upgrade-desc">
+                            Уровень:
+                            <span id="multitap-level">1</span>
+
+                            (+<span id="multitap-power">0.2</span>
+                            к тапу)
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="multitap-btn"
+                    class="upgrade-btn"
+                    onclick="buyMultitap()">
+
+                    💰 <span id="multitap-cost">50</span>
+
+                </button>
+
+            </div>
+
+
+            <!-- Пассив 1 -->
+
+            <div
+                class="upgrade-card"
+                id="card-passive-1">
+
+                <div class="upgrade-info">
+
+                    <span class="upgrade-icon">🌿</span>
+
+                    <div>
+
+                        <div class="upgrade-title">
+                            Банановый куст
+                        </div>
+
+                        <div class="upgrade-desc">
+
+                            Уровень:
+                            <span id="p1-level">0</span>
+
+                            (+0.5 🍌/сек)
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="passive-1-btn"
+                    class="upgrade-btn"
+                    onclick="buyPassive(1)">
+
+                    💰 <span id="p1-cost">100</span>
+
+                </button>
+
+            </div>
+
+
+            <!-- Пассив 2 -->
+
+            <div
+                class="upgrade-card locked"
+                id="card-passive-2">
+
+                <div class="upgrade-info">
+
+                    <span
+                        class="upgrade-icon"
+                        id="p2-icon">
+                        🔒
+                    </span>
+
+                    <div>
+
+                        <div
+                            class="upgrade-title"
+                            id="p2-title">
+                            Заблокировано
+                        </div>
+
+                        <div
+                            class="upgrade-desc"
+                            id="p2-desc">
+
+                            +2.0 🍌/сек
+                            (Требование: 1 куст)
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    id="passive-2-btn"
+                    class="upgrade-btn"
+                    onclick="buyPassive(2)">
+
+                    💰 <span id="p2-cost">1000</span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================== ПРОФИЛЬ ==================== -->
+
+    <div id="screen-profile" class="screen">
+
+        <div class="boosts-header">
+            <h2>👤 Профиль</h2>
+        </div>
+
+
+        <div class="boosts-list profile-list">
+
+            <div class="upgrade-card profile-card">
+
+                <div class="profile-top">
+
+                    <div>
+
+                        <div class="profile-label">
+                            Никнейм игрока:
+                        </div>
+
+                        <div
+                            class="profile-name"
+                            id="profile-username">
+                            Загрузка...
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="rename-btn"
+                        onclick="openRenameModal()">
+                        ✏️ Изменить
+                    </button>
+
+                </div>
+
+
+                <div class="profile-id">
+
+                    ID:
+                    <span id="profile-userid">
+                        ...
+                    </span>
+
+                </div>
+
+
+                <hr>
+
+
+                <div class="profile-stats">
+
+                    <div>
+                        💰 Монет на балансе:
+                        <strong id="prof-coins">0.0</strong>
+                    </div>
+
+                    <div>
+                        👆 Сила тапа:
+                        <strong id="prof-tap">0.2</strong>
+                    </div>
+
+                    <div>
+                        ⚡ Пассивный доход:
+                        <strong id="prof-passive">0.0</strong>
+                        🍌/сек
+                    </div>
+
+                    <div>
+                        🔋 Энергия:
+                        <strong id="prof-energy">
+                            1000 / 1000
+                        </strong>
+                    </div>
+
+                    <div>
+                        👥 Приглашено друзей:
+                        <strong id="prof-refs">0</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================== НИЖНЯЯ НАВИГАЦИЯ ==================== -->
+
+    <div class="bottom-nav">
+
+        <button
+            class="nav-item active nav-btn"
+            onclick="switchTab('screen-game', this)">
+
+            <span class="nav-icon">🪙</span>
+            <span class="nav-text">Клик</span>
+
+        </button>
+
+
+        <button
+            class="nav-item nav-btn"
+            onclick="switchTab('screen-boosts', this)">
+
+            <span class="nav-icon">🚀</span>
+            <span class="nav-text">Прокачка</span>
+
+        </button>
+
+
+        <button
+            class="nav-item nav-btn"
+            onclick="switchTab('screen-profile', this)">
+
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Профиль</span>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- ==================== РЕЙТИНГ ==================== -->
+
+<div
+    id="leaderboard-modal"
+    class="modal"
+    style="display:none;">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3>🏆 Топ-10 Игроков</h3>
+
+            <button
+                class="close-btn"
+                onclick="closeLeaderboard()">
+                &times;
             </button>
-            <button class="nav-item nav-btn" onclick="switchTab('screen-profile', this)">
-                <span class="nav-icon">👤</span>
-                <span class="nav-text">Профиль</span>
+
+        </div>
+
+        <div
+            id="leaderboard-list"
+            class="leaderboard-list">
+
+            <p class="loading-text">
+                Загрузка рейтинга...
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==================== ПРОФИЛЬ ИГРОКА ==================== -->
+
+<div
+    id="view-profile-modal"
+    class="modal"
+    style="display:none;">
+
+    <div class="modal-content profile-view-modal">
+
+        <button
+            class="profile-modal-close"
+            onclick="closePlayerProfile()">
+            &times;
+        </button>
+
+        <h3>
+            Профиль игрока 🐒
+        </h3>
+
+        <div class="player-profile-info">
+
+            <p>
+                <b>Имя:</b>
+                <span id="vp-username">
+                    Загрузка...
+                </span>
+            </p>
+
+            <p>
+                <b>💰 Монеты:</b>
+                <span id="vp-coins">...</span>
+            </p>
+
+            <p>
+                <b>⚡ Сила тапа:</b>
+                <span id="vp-tap">...</span>
+            </p>
+
+            <p>
+                <b>📈 Пассивный доход:</b>
+                <span id="vp-passive">...</span>/сек
+            </p>
+
+            <p>
+                <b>👥 Приглашено друзей:</b>
+                <span id="vp-refs">...</span>
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==================== СМЕНА НИКА ==================== -->
+
+<div
+    id="rename-modal"
+    class="modal"
+    style="display:none;">
+
+    <div class="modal-content rename-modal-content">
+
+        <h3>
+            Сменить никнейм
+        </h3>
+
+        <input
+            type="text"
+            id="username-input"
+            placeholder="Введи новый ник"
+            maxlength="15"
+            autocomplete="off">
+
+        <div class="rename-actions">
+
+            <button
+                onclick="saveUsername()"
+                class="save-name-btn">
+                Сохранить
             </button>
+
+            <button
+                onclick="closeRenameModal()"
+                class="cancel-name-btn">
+                Отмена
+            </button>
+
         </div>
 
     </div>
 
-    <!-- Модальные окна -->
-    <div id="leaderboard-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>🏆 Топ-10 Игроков</h3>
-                <button id="close-modal" class="close-btn" onclick="document.getElementById('leaderboard-modal').style.display='none'">&times;</button>
-            </div>
-            <div id="leaderboard-list" class="leaderboard-list">
-                <p class="loading-text">Загрузка рейтинга...</p>
-            </div>
-        </div>
-    </div>
+</div>
 
-    <div id="view-profile-modal" class="modal" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
-        <div class="modal-content" style="background: #1e1e1e; padding: 20px; border-radius: 12px; text-align: left; width: 85%; max-width: 320px; border: 1px solid rgba(255,255,255,0.1); color: white; position: relative;">
-            <button onclick="document.getElementById('view-profile-modal').style.display='none'" style="position: absolute; top: 12px; right: 15px; background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: white; text-align: center;">Профиль игрока 🐒</h3>
-            <div style="font-size: 15px; line-height: 1.8;">
-                <p><b>Имя:</b> <span id="vp-username">Загрузка...</span></p>
-                <p><b>💰 Монеты:</b> <span id="vp-coins">...</span></p>
-                <p><b>⚡ Сила тапа:</b> <span id="vp-tap">...</span></p>
-                <p><b>📈 Пассивный доход:</b> <span id="vp-passive">...</span>/сек</p>
-                <p><b>👥 Приглашено друзей:</b> <span id="vp-refs">...</span></p>
-            </div>
-        </div>
-    </div>
 
-    <div id="rename-modal" class="modal" style="display: none; justify-content: center; align-items: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
-        <div class="modal-content" style="background: #1e1e1e; padding: 20px; border-radius: 12px; text-align: center; width: 85%; max-width: 320px; border: 1px solid rgba(255,255,25,0.1);">
-            <h3 style="margin-top: 0; color: white;">Сменить никнейм</h3>
-            <input type="text" id="username-input" placeholder="Введи новый ник" maxlength="15" style="padding: 10px; width: 90%; margin: 15px 0; border-radius: 6px; border: none; background: #2a2a2a; color: white; font-size: 16px; text-align: center;">
-            <br>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button onclick="saveUsername()" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Сохранить</button>
-                <button onclick="document.getElementById('rename-modal').style.display='none'" style="padding: 8px 16px; background: #555; color: white; border: none; border-radius: 6px; cursor: pointer;">Отмена</button>
-            </div>
-        </div>
-    </div>
+<!-- Основной скрипт -->
 
-    <!-- Управление вкладками и надежный кликер -->
-    <script>
-        function switchTab(screenId, btnElement) {
-            const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => s.classList.remove('active'));
+<script src="script.js?v=126"></script>
 
-            const targetScreen = document.getElementById(screenId);
-            if (targetScreen) {
-                targetScreen.classList.add('active');
-            }
-
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(n => n.classList.remove('active'));
-            
-            if (btnElement) {
-                const item = btnElement.closest('.nav-item') || btnElement;
-                item.classList.add('active');
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const tapArea = document.getElementById('tap-area');
-            
-            if (tapArea) {
-                const triggerTap = (e) => {
-                    // Предотвращаем дефолтные зумы/скроллы на мобилках
-                    if (e.type === 'touchstart') {
-                        e.preventDefault();
-                    }
-
-                    tapArea.classList.add('tapped');
-                    setTimeout(() => {
-                        tapArea.classList.remove('tapped');
-                    }, 80);
-
-                    // Вибрация Telegram
-                    const tg = window.Telegram ? window.Telegram.WebApp : null;
-                    if (tg && tg.HapticFeedback) {
-                        tg.HapticFeedback.impactOccurred('medium');
-                    }
-
-                    // Вызываем функцию начисления монет из script.js
-                    if (typeof window.handleTap === 'function') {
-                        window.handleTap(e);
-                    }
-                };
-
-                tapArea.addEventListener('touchstart', triggerTap, { passive: false });
-                tapArea.addEventListener('click', triggerTap);
-            }
-        });
-    </script>
-
-    <!-- Подключаем основной скрипт игры -->
-    <script src="script.js?v=125"></script>
 </body>
 </html>
