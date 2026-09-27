@@ -1,675 +1,863 @@
-const tg = window.Telegram?.WebApp;
+const tg = window.Telegram && window.Telegram.WebApp
+    ? window.Telegram.WebApp
+    : null;
 
 if (tg) {
     tg.ready();
     tg.expand();
 }
 
-const $ = (id) => document.getElementById(id);
 
-const userId =
-    tg?.initDataUnsafe?.user?.id ||
-    Math.floor(Math.random() * 1000000000);
+/* ================= НАСТРОЙКИ ================= */
 
-const telegramUser =
-    tg?.initDataUnsafe?.user || null;
+const MAX_ENERGY = 1000;
+const ENERGY_REGEN = 1;
+const ENERGY_REGEN_TIME = 3000;
 
 
-// =========================
-// GAME STATE
-// =========================
+/* ================= TELEGRAM USER ================= */
 
-let coins = Number(localStorage.getItem("coins")) || 0;
-let energy = Number(localStorage.getItem("energy")) || 100;
+let userId = "local";
 
-let tapPower = Number(localStorage.getItem("tapPower")) || 1;
-let tapLevel = Number(localStorage.getItem("tapLevel")) || 1;
-let tapCost = Number(localStorage.getItem("tapCost")) || 50;
+if (
+    tg &&
+    tg.initDataUnsafe &&
+    tg.initDataUnsafe.user
+) {
+    userId = String(tg.initDataUnsafe.user.id);
+}
 
-let passiveIncome =
-    Number(localStorage.getItem("passiveIncome")) || 0;
 
-let bushLevel =
-    Number(localStorage.getItem("bushLevel")) || 0;
+/* ================= СОХРАНЕНИЕ ================= */
 
-let bushCost =
-    Number(localStorage.getItem("bushCost")) || 250;
+/*
+    После изменения максимальной энергии со 100 на 1000
+    один раз сбрасываем старое значение.
+*/
 
-let plantationLevel =
-    Number(localStorage.getItem("plantationLevel")) || 0;
+let energyVersion = localStorage.getItem("energy-version");
 
-let plantationCost =
-    Number(localStorage.getItem("plantationCost")) || 1000;
+let energy;
 
-let refs =
-    Number(localStorage.getItem("refs")) || 0;
+if (energyVersion !== "1000") {
+
+    energy = MAX_ENERGY;
+
+    localStorage.setItem(
+        "energy-version",
+        "1000"
+    );
+
+    localStorage.setItem(
+        "energy",
+        String(MAX_ENERGY)
+    );
+
+} else {
+
+    energy = Number(
+        localStorage.getItem("energy")
+    );
+
+    if (!Number.isFinite(energy)) {
+        energy = MAX_ENERGY;
+    }
+
+    energy = Math.max(
+        0,
+        Math.min(energy, MAX_ENERGY)
+    );
+}
+
+
+let coins = Number(
+    localStorage.getItem("coins")
+);
+
+if (!Number.isFinite(coins)) {
+    coins = 0;
+}
+
+
+let tapPower = Number(
+    localStorage.getItem("tapPower")
+);
+
+if (!Number.isFinite(tapPower)) {
+    tapPower = 0.1;
+}
+
+
+/*
+    Если старое значение силы тапа было 1,
+    переводим его на новую систему 0.1.
+*/
+if (tapPower === 1) {
+    tapPower = 0.1;
+}
+
+
+let passiveIncome = Number(
+    localStorage.getItem("passiveIncome")
+);
+
+if (!Number.isFinite(passiveIncome)) {
+    passiveIncome = 0;
+}
+
+
+let tapLevel = Number(
+    localStorage.getItem("tapLevel")
+);
+
+if (!Number.isFinite(tapLevel)) {
+    tapLevel = 1;
+}
+
+
+let bushLevel = Number(
+    localStorage.getItem("bushLevel")
+);
+
+if (!Number.isFinite(bushLevel)) {
+    bushLevel = 0;
+}
+
+
+let plantationLevel = Number(
+    localStorage.getItem("plantationLevel")
+);
+
+if (!Number.isFinite(plantationLevel)) {
+    plantationLevel = 0;
+}
+
+
+let refs = Number(
+    localStorage.getItem("refs")
+);
+
+if (!Number.isFinite(refs)) {
+    refs = 0;
+}
+
 
 let playerName =
-    localStorage.getItem("playerName") ||
-    telegramUser?.first_name ||
-    "Игрок";
+    localStorage.getItem("playerName") || "Игрок";
 
 
-// =========================
-// SAVE
-// =========================
+/* ================= ЦЕНЫ ================= */
+
+let tapCost = 50;
+let bushCost = 250;
+let plantationCost = 1000;
+
+
+/* ================= ЭЛЕМЕНТЫ ================= */
+
+const coinsElement =
+    document.getElementById("coins");
+
+const energyElement =
+    document.getElementById("energy");
+
+const energyFill =
+    document.getElementById("energy-fill");
+
+const tapPowerElement =
+    document.getElementById("tap-power");
+
+const passiveElement =
+    document.getElementById("passive");
+
+const tapLevelElement =
+    document.getElementById("tap-level");
+
+const bushLevelElement =
+    document.getElementById("bush-level");
+
+const plantationLevelElement =
+    document.getElementById("plantation-level");
+
+const tapCostElement =
+    document.getElementById("tap-cost");
+
+const bushCostElement =
+    document.getElementById("bush-cost");
+
+const plantationCostElement =
+    document.getElementById("plantation-cost");
+
+const profileNameElement =
+    document.getElementById("profile-name");
+
+const profileCoinsElement =
+    document.getElementById("profile-coins");
+
+const profilePassiveElement =
+    document.getElementById("profile-passive");
+
+const refsElement =
+    document.getElementById("refs");
+
+
+/* ================= СОХРАНЕНИЕ ================= */
 
 function saveGame() {
 
-    localStorage.setItem("coins", coins);
-    localStorage.setItem("energy", energy);
+    localStorage.setItem(
+        "coins",
+        String(coins)
+    );
 
-    localStorage.setItem("tapPower", tapPower);
-    localStorage.setItem("tapLevel", tapLevel);
-    localStorage.setItem("tapCost", tapCost);
+    localStorage.setItem(
+        "energy",
+        String(energy)
+    );
 
-    localStorage.setItem("passiveIncome", passiveIncome);
+    localStorage.setItem(
+        "tapPower",
+        String(tapPower)
+    );
 
-    localStorage.setItem("bushLevel", bushLevel);
-    localStorage.setItem("bushCost", bushCost);
+    localStorage.setItem(
+        "passiveIncome",
+        String(passiveIncome)
+    );
 
-    localStorage.setItem("plantationLevel", plantationLevel);
-    localStorage.setItem("plantationCost", plantationCost);
+    localStorage.setItem(
+        "tapLevel",
+        String(tapLevel)
+    );
 
-    localStorage.setItem("refs", refs);
-    localStorage.setItem("playerName", playerName);
+    localStorage.setItem(
+        "bushLevel",
+        String(bushLevel)
+    );
+
+    localStorage.setItem(
+        "plantationLevel",
+        String(plantationLevel)
+    );
+
+    localStorage.setItem(
+        "refs",
+        String(refs)
+    );
+
+    localStorage.setItem(
+        "playerName",
+        playerName
+    );
 }
 
 
-// =========================
-// UI
-// =========================
+/* ================= ФОРМАТ МОНЕТ ================= */
 
-function updateAllUI() {
+function formatCoins(value) {
 
-    if ($("coins")) {
-        $("coins").textContent = Math.floor(coins);
-    }
+    return Number(value)
+        .toFixed(1)
+        .replace(/\.0$/, ".0");
 
-    if ($("energy")) {
-        $("energy").textContent = Math.floor(energy);
-    }
-
-    if ($("tap-power")) {
-        $("tap-power").textContent = tapPower;
-    }
-
-    if ($("passive")) {
-        $("passive").textContent = passiveIncome;
-    }
-
-    if ($("tap-level")) {
-        $("tap-level").textContent = tapLevel;
-    }
-
-    if ($("tap-cost")) {
-        $("tap-cost").textContent = tapCost;
-    }
-
-    if ($("bush-level")) {
-        $("bush-level").textContent = bushLevel;
-    }
-
-    if ($("bush-cost")) {
-        $("bush-cost").textContent = bushCost;
-    }
-
-    if ($("plantation-level")) {
-        $("plantation-level").textContent = plantationLevel;
-    }
-
-    if ($("plantation-cost")) {
-        $("plantation-cost").textContent = plantationCost;
-    }
-
-    if ($("refs")) {
-        $("refs").textContent = refs;
-    }
-
-    if ($("profile-name")) {
-        $("profile-name").textContent = playerName;
-    }
-
-    if ($("profile-coins")) {
-        $("profile-coins").textContent = Math.floor(coins);
-    }
-
-    if ($("profile-passive")) {
-        $("profile-passive").textContent =
-            passiveIncome + "/сек";
-    }
 }
 
 
-// =========================
-// TAP
-// =========================
+/* ================= ОБНОВЛЕНИЕ UI ================= */
 
-function setupTap() {
+function updateUI() {
 
-    const button = $("monkey-button");
+    coinsElement.textContent =
+        formatCoins(coins);
 
-    if (!button) {
-        return;
+    energyElement.textContent =
+        Math.floor(energy);
+
+    const energyPercent =
+        (energy / MAX_ENERGY) * 100;
+
+    energyFill.style.width =
+        energyPercent + "%";
+
+
+    tapPowerElement.textContent =
+        tapPower.toFixed(1);
+
+    passiveElement.textContent =
+        passiveIncome.toFixed(1);
+
+
+    tapLevelElement.textContent =
+        tapLevel;
+
+    bushLevelElement.textContent =
+        bushLevel;
+
+    plantationLevelElement.textContent =
+        plantationLevel;
+
+
+    tapCostElement.textContent =
+        tapCost;
+
+    bushCostElement.textContent =
+        bushCost;
+
+    plantationCostElement.textContent =
+        plantationCost;
+
+
+    profileNameElement.textContent =
+        playerName;
+
+    profileCoinsElement.textContent =
+        formatCoins(coins);
+
+    profilePassiveElement.textContent =
+        passiveIncome.toFixed(1) + "/сек";
+
+    refsElement.textContent =
+        refs;
+}
+
+
+/* ================= ВИБРАЦИЯ ================= */
+
+function vibrateTap() {
+
+    if (
+        tg &&
+        tg.HapticFeedback &&
+        typeof tg.HapticFeedback.impactOccurred === "function"
+    ) {
+        tg.HapticFeedback.impactOccurred("light");
     }
 
-    button.addEventListener("click", function () {
+}
+
+
+/* ================= ТАП ================= */
+
+const monkeyButton =
+    document.getElementById("monkey-button");
+
+monkeyButton.addEventListener(
+    "click",
+    function () {
 
         if (energy <= 0) {
+
+            if (
+                tg &&
+                tg.HapticFeedback &&
+                typeof tg.HapticFeedback.notificationOccurred === "function"
+            ) {
+                tg.HapticFeedback.notificationOccurred(
+                    "warning"
+                );
+            }
+
             return;
         }
 
+
+        /*
+            1 тап = +0.1 монеты
+        */
+
         coins += tapPower;
-        energy--;
 
-        animateMonkey();
-        createFloatingCoin(tapPower);
+        energy -= 1;
 
-        updateAllUI();
+        energy = Math.max(
+            0,
+            Math.min(energy, MAX_ENERGY)
+        );
+
+
+        vibrateTap();
+
+        updateUI();
+
         saveGame();
 
-        if (tg && tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred("light");
+    }
+);
+
+
+/* ================= ВОССТАНОВЛЕНИЕ ЭНЕРГИИ ================= */
+
+setInterval(
+    function () {
+
+        if (energy < MAX_ENERGY) {
+
+            energy += ENERGY_REGEN;
+
+            energy = Math.min(
+                energy,
+                MAX_ENERGY
+            );
+
+            updateUI();
+
+            saveGame();
         }
-    });
-}
+
+    },
+    ENERGY_REGEN_TIME
+);
 
 
-function animateMonkey() {
+/* ================= ПАССИВНЫЙ ДОХОД ================= */
 
-    const button = $("monkey-button");
+setInterval(
+    function () {
 
-    if (!button) {
-        return;
-    }
+        if (passiveIncome > 0) {
 
-    button.classList.remove("tapped");
+            coins += passiveIncome;
 
-    void button.offsetWidth;
+            updateUI();
 
-    button.classList.add("tapped");
+            saveGame();
+        }
 
-    setTimeout(function () {
-        button.classList.remove("tapped");
-    }, 100);
-}
-
-
-// =========================
-// FLOATING COIN
-// =========================
-
-function createFloatingCoin(amount) {
-
-    const app = $("app");
-
-    if (!app) {
-        return;
-    }
-
-    const coin = document.createElement("div");
-
-    coin.className = "floating-coin";
-    coin.textContent = "+" + amount;
-
-    const button = $("monkey-button");
-
-    if (button) {
-
-        const rect = button.getBoundingClientRect();
-        const appRect = app.getBoundingClientRect();
-
-        coin.style.left =
-            rect.left -
-            appRect.left +
-            rect.width / 2 +
-            "px";
-
-        coin.style.top =
-            rect.top -
-            appRect.top +
-            rect.height / 2 +
-            "px";
-    }
-
-    app.appendChild(coin);
-
-    setTimeout(function () {
-        coin.remove();
-    }, 800);
-}
+    },
+    1000
+);
 
 
-// =========================
-// UPGRADES
-// =========================
+/* ================= ПОКУПКА СИЛЫ ТАПА ================= */
 
-function buyTapUpgrade() {
+document
+    .getElementById("buy-tap")
+    .addEventListener(
+        "click",
+        function () {
 
-    if (coins < tapCost) {
-        return;
-    }
-
-    coins -= tapCost;
-    tapLevel++;
-    tapPower++;
-
-    tapCost = Math.floor(tapCost * 1.55);
-
-    updateAllUI();
-    saveGame();
-}
-
-
-function buyBush() {
-
-    if (coins < bushCost) {
-        return;
-    }
-
-    coins -= bushCost;
-    bushLevel++;
-    passiveIncome++;
-
-    bushCost = Math.floor(bushCost * 1.7);
-
-    updateAllUI();
-    saveGame();
-}
-
-
-function buyPlantation() {
-
-    if (coins < plantationCost) {
-        return;
-    }
-
-    coins -= plantationCost;
-    plantationLevel++;
-    passiveIncome += 5;
-
-    plantationCost =
-        Math.floor(plantationCost * 1.8);
-
-    updateAllUI();
-    saveGame();
-}
-
-
-// =========================
-// NAVIGATION
-// =========================
-
-function setupNavigation() {
-
-    const buttons =
-        document.querySelectorAll(".nav-button");
-
-    buttons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            const screenId =
-                button.dataset.screen;
-
-            document
-                .querySelectorAll(".screen")
-                .forEach(function (screen) {
-                    screen.classList.remove("active");
-                });
-
-            const screen = $(screenId);
-
-            if (screen) {
-                screen.classList.add("active");
+            if (coins < tapCost) {
+                return;
             }
 
-            buttons.forEach(function (btn) {
-                btn.classList.remove("active");
-            });
+            coins -= tapCost;
 
-            button.classList.add("active");
+            tapLevel += 1;
 
-            closeAllModals();
-        });
-    });
-}
+            /*
+                Каждая новая сила добавляет 0.1
+            */
+
+            tapPower += 0.1;
+
+            tapPower =
+                Math.round(tapPower * 10) / 10;
+
+            tapCost =
+                Math.floor(tapCost * 1.7);
+
+            updateUI();
+
+            saveGame();
+
+        }
+    );
 
 
-// =========================
-// OPEN / CLOSE MODALS
-// =========================
+/* ================= ПОКУПКА КУСТА ================= */
 
-function openModal(id) {
+document
+    .getElementById("buy-bush")
+    .addEventListener(
+        "click",
+        function () {
 
-    const modal = $(id);
+            if (coins < bushCost) {
+                return;
+            }
 
-    if (!modal) {
-        return;
+            coins -= bushCost;
+
+            bushLevel += 1;
+
+            passiveIncome += 0.1;
+
+            passiveIncome =
+                Math.round(
+                    passiveIncome * 10
+                ) / 10;
+
+            bushCost =
+                Math.floor(bushCost * 1.8);
+
+            updateUI();
+
+            saveGame();
+
+        }
+    );
+
+
+/* ================= ПОКУПКА ПЛАНТАЦИИ ================= */
+
+document
+    .getElementById("buy-plantation")
+    .addEventListener(
+        "click",
+        function () {
+
+            if (coins < plantationCost) {
+                return;
+            }
+
+            coins -= plantationCost;
+
+            plantationLevel += 1;
+
+            passiveIncome += 1;
+
+            passiveIncome =
+                Math.round(
+                    passiveIncome * 10
+                ) / 10;
+
+            plantationCost =
+                Math.floor(
+                    plantationCost * 2
+                );
+
+            updateUI();
+
+            saveGame();
+
+        }
+    );
+
+
+/* ================= НАВИГАЦИЯ ================= */
+
+const navButtons =
+    document.querySelectorAll(".nav-button");
+
+const screens =
+    document.querySelectorAll(".screen");
+
+
+navButtons.forEach(
+    function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                const target =
+                    button.dataset.screen;
+
+
+                screens.forEach(
+                    function (screen) {
+
+                        screen.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                navButtons.forEach(
+                    function (nav) {
+
+                        nav.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                const targetScreen =
+                    document.getElementById(target);
+
+                if (targetScreen) {
+
+                    targetScreen.classList.add(
+                        "active"
+                    );
+
+                }
+
+
+                button.classList.add(
+                    "active"
+                );
+
+
+                closeAllModals();
+
+            }
+        );
+
     }
+);
+
+
+/* ================= МОДАЛКИ ================= */
+
+const renameModal =
+    document.getElementById("rename-modal");
+
+const leaderboardModal =
+    document.getElementById(
+        "leaderboard-modal"
+    );
+
+
+function openModal(modal) {
 
     modal.classList.add("active");
-    modal.setAttribute("aria-hidden", "false");
+
 }
 
 
-function closeModal(id) {
-
-    const modal = $(id);
-
-    if (!modal) {
-        return;
-    }
+function closeModal(modal) {
 
     modal.classList.remove("active");
-    modal.setAttribute("aria-hidden", "true");
+
 }
 
 
 function closeAllModals() {
 
-    closeModal("rename-modal");
-    closeModal("leaderboard-modal");
+    closeModal(renameModal);
+
+    closeModal(leaderboardModal);
+
 }
 
 
-// =========================
-// BUTTONS
-// =========================
+/* ================= ИЗМЕНЕНИЕ ИМЕНИ ================= */
 
-function setupButtons() {
-
-    // Сила тапа
-    $("buy-tap")?.addEventListener(
-        "click",
-        buyTapUpgrade
-    );
-
-
-    // Куст
-    $("buy-bush")?.addEventListener(
-        "click",
-        buyBush
-    );
-
-
-    // Плантация
-    $("buy-plantation")?.addEventListener(
-        "click",
-        buyPlantation
-    );
-
-
-    // =========================
-    // ИЗМЕНИТЬ ИМЯ
-    // =========================
-
-    $("rename-button")?.addEventListener(
+document
+    .getElementById("rename-button")
+    .addEventListener(
         "click",
         function () {
 
-            const input = $("name-input");
+            const input =
+                document.getElementById(
+                    "name-input"
+                );
 
-            if (input) {
-                input.value = playerName;
-            }
+            input.value =
+                playerName === "Игрок"
+                    ? ""
+                    : playerName;
 
-            openModal("rename-modal");
+            openModal(renameModal);
+
+            setTimeout(
+                function () {
+                    input.focus();
+                },
+                100
+            );
+
         }
     );
 
 
-    // КРЕСТИК ИЗМЕНЕНИЯ ИМЕНИ
-    $("rename-cancel")?.addEventListener(
+document
+    .getElementById("rename-cancel")
+    .addEventListener(
         "click",
-        function (event) {
+        function () {
 
-            event.preventDefault();
-            event.stopPropagation();
+            closeModal(renameModal);
 
-            closeModal("rename-modal");
         }
     );
 
 
-    // СОХРАНИТЬ ИМЯ
-    $("rename-save")?.addEventListener(
+document
+    .getElementById("rename-save")
+    .addEventListener(
         "click",
         function () {
 
-            const input = $("name-input");
+            const input =
+                document.getElementById(
+                    "name-input"
+                );
 
-            if (!input) {
-                return;
-            }
-
-            const name =
+            const newName =
                 input.value.trim();
 
-            if (!name) {
+
+            if (newName.length === 0) {
                 return;
             }
 
-            playerName = name;
+
+            playerName =
+                newName.substring(0, 20);
+
+
+            updateUI();
 
             saveGame();
-            updateAllUI();
 
-            closeModal("rename-modal");
+            closeModal(renameModal);
+
         }
     );
 
 
-    // =========================
-    // ЛИДЕРБОРД
-    // =========================
+/* ================= ТАБЛИЦА ЛИДЕРОВ ================= */
 
-    $("leaderboard-button")?.addEventListener(
-        "click",
-        function () {
-            openModal("leaderboard-modal");
-        }
-    );
-
-
-    $("close-leaderboard")?.addEventListener(
-        "click",
-        function (event) {
-
-            event.preventDefault();
-            event.stopPropagation();
-
-            closeModal("leaderboard-modal");
-        }
-    );
-
-
-    // =========================
-    // ПРИГЛАСИТЬ ДРУГА
-    // =========================
-
-    $("ref-button")?.addEventListener(
-        "click",
-        shareReferral
-    );
-
-
-    // =========================
-    // НАШ КАНАЛ
-    // =========================
-
-    $("channel-button")?.addEventListener(
+document
+    .getElementById("leaderboard-button")
+    .addEventListener(
         "click",
         function () {
 
-            const channel =
-                "https://t.me/MonkeyTapper";
+            openModal(
+                leaderboardModal
+            );
 
-            if (tg && tg.openTelegramLink) {
+        }
+    );
 
-                tg.openTelegramLink(channel);
+
+document
+    .getElementById("close-leaderboard")
+    .addEventListener(
+        "click",
+        function () {
+
+            closeModal(
+                leaderboardModal
+            );
+
+        }
+    );
+
+
+/* ================= ЗАКРЫТИЕ ПО ФОНУ ================= */
+
+renameModal.addEventListener(
+    "click",
+    function (event) {
+
+        if (event.target === renameModal) {
+            closeModal(renameModal);
+        }
+
+    }
+);
+
+
+leaderboardModal.addEventListener(
+    "click",
+    function (event) {
+
+        if (event.target === leaderboardModal) {
+            closeModal(leaderboardModal);
+        }
+
+    }
+);
+
+
+/* ================= ПРИГЛАШЕНИЕ ================= */
+
+document
+    .getElementById("ref-button")
+    .addEventListener(
+        "click",
+        function () {
+
+            const botUsername =
+                "MonkeyTapperTGbot";
+
+            const link =
+                "https://t.me/" +
+                botUsername +
+                "?start=" +
+                userId;
+
+            const share =
+                "https://t.me/share/url?url=" +
+                encodeURIComponent(link) +
+                "&text=" +
+                encodeURIComponent(
+                    "🐒 Заходи в Monkey Tapper!"
+                );
+
+
+            if (
+                tg &&
+                typeof tg.openTelegramLink === "function"
+            ) {
+
+                tg.openTelegramLink(
+                    share
+                );
 
             } else {
 
                 window.open(
-                    channel,
+                    share,
                     "_blank"
                 );
+
             }
+
         }
     );
 
 
-    // Закрытие модального окна
-    // при нажатии на затемнённую область
-    $("rename-modal")?.addEventListener(
+/* ================= НАШ КАНАЛ ================= */
+
+document
+    .getElementById("channel-button")
+    .addEventListener(
         "click",
-        function (event) {
+        function () {
 
-            if (event.target === event.currentTarget) {
-                closeModal("rename-modal");
+            /*
+                ПОКА СЮДА ПОСТАВЬ ССЫЛКУ
+                НА СВОЙ TELEGRAM-КАНАЛ.
+            */
+
+            const channelLink =
+                "https://t.me/MonkeyTapperTG";
+
+
+            if (
+                tg &&
+                typeof tg.openTelegramLink === "function"
+            ) {
+
+                tg.openTelegramLink(
+                    channelLink
+                );
+
+            } else {
+
+                window.open(
+                    channelLink,
+                    "_blank"
+                );
+
             }
+
         }
     );
 
 
-    $("leaderboard-modal")?.addEventListener(
-        "click",
-        function (event) {
+/* ================= ЗАПУСК ================= */
 
-            if (event.target === event.currentTarget) {
-                closeModal("leaderboard-modal");
-            }
-        }
-    );
-}
+updateUI();
 
-
-// =========================
-// REFERRAL
-// =========================
-
-function shareReferral() {
-
-    const botUsername =
-        "MonkeyTapperTGbot";
-
-    const link =
-        "https://t.me/" +
-        botUsername +
-        "?start=" +
-        userId;
-
-    const share =
-        "https://t.me/share/url?url=" +
-        encodeURIComponent(link) +
-        "&text=" +
-        encodeURIComponent(
-            "🐒 Заходи в Monkey Tapper!"
-        );
-
-    if (tg && tg.openTelegramLink) {
-
-        tg.openTelegramLink(share);
-
-    } else {
-
-        window.open(
-            share,
-            "_blank"
-        );
-    }
-}
-
-
-// =========================
-// PASSIVE INCOME
-// =========================
-
-setInterval(function () {
-
-    if (passiveIncome > 0) {
-
-        coins += passiveIncome;
-
-        updateAllUI();
-        saveGame();
-    }
-
-}, 1000);
-
-
-// =========================
-// ENERGY
-// =========================
-
-setInterval(function () {
-
-    if (energy < 100) {
-
-        energy++;
-
-        updateAllUI();
-        saveGame();
-    }
-
-}, 3000);
-
-
-// =========================
-// START
-// =========================
-
-function init() {
-
-    // СНАЧАЛА закрываем все окна
-    closeAllModals();
-
-
-    // Показываем только игру
-    document
-        .querySelectorAll(".screen")
-        .forEach(function (screen) {
-            screen.classList.remove("active");
-        });
-
-
-    const gameScreen =
-        $("game-screen");
-
-    if (gameScreen) {
-        gameScreen.classList.add("active");
-    }
-
-
-    // Активируем кнопку "Игра"
-    document
-        .querySelectorAll(".nav-button")
-        .forEach(function (button) {
-            button.classList.remove("active");
-        });
-
-
-    const gameButton =
-        document.querySelector(
-            '[data-screen="game-screen"]'
-        );
-
-    if (gameButton) {
-        gameButton.classList.add("active");
-    }
-
-
-    updateAllUI();
-
-    setupTap();
-    setupButtons();
-    setupNavigation();
-
-
-    // Ещё раз закрываем окна после запуска
-    closeAllModals();
-}
-
-
-init();
+closeAllModals();
