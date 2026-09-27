@@ -100,7 +100,11 @@ button {
 .energy-fill {
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, #ffd43b, #ff9f1c);
+    background: linear-gradient(
+        90deg,
+        #ffd43b,
+        #ff9f1c
+    );
     border-radius: 10px;
     transition: width 0.2s ease;
 }
@@ -166,17 +170,15 @@ button {
 }
 
 
-/* ================= УЛУЧШЕНИЯ ================= */
+/* ================= БУСТЫ ================= */
 
-.upgrades {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+#boosts-screen .upgrade {
+    margin-bottom: 10px;
 }
 
 .upgrade {
     width: 100%;
-    min-height: 70px;
+    min-height: 76px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -193,14 +195,15 @@ button {
 }
 
 .upgrade-icon {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     background: #242424;
     border-radius: 12px;
-    font-size: 23px;
+    font-size: 24px;
 }
 
 .upgrade-info {
@@ -243,41 +246,6 @@ button {
 }
 
 
-/* ================= БУСТЫ ================= */
-
-.boost-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 17px;
-    margin-bottom: 12px;
-    background: #181818;
-    border: 1px solid #292929;
-    border-radius: 16px;
-}
-
-.boost-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    background: #252525;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-}
-
-.boost-card strong {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.boost-card span {
-    color: #888;
-    font-size: 13px;
-}
-
-
 /* ================= ПРОФИЛЬ ================= */
 
 .profile-card {
@@ -312,7 +280,6 @@ button {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
-    margin-bottom: 14px;
 }
 
 .profile-stat {
