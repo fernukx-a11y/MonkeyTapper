@@ -1,6 +1,9 @@
-const tg = window.Telegram && window.Telegram.WebApp
-    ? window.Telegram.WebApp
-    : null;
+const tg =
+    window.Telegram &&
+    window.Telegram.WebApp
+        ? window.Telegram.WebApp
+        : null;
+
 
 if (tg) {
     tg.ready();
@@ -15,7 +18,7 @@ const ENERGY_REGEN = 1;
 const ENERGY_REGEN_TIME = 3000;
 
 
-/* ================= TELEGRAM USER ================= */
+/* ================= ПОЛЬЗОВАТЕЛЬ ================= */
 
 let userId = "local";
 
@@ -24,18 +27,16 @@ if (
     tg.initDataUnsafe &&
     tg.initDataUnsafe.user
 ) {
-    userId = String(tg.initDataUnsafe.user.id);
+    userId = String(
+        tg.initDataUnsafe.user.id
+    );
 }
 
 
-/* ================= СОХРАНЕНИЕ ================= */
+/* ================= ЭНЕРГИЯ ================= */
 
-/*
-    После изменения максимальной энергии со 100 на 1000
-    один раз сбрасываем старое значение.
-*/
-
-let energyVersion = localStorage.getItem("energy-version");
+let energyVersion =
+    localStorage.getItem("energy-version");
 
 let energy;
 
@@ -65,10 +66,15 @@ if (energyVersion !== "1000") {
 
     energy = Math.max(
         0,
-        Math.min(energy, MAX_ENERGY)
+        Math.min(
+            energy,
+            MAX_ENERGY
+        )
     );
 }
 
+
+/* ================= ИГРОВЫЕ ДАННЫЕ ================= */
 
 let coins = Number(
     localStorage.getItem("coins")
@@ -89,9 +95,10 @@ if (!Number.isFinite(tapPower)) {
 
 
 /*
-    Если старое значение силы тапа было 1,
-    переводим его на новую систему 0.1.
+    Перевод старого значения 1
+    в новую систему 0.1
 */
+
 if (tapPower === 1) {
     tapPower = 0.1;
 }
@@ -143,10 +150,11 @@ if (!Number.isFinite(refs)) {
 
 
 let playerName =
-    localStorage.getItem("playerName") || "Игрок";
+    localStorage.getItem("playerName") ||
+    "Игрок";
 
 
-/* ================= ЦЕНЫ ================= */
+/* ================= ЦЕНЫ БУСТОВ ================= */
 
 let tapCost = 50;
 let bushCost = 250;
@@ -186,16 +194,24 @@ const bushCostElement =
     document.getElementById("bush-cost");
 
 const plantationCostElement =
-    document.getElementById("plantation-cost");
+    document.getElementById(
+        "plantation-cost"
+    );
 
 const profileNameElement =
-    document.getElementById("profile-name");
+    document.getElementById(
+        "profile-name"
+    );
 
 const profileCoinsElement =
-    document.getElementById("profile-coins");
+    document.getElementById(
+        "profile-coins"
+    );
 
 const profilePassiveElement =
-    document.getElementById("profile-passive");
+    document.getElementById(
+        "profile-passive"
+    );
 
 const refsElement =
     document.getElementById("refs");
@@ -257,21 +273,22 @@ function saveGame() {
 function formatCoins(value) {
 
     return Number(value)
-        .toFixed(1)
-        .replace(/\.0$/, ".0");
+        .toFixed(1);
 
 }
 
 
-/* ================= ОБНОВЛЕНИЕ UI ================= */
+/* ================= ОБНОВЛЕНИЕ ================= */
 
 function updateUI() {
 
     coinsElement.textContent =
         formatCoins(coins);
 
+
     energyElement.textContent =
         Math.floor(energy);
+
 
     const energyPercent =
         (energy / MAX_ENERGY) * 100;
@@ -283,6 +300,7 @@ function updateUI() {
     tapPowerElement.textContent =
         tapPower.toFixed(1);
 
+
     passiveElement.textContent =
         passiveIncome.toFixed(1);
 
@@ -290,8 +308,10 @@ function updateUI() {
     tapLevelElement.textContent =
         tapLevel;
 
+
     bushLevelElement.textContent =
         bushLevel;
+
 
     plantationLevelElement.textContent =
         plantationLevel;
@@ -300,8 +320,10 @@ function updateUI() {
     tapCostElement.textContent =
         tapCost;
 
+
     bushCostElement.textContent =
         bushCost;
+
 
     plantationCostElement.textContent =
         plantationCost;
@@ -310,11 +332,15 @@ function updateUI() {
     profileNameElement.textContent =
         playerName;
 
+
     profileCoinsElement.textContent =
         formatCoins(coins);
 
+
     profilePassiveElement.textContent =
-        passiveIncome.toFixed(1) + "/сек";
+        passiveIncome.toFixed(1) +
+        "/сек";
+
 
     refsElement.textContent =
         refs;
@@ -328,18 +354,25 @@ function vibrateTap() {
     if (
         tg &&
         tg.HapticFeedback &&
-        typeof tg.HapticFeedback.impactOccurred === "function"
+        typeof tg.HapticFeedback
+            .impactOccurred === "function"
     ) {
-        tg.HapticFeedback.impactOccurred("light");
+
+        tg.HapticFeedback
+            .impactOccurred("light");
+
     }
 
 }
 
 
-/* ================= ТАП ================= */
+/* ================= ТАП ОБЕЗЬЯНЫ ================= */
 
 const monkeyButton =
-    document.getElementById("monkey-button");
+    document.getElementById(
+        "monkey-button"
+    );
+
 
 monkeyButton.addEventListener(
     "click",
@@ -350,11 +383,16 @@ monkeyButton.addEventListener(
             if (
                 tg &&
                 tg.HapticFeedback &&
-                typeof tg.HapticFeedback.notificationOccurred === "function"
+                typeof tg.HapticFeedback
+                    .notificationOccurred ===
+                    "function"
             ) {
-                tg.HapticFeedback.notificationOccurred(
-                    "warning"
-                );
+
+                tg.HapticFeedback
+                    .notificationOccurred(
+                        "warning"
+                    );
+
             }
 
             return;
@@ -362,17 +400,27 @@ monkeyButton.addEventListener(
 
 
         /*
-            1 тап = +0.1 монеты
+            Сейчас базовый тап = 0.1 монеты.
         */
 
         coins += tapPower;
 
+        coins =
+            Math.round(
+                coins * 10
+            ) / 10;
+
+
         energy -= 1;
 
-        energy = Math.max(
-            0,
-            Math.min(energy, MAX_ENERGY)
-        );
+        energy =
+            Math.max(
+                0,
+                Math.min(
+                    energy,
+                    MAX_ENERGY
+                )
+            );
 
 
         vibrateTap();
@@ -385,7 +433,7 @@ monkeyButton.addEventListener(
 );
 
 
-/* ================= ВОССТАНОВЛЕНИЕ ЭНЕРГИИ ================= */
+/* ================= ЭНЕРГИЯ ================= */
 
 setInterval(
     function () {
@@ -394,14 +442,16 @@ setInterval(
 
             energy += ENERGY_REGEN;
 
-            energy = Math.min(
-                energy,
-                MAX_ENERGY
-            );
+            energy =
+                Math.min(
+                    energy,
+                    MAX_ENERGY
+                );
 
             updateUI();
 
             saveGame();
+
         }
 
     },
@@ -418,9 +468,15 @@ setInterval(
 
             coins += passiveIncome;
 
+            coins =
+                Math.round(
+                    coins * 10
+                ) / 10;
+
             updateUI();
 
             saveGame();
+
         }
 
     },
@@ -428,7 +484,7 @@ setInterval(
 );
 
 
-/* ================= ПОКУПКА СИЛЫ ТАПА ================= */
+/* ================= СИЛА ТАПА ================= */
 
 document
     .getElementById("buy-tap")
@@ -440,21 +496,24 @@ document
                 return;
             }
 
+
             coins -= tapCost;
 
             tapLevel += 1;
 
-            /*
-                Каждая новая сила добавляет 0.1
-            */
-
             tapPower += 0.1;
 
             tapPower =
-                Math.round(tapPower * 10) / 10;
+                Math.round(
+                    tapPower * 10
+                ) / 10;
+
 
             tapCost =
-                Math.floor(tapCost * 1.7);
+                Math.floor(
+                    tapCost * 1.7
+                );
+
 
             updateUI();
 
@@ -464,7 +523,7 @@ document
     );
 
 
-/* ================= ПОКУПКА КУСТА ================= */
+/* ================= КУСТ ================= */
 
 document
     .getElementById("buy-bush")
@@ -475,6 +534,7 @@ document
             if (coins < bushCost) {
                 return;
             }
+
 
             coins -= bushCost;
 
@@ -487,8 +547,12 @@ document
                     passiveIncome * 10
                 ) / 10;
 
+
             bushCost =
-                Math.floor(bushCost * 1.8);
+                Math.floor(
+                    bushCost * 1.8
+                );
+
 
             updateUI();
 
@@ -498,7 +562,7 @@ document
     );
 
 
-/* ================= ПОКУПКА ПЛАНТАЦИИ ================= */
+/* ================= ПЛАНТАЦИЯ ================= */
 
 document
     .getElementById("buy-plantation")
@@ -509,6 +573,7 @@ document
             if (coins < plantationCost) {
                 return;
             }
+
 
             coins -= plantationCost;
 
@@ -521,10 +586,12 @@ document
                     passiveIncome * 10
                 ) / 10;
 
+
             plantationCost =
                 Math.floor(
                     plantationCost * 2
                 );
+
 
             updateUI();
 
@@ -537,10 +604,14 @@ document
 /* ================= НАВИГАЦИЯ ================= */
 
 const navButtons =
-    document.querySelectorAll(".nav-button");
+    document.querySelectorAll(
+        ".nav-button"
+    );
 
 const screens =
-    document.querySelectorAll(".screen");
+    document.querySelectorAll(
+        ".screen"
+    );
 
 
 navButtons.forEach(
@@ -577,7 +648,10 @@ navButtons.forEach(
 
 
                 const targetScreen =
-                    document.getElementById(target);
+                    document.getElementById(
+                        target
+                    );
+
 
                 if (targetScreen) {
 
@@ -605,7 +679,9 @@ navButtons.forEach(
 /* ================= МОДАЛКИ ================= */
 
 const renameModal =
-    document.getElementById("rename-modal");
+    document.getElementById(
+        "rename-modal"
+    );
 
 const leaderboardModal =
     document.getElementById(
@@ -615,14 +691,18 @@ const leaderboardModal =
 
 function openModal(modal) {
 
-    modal.classList.add("active");
+    modal.classList.add(
+        "active"
+    );
 
 }
 
 
 function closeModal(modal) {
 
-    modal.classList.remove("active");
+    modal.classList.remove(
+        "active"
+    );
 
 }
 
@@ -636,7 +716,7 @@ function closeAllModals() {
 }
 
 
-/* ================= ИЗМЕНЕНИЕ ИМЕНИ ================= */
+/* ================= ИМЯ ================= */
 
 document
     .getElementById("rename-button")
@@ -649,16 +729,21 @@ document
                     "name-input"
                 );
 
+
             input.value =
                 playerName === "Игрок"
                     ? ""
                     : playerName;
 
+
             openModal(renameModal);
+
 
             setTimeout(
                 function () {
+
                     input.focus();
+
                 },
                 100
             );
@@ -673,7 +758,9 @@ document
         "click",
         function () {
 
-            closeModal(renameModal);
+            closeModal(
+                renameModal
+            );
 
         }
     );
@@ -690,6 +777,7 @@ document
                     "name-input"
                 );
 
+
             const newName =
                 input.value.trim();
 
@@ -700,14 +788,19 @@ document
 
 
             playerName =
-                newName.substring(0, 20);
+                newName.substring(
+                    0,
+                    20
+                );
 
 
             updateUI();
 
             saveGame();
 
-            closeModal(renameModal);
+            closeModal(
+                renameModal
+            );
 
         }
     );
@@ -716,7 +809,9 @@ document
 /* ================= ТАБЛИЦА ЛИДЕРОВ ================= */
 
 document
-    .getElementById("leaderboard-button")
+    .getElementById(
+        "leaderboard-button"
+    )
     .addEventListener(
         "click",
         function () {
@@ -730,7 +825,9 @@ document
 
 
 document
-    .getElementById("close-leaderboard")
+    .getElementById(
+        "close-leaderboard"
+    )
     .addEventListener(
         "click",
         function () {
@@ -743,14 +840,21 @@ document
     );
 
 
-/* ================= ЗАКРЫТИЕ ПО ФОНУ ================= */
+/* ================= ЗАКРЫТИЕ МОДАЛОК ================= */
 
 renameModal.addEventListener(
     "click",
     function (event) {
 
-        if (event.target === renameModal) {
-            closeModal(renameModal);
+        if (
+            event.target ===
+            renameModal
+        ) {
+
+            closeModal(
+                renameModal
+            );
+
         }
 
     }
@@ -761,15 +865,22 @@ leaderboardModal.addEventListener(
     "click",
     function (event) {
 
-        if (event.target === leaderboardModal) {
-            closeModal(leaderboardModal);
+        if (
+            event.target ===
+            leaderboardModal
+        ) {
+
+            closeModal(
+                leaderboardModal
+            );
+
         }
 
     }
 );
 
 
-/* ================= ПРИГЛАШЕНИЕ ================= */
+/* ================= ПРИГЛАСИТЬ ДРУГА ================= */
 
 document
     .getElementById("ref-button")
@@ -780,11 +891,13 @@ document
             const botUsername =
                 "MonkeyTapperTGbot";
 
+
             const link =
                 "https://t.me/" +
                 botUsername +
                 "?start=" +
                 userId;
+
 
             const share =
                 "https://t.me/share/url?url=" +
@@ -797,7 +910,8 @@ document
 
             if (
                 tg &&
-                typeof tg.openTelegramLink === "function"
+                typeof tg.openTelegramLink ===
+                    "function"
             ) {
 
                 tg.openTelegramLink(
@@ -826,8 +940,7 @@ document
         function () {
 
             /*
-                ПОКА СЮДА ПОСТАВЬ ССЫЛКУ
-                НА СВОЙ TELEGRAM-КАНАЛ.
+                Замени ссылку на свой канал.
             */
 
             const channelLink =
@@ -836,7 +949,8 @@ document
 
             if (
                 tg &&
-                typeof tg.openTelegramLink === "function"
+                typeof tg.openTelegramLink ===
+                    "function"
             ) {
 
                 tg.openTelegramLink(
