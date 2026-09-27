@@ -1,149 +1,172 @@
 * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
     -webkit-tap-highlight-color: transparent;
 }
 
 html,
 body {
+    margin: 0;
+    padding: 0;
     width: 100%;
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: #080b08;
+    min-height: 100%;
+    background: #101010;
     color: white;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
 }
 
 body {
-    display: flex;
-    justify-content: center;
+    min-height: 100vh;
 }
 
 button {
+    font-family: inherit;
     border: none;
     outline: none;
-    font-family: inherit;
-    color: inherit;
+    cursor: pointer;
 }
 
-.app {
-    position: relative;
-    width: 100%;
-    height: 100dvh;
-    max-width: 500px;
-    margin: 0 auto;
-    overflow: hidden;
-
-    background:
-        radial-gradient(
-            circle at 50% 35%,
-            #263c20 0%,
-            #172416 35%,
-            #0d120d 100%
-        );
+#app {
+    min-height: 100vh;
+    padding-bottom: 90px;
 }
+
+
+/* ================= ЭКРАНЫ ================= */
 
 .screen {
-    position: absolute;
-    inset: 0;
-    padding: 20px 18px 100px;
-    overflow-y: auto;
     display: none;
+    min-height: calc(100vh - 90px);
+    padding: 18px;
 }
 
 .screen.active {
     display: block;
 }
 
+
+/* ================= ВЕРХ ================= */
+
 .top-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-}
-
-.balance,
-.energy {
-    padding: 9px 13px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(10px);
-    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 .balance {
+    background: #1c1c1c;
+    border: 1px solid #2c2c2c;
+    padding: 10px 18px;
+    border-radius: 18px;
     font-size: 20px;
+    font-weight: bold;
 }
 
-.energy {
-    font-size: 16px;
+
+/* ================= ЭНЕРГИЯ ================= */
+
+.energy-box {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto 15px;
+    padding: 12px 14px;
+    background: #181818;
+    border: 1px solid #292929;
+    border-radius: 15px;
 }
+
+.energy-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #dcdcdc;
+}
+
+.energy-info b {
+    color: white;
+}
+
+.energy-track {
+    width: 100%;
+    height: 10px;
+    background: #303030;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.energy-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #ffd43b, #ff9f1c);
+    border-radius: 10px;
+    transition: width 0.2s ease;
+}
+
+
+/* ================= ИГРА ================= */
 
 .game-content {
-    height: 360px;
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    min-height: 280px;
 }
 
 .monkey-button {
-    width: 230px;
-    height: 230px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
+    width: 270px;
+    height: 270px;
     border-radius: 50%;
-    cursor: pointer;
-    touch-action: manipulation;
-
     background: transparent;
-
-    transition:
-        transform 0.08s ease,
-        filter 0.08s ease;
+    padding: 0;
+    transition: transform 0.08s ease;
 }
 
-.monkey-button:active,
-.monkey-button.tapped {
-    transform: scale(0.92);
-    filter: brightness(1.2);
+.monkey-button:active {
+    transform: scale(0.93);
 }
 
 .monkey-image {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    pointer-events: none;
     user-select: none;
-    -webkit-user-drag: none;
+    pointer-events: none;
 }
+
+
+/* ================= СТАТИСТИКА ================= */
 
 .stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: 15px;
 }
 
 .stat {
+    background: #181818;
+    border: 1px solid #292929;
+    border-radius: 14px;
     padding: 12px;
-    border-radius: 15px;
-    background: rgba(255, 255, 255, 0.07);
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .stat span {
-    display: block;
-    color: #aeb7aa;
-    font-size: 12px;
-    margin-bottom: 4px;
+    color: #929292;
+    font-size: 13px;
 }
 
 .stat b {
     font-size: 17px;
 }
+
+
+/* ================= УЛУЧШЕНИЯ ================= */
 
 .upgrades {
     display: flex;
@@ -154,21 +177,15 @@ button {
 .upgrade {
     width: 100%;
     min-height: 70px;
-
     display: flex;
     align-items: center;
     gap: 12px;
-
-    padding: 10px 13px;
-    border-radius: 17px;
-
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-
-    cursor: pointer;
+    padding: 12px;
+    background: #181818;
+    color: white;
+    border: 1px solid #292929;
+    border-radius: 15px;
     text-align: left;
-
-    transition: 0.15s;
 }
 
 .upgrade:active {
@@ -176,64 +193,78 @@ button {
 }
 
 .upgrade-icon {
-    width: 45px;
-    height: 45px;
-
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 13px;
-    background: rgba(255, 255, 255, 0.08);
-    font-size: 25px;
+    background: #242424;
+    border-radius: 12px;
+    font-size: 23px;
 }
 
 .upgrade-info {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .upgrade-info strong {
-    display: block;
     font-size: 15px;
-    margin-bottom: 5px;
 }
 
 .upgrade-info span {
-    color: #9fa89b;
+    color: #8e8e8e;
     font-size: 12px;
 }
 
 .upgrade-cost {
-    font-weight: 700;
-    white-space: nowrap;
+    font-size: 13px;
+    font-weight: bold;
 }
 
+
+/* ================= ЗАГОЛОВКИ ================= */
+
 .page-title {
-    padding-top: 20px;
-    margin-bottom: 25px;
+    text-align: center;
+    margin: 10px 0 25px;
 }
 
 .page-title h1 {
-    font-size: 30px;
-    margin-bottom: 5px;
+    margin: 0 0 7px;
+    font-size: 28px;
 }
 
 .page-title p {
-    color: #929b90;
+    margin: 0;
+    color: #858585;
 }
+
+
+/* ================= БУСТЫ ================= */
 
 .boost-card {
     display: flex;
     align-items: center;
-    gap: 15px;
-    padding: 16px;
+    gap: 14px;
+    padding: 17px;
     margin-bottom: 12px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
+    background: #181818;
+    border: 1px solid #292929;
+    border-radius: 16px;
 }
 
 .boost-icon {
-    font-size: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: #252525;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
 }
 
 .boost-card strong {
@@ -242,100 +273,115 @@ button {
 }
 
 .boost-card span {
-    color: #929b90;
+    color: #888;
     font-size: 13px;
 }
 
+
+/* ================= ПРОФИЛЬ ================= */
+
 .profile-card {
-    padding: 25px;
-    text-align: center;
-    margin-bottom: 15px;
-    background: rgba(255, 255, 255, 0.07);
+    background: #181818;
+    border: 1px solid #292929;
     border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    margin-bottom: 14px;
 }
 
 .profile-avatar {
-    font-size: 60px;
-    margin-bottom: 10px;
+    font-size: 58px;
+    margin-bottom: 8px;
 }
 
 .profile-name {
     font-size: 21px;
-    font-weight: 700;
-    margin-bottom: 15px;
+    font-weight: bold;
+    margin-bottom: 13px;
 }
 
-.profile-button,
-.big-button {
-    width: 100%;
-    padding: 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.1);
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.big-button {
-    margin-top: 10px;
+.profile-button {
+    padding: 9px 15px;
+    border-radius: 10px;
+    background: #292929;
+    color: white;
+    font-size: 13px;
 }
 
 .profile-stats {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+    margin-bottom: 14px;
 }
 
 .profile-stat {
-    padding: 14px;
-    display: flex;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 18px;
+    background: #181818;
+    border: 1px solid #292929;
+    border-radius: 14px;
+    padding: 12px 6px;
+    text-align: center;
 }
 
 .profile-stat span {
-    color: #aeb7aa;
+    display: block;
+    color: #8d8d8d;
+    font-size: 11px;
+    margin-bottom: 7px;
 }
 
+.profile-stat b {
+    font-size: 14px;
+}
+
+
+/* ================= КНОПКИ ================= */
+
+.big-button {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    background: #222;
+    border: 1px solid #303030;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.big-button:active {
+    transform: scale(0.98);
+}
+
+
+/* ================= НИЖНЕЕ МЕНЮ ================= */
+
 .bottom-nav {
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 12px;
-
-    height: 68px;
-
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-
-    border-radius: 20px;
-
-    background: rgba(12, 16, 12, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    backdrop-filter: blur(15px);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 78px;
+    background: rgba(18, 18, 18, 0.97);
+    border-top: 1px solid #292929;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .nav-button {
-    width: 30%;
-    height: 58px;
-
+    background: transparent;
+    color: #777;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-
-    background: transparent;
-    color: #777f75;
-
-    cursor: pointer;
+    gap: 4px;
 }
 
 .nav-button span {
-    font-size: 22px;
+    font-size: 23px;
 }
 
 .nav-button small {
@@ -346,24 +392,18 @@ button {
     color: white;
 }
 
-/* =========================
-   MODALS
-   ========================= */
+
+/* ================= МОДАЛКИ ================= */
 
 .modal {
-    position: absolute;
-    inset: 0;
-
     display: none !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
     align-items: center;
     justify-content: center;
-
     padding: 20px;
-
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(8px);
-
-    z-index: 100;
+    z-index: 1000;
 }
 
 .modal.active {
@@ -374,34 +414,45 @@ button {
     position: relative;
     width: 100%;
     max-width: 400px;
-
-    padding: 25px;
-
-    border-radius: 22px;
-
-    background: #172016;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #191919;
+    border: 1px solid #303030;
+    border-radius: 20px;
+    padding: 22px;
 }
 
 .modal-box h2 {
-    margin-bottom: 20px;
+    margin: 0 0 20px;
+    text-align: center;
 }
 
 .close-button {
     position: absolute;
-    top: 12px;
-    right: 12px;
-
-    width: 35px;
-    height: 35px;
-
+    right: 13px;
+    top: 13px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.08);
-
-    cursor: pointer;
-    z-index: 10;
+    background: #292929;
+    color: white;
+    font-size: 17px;
 }
+
+#name-input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    background: #101010;
+    color: white;
+    outline: none;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+
+/* ================= ЛИДЕРЫ ================= */
 
 .leaderboard-list {
     display: flex;
@@ -410,49 +461,31 @@ button {
 }
 
 .empty-leaderboard {
-    padding: 25px 10px;
     text-align: center;
-    color: #929b90;
+    color: #777;
+    padding: 30px 10px;
 }
 
-input {
-    width: 100%;
-    padding: 14px;
 
-    margin-bottom: 10px;
+/* ================= МОБИЛЬНЫЕ ================= */
 
-    border: none;
-    outline: none;
-    border-radius: 13px;
+@media (max-width: 380px) {
 
-    background: rgba(255, 255, 255, 0.08);
-    color: white;
-
-    font-size: 16px;
-}
-
-.floating-coin {
-    position: absolute;
-
-    color: #ffd84d;
-    font-size: 20px;
-    font-weight: 800;
-
-    pointer-events: none;
-
-    animation: coinFloat 0.8s ease-out forwards;
-    z-index: 20;
-}
-
-@keyframes coinFloat {
-
-    0% {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1);
+    .monkey-button {
+        width: 230px;
+        height: 230px;
     }
 
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -80px) scale(1.25);
+    .game-content {
+        min-height: 245px;
     }
+
+    .profile-stats {
+        gap: 5px;
+    }
+
+    .profile-stat {
+        padding: 10px 4px;
+    }
+
 }
